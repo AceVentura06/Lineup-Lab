@@ -1,7 +1,49 @@
 {
-  "hash": "61b86ef11c95c82c",
-  "updated": "2026-10-12T17:12:24.499Z",
+  "hash": "516230ca0ccde4a7",
+  "updated": "2026-10-12T17:28:25.944Z",
   "season": 2026,
   "week": 5,
-  "through": "Weeks 1–4 plus 14 of 15 week 5 games"
+  "through": "Weeks 1–4 plus 14 of 15 week 5 games",
+  "sources": {
+    "nflverse stats": {
+      "ok": true,
+      "detail": "5430 player-weeks"
+    },
+    "Next Gen Stats receiving": {
+      "ok": true,
+      "detail": "128 players"
+    },
+    "Next Gen Stats rushing": {
+      "ok": true,
+      "detail": "53 players"
+    },
+    "Next Gen Stats passing": {
+      "ok": true,
+      "detail": "40 players"
+    },
+    "Play-by-play": {
+      "ok": true,
+      "detail": "4907 targets, 4034 carries"
+    },
+    "FTN charting": {
+      "ok": true,
+      "detail": "10969 charted plays"
+    },
+    "NFL injury reports": {
+      "ok": true,
+      "detail": "361 entries for week 5"
+    },
+    "Betting lines": {
+      "ok": true,
+      "detail": "15 week 5 games, 15 with lines"
+    },
+    "Weather": {
+      "ok": true,
+      "detail": "0 outdoor games forecast"
+    },
+    "FantasyPros consensus": {
+      "ok": true,
+      "detail": "481 players"
+    }
+  }
 }
