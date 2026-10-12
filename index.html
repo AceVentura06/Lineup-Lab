@@ -227,7 +227,6 @@ td.none{color:var(--muted)}
     <button role="tab" data-tab="sites" id="t-sites">Site Projections</button>
     <button role="tab" data-tab="stats" id="t-stats">Player Stats</button>
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
-    <button role="tab" data-tab="players" id="t-players">Custom Players</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
   </nav>
 
@@ -319,45 +318,6 @@ td.none{color:var(--muted)}
   </section>
 
   <!-- PLAYERS -->
-  <section class="panel" id="p-players" role="tabpanel" hidden>
-    <div class="card">
-      <h2 id="formTitle">Add a player</h2>
-      <p class="muted" style="margin:4px 0 14px">Every NFL player with stats this season is already on the Start / Sit board. Use this only for someone missing, like a player returning from injury. Enter per-game averages from this season (any stats site lists them). The tool turns them into fantasy points for whatever scoring you pick.</p>
-      <form id="pForm" novalidate>
-        <div class="form-grid">
-          <div class="field"><label class="label" for="f-name">Name</label><input id="f-name" required></div>
-          <div class="field"><label class="label" for="f-pos">Position</label><select id="f-pos"><option>QB</option><option>RB</option><option>WR</option><option>TE</option><option>K</option><option>DST</option></select></div>
-          <div class="field"><label class="label" for="f-team">Team</label><input id="f-team" placeholder="e.g. NE"></div>
-          <div class="field"><label class="label" for="f-opp">This week's opponent</label><input id="f-opp" placeholder="e.g. @ BUF"></div>
-          <div class="field"><label class="label" for="f-oppRank">Opp. rank vs. position</label><input id="f-oppRank" type="number" min="1" max="32" value="16"><small>1 = toughest defense, 32 = easiest</small></div>
-          <div class="field"><label class="label" for="f-status">Status</label><select id="f-status"><option>Healthy</option><option>Questionable</option><option>Doubtful</option><option>Out</option><option>IR</option></select></div>
-          <div class="field"><label class="label" for="f-bye">Bye week</label><input id="f-bye" type="number" min="5" max="14" placeholder="e.g. 9"></div>
-          <div class="field"><label class="label" for="f-trend">Usage trend</label><select id="f-trend"><option>Rising</option><option selected>Steady</option><option>Falling</option></select><small>Snaps, targets, carries lately</small></div>
-          <div class="field"><label class="label" for="f-sched">Rest-of-season schedule</label><select id="f-sched"><option>Easy</option><option selected>Average</option><option>Hard</option></select></div>
-        </div>
-        <h3 style="margin:18px 0 10px">Per-game averages</h3>
-        <div class="form-grid" id="statFields"></div>
-        <div class="btns" style="margin-top:16px">
-          <button class="btn primary" type="submit" id="saveBtn">Add player</button>
-          <button class="btn" type="button" id="cancelEdit" hidden>Cancel edit</button>
-        </div>
-      </form>
-    </div>
-    <div class="hash"></div>
-    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <h2>Your list <span class="muted mono" id="countLbl" style="font-size:1rem"></span></h2>
-    </div>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>Player</th><th>Opp.</th><th>Status</th><th class="r">Avg pts</th><th>Trend</th><th>Bye</th><th></th></tr></thead>
-      <tbody id="listBody"></tbody>
-    </table></div>
-    <div class="card">
-      <h3>Back up or move your list</h3>
-      <p class="note" style="margin:4px 0 10px">Your players are saved in this browser only. Copy this text to keep a backup, or paste a saved list and load it.</p>
-      <textarea id="ioText" aria-label="Player list data"></textarea>
-      <div class="btns" style="margin-top:8px"><button class="btn sm" id="copyIO">Copy list</button><button class="btn sm" id="loadIO">Load pasted list</button></div>
-    </div>
-  </section>
 
   <!-- MODEL -->
   <section class="panel" id="p-model" role="tabpanel" hidden>
@@ -435,39 +395,10 @@ Total      = Pts/game × Games left</div>
 const KEY='lineuplab.v1';
 const DEF_W={match:.12,trend:.08,sched:.06,q:.10,vegas:.5,blend:.5};
 const VOL={QB:.22,RB:.30,WR:.35,TE:.38,K:.35,DST:.45};
-const STAT_FIELDS={
-  QB:[['passYds','Pass yds'],['passTD','Pass TD'],['int','INT'],['rushYds','Rush yds'],['rushTD','Rush TD'],['fum','Fumbles lost']],
-  RB:[['rushYds','Rush yds'],['rushTD','Rush TD'],['rec','Receptions'],['recYds','Rec yds'],['recTD','Rec TD'],['fum','Fumbles lost']],
-  WR:[['rec','Receptions'],['recYds','Rec yds'],['recTD','Rec TD'],['rushYds','Rush yds'],['rushTD','Rush TD'],['fum','Fumbles lost']],
-  TE:[['rec','Receptions'],['recYds','Rec yds'],['recTD','Rec TD'],['fum','Fumbles lost']],
-  K:[['avgPts','Avg fantasy pts']],DST:[['avgPts','Avg fantasy pts']]};
-const ALL_STATS=['passYds','passTD','int','rushYds','rushTD','rec','recYds','recTD','fum','avgPts'];
-
-function P(o){return Object.assign({id:Math.random().toString(36).slice(2,9),team:'',opp:'',oppRank:16,status:'Healthy',bye:'',trend:'Steady',sched:'Average',example:true},o)}
-const EXAMPLES=[
- P({name:'Dalton Reyes',pos:'QB',oppRank:24,bye:10,trend:'Steady',sched:'Easy',passYds:265,passTD:2.0,int:.7,rushYds:22,rushTD:.2,fum:.2}),
- P({name:'Cole Whitaker',pos:'QB',oppRank:9,bye:7,trend:'Rising',sched:'Average',passYds:228,passTD:1.6,int:.9,rushYds:46,rushTD:.4,fum:.3}),
- P({name:'Theo Banks',pos:'QB',oppRank:30,bye:12,trend:'Steady',sched:'Hard',passYds:212,passTD:1.3,int:.6,rushYds:12,rushTD:.1,fum:.1}),
- P({name:'Isaiah Monroe',pos:'RB',oppRank:18,bye:9,trend:'Steady',sched:'Average',rushYds:78,rushTD:.6,rec:3.4,recYds:27,recTD:.15,fum:.1}),
- P({name:'Andre Lowell',pos:'RB',oppRank:5,bye:11,trend:'Falling',sched:'Hard',rushYds:64,rushTD:.5,rec:1.6,recYds:11,recTD:.05,fum:.15}),
- P({name:'Kenji Fuller',pos:'RB',oppRank:27,bye:8,trend:'Rising',sched:'Easy',rushYds:41,rushTD:.3,rec:5.0,recYds:38,recTD:.2,fum:.05}),
- P({name:'Ruben Castillo',pos:'RB',oppRank:21,bye:6,status:'Questionable',trend:'Steady',sched:'Average',rushYds:57,rushTD:.4,rec:2.2,recYds:16,recTD:.1,fum:.1}),
- P({name:'Darius Holt',pos:'WR',oppRank:14,bye:9,trend:'Steady',sched:'Average',rec:6.8,recYds:91,recTD:.7,rushYds:3,fum:.05}),
- P({name:'Malik Ashford',pos:'WR',oppRank:29,bye:13,trend:'Rising',sched:'Easy',rec:5.3,recYds:71,recTD:.5,fum:.05}),
- P({name:'Tyson Garber',pos:'WR',oppRank:11,bye:7,trend:'Steady',sched:'Average',rec:7.6,recYds:67,recTD:.3,fum:.1}),
- P({name:'Evan Pryor',pos:'WR',oppRank:22,bye:10,trend:'Falling',sched:'Hard',rec:3.9,recYds:62,recTD:.5,rushYds:6,fum:0}),
- P({name:'Grant Okafor',pos:'TE',oppRank:26,bye:8,trend:'Steady',sched:'Average',rec:5.6,recYds:58,recTD:.5,fum:.05}),
- P({name:'Luke Bertrand',pos:'TE',oppRank:7,bye:11,trend:'Rising',sched:'Easy',rec:4.1,recYds:42,recTD:.4,fum:0}),
- P({name:'Sam Hadley',pos:'TE',oppRank:19,bye:6,status:'Doubtful',trend:'Steady',sched:'Hard',rec:3.3,recYds:31,recTD:.3,fum:0}),
- P({name:'Nico Varga',pos:'K',oppRank:20,bye:9,avgPts:8.6}),
- P({name:'Peter Lund',pos:'K',oppRank:12,bye:12,avgPts:7.4}),
- P({name:'Defense A',pos:'DST',oppRank:28,bye:10,avgPts:8.1,trend:'Rising'}),
- P({name:'Defense B',pos:'DST',oppRank:8,bye:7,avgPts:6.4})
-];
 
 let S={players:[],mine:[],scoring:'ppr',week:5,passTD:4,w:{...DEF_W}};
 try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});}}catch(e){}
-S.players=S.players.filter(p=>!p.example);if(!Array.isArray(S.mine))S.mine=[];
+S.players=[];if(!Array.isArray(S.mine))S.mine=[];
 if(typeof SITE_DATA!=='undefined'&&SITE_DATA.week)S.week=SITE_DATA.week;
 let ui={tab:'week',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
 try{const t=localStorage.getItem(KEY+'.tab');if(t)ui.tab=t==='player'?'stats':t;}catch(e){}
@@ -655,18 +586,6 @@ function renderRos(){
     <td><div class="bar"><i style="width:${Math.max(0,f*100)}%"></i></div><div class="num muted" style="font-size:.75rem">${Math.round(f*100)}%</div></td><td>${tier(r)}</td></tr>`}).join(''):`<tr><td colspan="7" class="muted">No players at this position yet.</td></tr>`;
 }
 
-function renderStatFields(pos,p){
-  $('#statFields').innerHTML=STAT_FIELDS[pos].map(([k,l])=>`<div class="field"><label class="label" for="s-${k}">${l}</label><input id="s-${k}" type="number" step="0.1" min="${k==='avgPts'?'-10':'0'}" value="${p&&p[k]!=null?p[k]:''}" placeholder="0"></div>`).join('');
-}
-function renderList(){
-  $('#countLbl').textContent=`(${S.players.length})`;
-  const order={QB:0,RB:1,WR:2,TE:3,K:4,DST:5};
-  const ps=[...S.players].sort((a,b)=>order[a.pos]-order[b.pos]||base(b)-base(a));
-  $('#listBody').innerHTML=ps.length?ps.map(p=>`<tr><td>${nameCell(p)}</td><td class="num">${n(p.oppRank)||16}${p.opp?' <span class="muted">'+esc(p.opp)+'</span>':''}</td><td>${esc(p.status)}</td><td class="r num">${f1(base(p))}</td><td>${esc(p.trend)}</td><td class="num">${p.bye||'—'}</td>
-    <td class="r" style="white-space:nowrap"><button class="btn sm" data-edit="${p.id}">Edit</button> <button class="btn sm danger" data-del="${p.id}">Delete</button></td></tr>`).join(''):`<tr><td colspan="7" class="muted">No players yet. Add one above or load the examples.</td></tr>`;
-  $('#ioText').value=JSON.stringify(S.players.map(({id,...r})=>r));
-}
-
 const SRC_INFO=[
  ['Sleeper','Sleeper','Stats, snap counts, projections, injury tags, schedule'],
  ['ESPN','ESPN','Weekly projections'],
@@ -703,8 +622,8 @@ function render(){
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
   $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));
-  ['week','sites','stats','player','ros','players','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
-  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();renderList();renderModel();
+  ['week','sites','stats','player','ros','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();renderModel();
 }
 
 // ---- site projections ----
@@ -1004,45 +923,6 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');i
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);save();renderModel();renderWeek();renderRos();});
 $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
 
-$('#f-pos').onchange=e=>renderStatFields(e.target.value,ui.editing?S.players.find(p=>p.id===ui.editing):null);
-function resetForm(){
-  $('#pForm').reset();ui.editing=null;$('#formTitle').textContent='Add a player';$('#saveBtn').textContent='Add player';$('#cancelEdit').hidden=true;
-  $('#f-oppRank').value=16;$('#f-trend').value='Steady';$('#f-sched').value='Average';renderStatFields($('#f-pos').value);
-}
-$('#pForm').onsubmit=e=>{
-  e.preventDefault();
-  const name=$('#f-name').value.trim();if(!name){$('#f-name').focus();toast('Enter a player name');return;}
-  const pos=$('#f-pos').value;
-  const o={name,pos,team:$('#f-team').value.trim(),opp:$('#f-opp').value.trim(),oppRank:Math.min(32,Math.max(1,Math.round(n($('#f-oppRank').value)||16))),
-    status:$('#f-status').value,bye:$('#f-bye').value?Math.round(n($('#f-bye').value)):'',trend:$('#f-trend').value,sched:$('#f-sched').value,example:false};
-  ALL_STATS.forEach(k=>o[k]=0);
-  STAT_FIELDS[pos].forEach(([k])=>o[k]=n($('#s-'+k).value));
-  if(ui.editing){const i=S.players.findIndex(p=>p.id===ui.editing);S.players[i]=Object.assign({},S.players[i],o);toast('Player updated');}
-  else{S.players.push(P(o));toast(name+' added');}
-  save();resetForm();render();
-};
-$('#cancelEdit').onclick=()=>{resetForm();};
-$('#listBody').onclick=e=>{
-  const ed=e.target.closest('[data-edit]'),del=e.target.closest('[data-del]');
-  if(ed){const p=S.players.find(x=>x.id===ed.dataset.edit);ui.editing=p.id;
-    $('#f-name').value=p.name;$('#f-pos').value=p.pos;$('#f-team').value=p.team||'';$('#f-opp').value=p.opp||'';$('#f-oppRank').value=p.oppRank||16;
-    $('#f-status').value=p.status;$('#f-bye').value=p.bye||'';$('#f-trend').value=p.trend;$('#f-sched').value=p.sched;renderStatFields(p.pos,p);
-    $('#formTitle').textContent='Edit '+p.name;$('#saveBtn').textContent='Save changes';$('#cancelEdit').hidden=false;$('#pForm').scrollIntoView({behavior:'smooth',block:'start'});}
-  if(del){
-    if(del.dataset.confirm){S.players=S.players.filter(x=>x.id!==del.dataset.del);save();render();toast('Player removed');}
-    else{del.dataset.confirm='1';del.textContent='Confirm';setTimeout(()=>{if(del.isConnected){delete del.dataset.confirm;del.textContent='Delete';}},3000);}
-  }
-};
-$('#wkSearch').oninput=e=>{ui.qW=e.target.value;renderWeek();};
-$('#mineOnly').onchange=e=>{ui.mineOnly=e.target.checked;renderWeek();};
-document.addEventListener('click',e=>{const b=e.target.closest('[data-star]');if(!b)return;const k=b.dataset.star;S.mine=S.mine||[];
-  const i=S.mine.indexOf(k);if(i>=0)S.mine.splice(i,1);else S.mine.push(k);save();renderWeek();renderRos();});
-$('#copyIO').onclick=()=>{const t=$('#ioText');navigator.clipboard?.writeText(t.value).then(()=>toast('List copied'),()=>{t.select();toast('Press Ctrl/Cmd+C to copy');})??(t.select(),toast('Press Ctrl/Cmd+C to copy'));};
-$('#loadIO').onclick=()=>{try{const d=JSON.parse($('#ioText').value);if(!Array.isArray(d))throw 0;
-  const ok=d.filter(p=>p&&p.name&&STAT_FIELDS[p.pos]).map(p=>P(Object.assign({},p,{id:undefined,example:false})));ok.forEach(p=>p.id=Math.random().toString(36).slice(2,9));
-  if(!ok.length)throw 0;S.players=ok;save();render();toast(`Loaded ${ok.length} players`);}catch(e){toast('That text isn\'t a saved player list');}};
-
-renderStatFields('QB');
 render();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled} · refreshes automatically every few hours`:'';}catch(e){}
 })();
