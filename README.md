@@ -10,7 +10,22 @@ A fantasy football evaluator: weekly start/sit projections, ESPN vs. Sleeper pro
 - every hour on Sundays, noon to midnight Eastern
 - whenever you click **Actions → Update data → Run workflow**
 
-The script pulls stats, projections, the schedule and injuries from Sleeper, plus projections from ESPN, and rewrites the files in `data/`. If nothing changed, it skips the commit. GitHub Pages then republishes the site within a few minutes.
+The script pulls from 12 sources and rewrites the files in `data/`:
+
+| Source | Used for |
+| --- | --- |
+| Sleeper | Stats, snap counts, projections, injury tags, schedule |
+| ESPN | Weekly projections |
+| FantasyPros (via DynastyProcess) | Expert consensus rankings, start/sit grades, projected points |
+| nflverse player stats | Full air yards, WOPR, RACR, EPA, CPOE |
+| NFL Next Gen Stats (receiving, rushing, passing) | Separation, YAC over expected, rush yards over expected, time to throw |
+| nflverse play-by-play | Expected fantasy points; end-zone, deep and goal-line shares |
+| FTN charting | First-read, catchable and contested targets; play action |
+| NFL injury reports | Practice participation and game status |
+| Betting lines | Spreads, totals, implied team points |
+| Open-Meteo | Game-time weather at outdoor stadiums |
+
+If any single source fails, the rest still update. If nothing changed, it skips the commit. GitHub Pages then republishes the site within a few minutes.
 
 ## Files
 
@@ -18,7 +33,8 @@ The script pulls stats, projections, the schedule and injuries from Sleeper, plu
 | --- | --- |
 | `index.html` | The site |
 | `data/*.js` | Generated data — don't edit by hand |
-| `scripts/build.mjs` | Fetches and shapes the data |
+| `scripts/build.mjs` | Sleeper and ESPN data |
+| `scripts/adv.mjs` | Every other source |
 | `scripts/update.mjs` | Runs the build and writes `data/` |
 
 ## One-time setup
