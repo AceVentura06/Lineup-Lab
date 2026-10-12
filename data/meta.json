@@ -1,6 +1,6 @@
 {
-  "hash": "516230ca0ccde4a7",
-  "updated": "2026-10-12T17:28:25.944Z",
+  "hash": "af190cefc0eb8bdf",
+  "updated": "2026-10-12T18:05:40.238Z",
   "season": 2026,
   "week": 5,
   "through": "Weeks 1–4 plus 14 of 15 week 5 games",
@@ -44,6 +44,10 @@
     "FantasyPros consensus": {
       "ok": true,
       "detail": "481 players"
+    },
+    "CBS Sports": {
+      "ok": true,
+      "detail": "411 projections, 192 expert rankings"
     }
   }
 }
