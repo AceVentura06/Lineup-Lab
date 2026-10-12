@@ -249,7 +249,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       if (out.games[tm]) { checked++; if (out.games[tm].opp === opp) match++; }
       const key = nkey(r.player_name, pos);
       if (out.ecr[key]) continue; // first page wins
-      out.ecr[key] = [num(r.ecr), parseInt(String(r.pos_rank).replace(/\D/g, ''), 10) || null, r2(num(r.sd)), num(r.best), num(r.worst), r.start_sit_grade || '', has(r.r2p_pts) ? num(r.r2p_pts) : null, r.scrape_date || ''];
+      out.ecr[key] = [num(r.ecr), parseInt(String(r.pos_rank).replace(/\D/g, ''), 10) || null, r2(num(r.sd)), num(r.best), num(r.worst), r.start_sit_grade || '', has(r.r2p_pts) ? num(r.r2p_pts) : null, r.scrape_date || '', has(r.player_owned_avg) ? num(r.player_owned_avg) : null];
     }
     out.ecrCurrent = checked > 0 && match / checked > 0.6;
     ok('FantasyPros consensus', `${Object.keys(out.ecr).length} players${out.ecrCurrent ? '' : ' (last week\'s rankings; this week\'s not posted yet)'}`);

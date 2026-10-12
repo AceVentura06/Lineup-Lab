@@ -24,12 +24,12 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
   log(`Sleeper projections: ${sleeper.split('\n').length}`);
 
   // --- ESPN projections (unofficial API; keep last good copy if it fails) ---
-  let espn = '', espnRanks = '';
+  let espn = '', espnRanks = '', espnOwn = '';
   try {
     const POSN = { 1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'DEF' };
     const filt = { players: { filterSlotIds: { value: [0, 2, 4, 6, 16, 17] },
       filterStatsForTopScoringPeriodIds: { value: 2, additionalValue: [`00${season}`, `10${season}`, `11${season}${week}`] },
-      sortPercOwned: { sortPriority: 1, sortAsc: false }, limit: 450 } };
+      sortPercOwned: { sortPriority: 1, sortAsc: false }, limit: 1000 } };
     const get = async ld => {
       const d = await fetchJson(`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${season}/segments/0/leaguedefaults/${ld}?scoringPeriodId=${week}&view=kona_player_info`,
         { 'X-Fantasy-Filter': JSON.stringify(filt) });
@@ -38,6 +38,9 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
         const p = e.player;
         const s = (p.stats || []).find(s => s.scoringPeriodId === week && s.statSourceId === 1 && s.statSplitTypeId === 1);
         if (s) m[p.id] = [p.fullName, POSN[p.defaultPositionId] || p.defaultPositionId, +s.appliedTotal.toFixed(1)];
+        // share of ESPN leagues where the player is rostered
+        const own = e.player.ownership && e.player.ownership.percentOwned;
+        if (own != null && POSN[p.defaultPositionId]) ownOut[p.id] = [p.fullName, POSN[p.defaultPositionId], +own.toFixed(1)];
         // ESPN analysts' weekly positional ranks (PPR)
         const rk = (p.rankings && p.rankings[String(week)] || []).filter(r => r.rankType === 'PPR');
         const ind = rk.filter(r => r.rankSourceId !== 0 && r.rank > 0).map(r => r.rank);
@@ -46,11 +49,12 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
       }
       return m;
     };
-    const rankOut = {};
+    const rankOut = {}, ownOut = {};
     const ppr = await get(3), std = await get(1);
     espn = Object.keys(ppr).filter(k => ppr[k][2] > 0.5).map(k => [ppr[k][0], ppr[k][1], ppr[k][2], std[k] ? std[k][2] : ppr[k][2]].join('|')).join('\n');
     if (!espn) throw new Error('ESPN returned no projections');
     espnRanks = Object.values(rankOut).map(r => r.join('|')).join('\n');
+    espnOwn = Object.values(ownOut).map(r => r.join('|')).join('\n');
     log(`ESPN projections: ${espn.split('\n').length}, analyst rankings: ${Object.keys(rankOut).length}`);
   } catch (e) {
     log(`ESPN failed (${e.message}); ${prevEspn && prevEspn.week === week ? 'keeping last copy' : 'leaving empty'}`);
@@ -137,7 +141,7 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
 
   return {
     season, week, through,
-    sites: { week, sleeper, espn, espnRanks, yahoo: '' },
+    sites: { week, sleeper, espn, espnRanks, espnOwn, yahoo: '' },
     stats: { through, fields: ['name', 'pos', 'team', 'gp', ...F, 'tm_pass_att', 'tm_rush_att', 'tm_tgt', 'tm_air', 'tm_rz_rush', 'tm_rz_tgt', 'weeks'], rows, dst: dstText },
     ctx: {
       sched: teams.map(t => t + '|' + opp[t].join(',')).join('\n'),

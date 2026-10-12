@@ -248,6 +248,7 @@ td.none{color:var(--muted)}
     <button role="tab" data-tab="sites" id="t-sites">Site Projections</button>
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
     <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
+    <button role="tab" data-tab="lineup" id="t-lineup">Suggested Lineup</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
   </nav>
 
@@ -301,6 +302,45 @@ td.none{color:var(--muted)}
       <tbody id="sitesBody"></tbody>
     </table></div>
     <p class="note">Average uses whichever sites have a projection for that player. "Split" means the sites are 4+ points apart: worth reading the news before you decide. Click a column header to sort.</p>
+  </section>
+
+  <!-- SUGGESTED LINEUP -->
+  <section class="panel" id="p-lineup" role="tabpanel" hidden>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
+      <div><h2>Suggested lineup · Week <span id="luWk"></span></h2><p class="note">Add your players and the model fills your lineup with the highest projections. It also scans for players most leagues haven't picked up who would beat one of your starters.</p></div>
+    </div>
+    <div class="split">
+      <div class="card" style="display:flex;flex-direction:column;gap:12px">
+        <h3>Your roster <span class="muted mono" id="luCount"></span></h3>
+        <div class="sitebar" style="align-items:end">
+          <div class="field" style="flex:1 1 220px"><label class="label" for="luAdd">Add a player</label><input id="luAdd" class="pick" type="search" list="luAddList" placeholder="Type a name, then pick from the list" autocomplete="off" spellcheck="false"><datalist id="luAddList"></datalist></div>
+          <button class="btn primary" id="luAddBtn" type="button">Add</button>
+        </div>
+        <div id="luRoster"></div>
+        <p class="note">Your roster is the same list as the ☆ stars on Start / Sit, so starring a player there adds him here too.</p>
+        <div class="btns"><button class="btn sm danger" id="luClear" type="button">Clear roster</button></div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:12px">
+        <h3>League lineup slots</h3>
+        <div class="form-grid" id="luSlots"></div>
+        <p class="note">Flex takes an RB, WR or TE. Superflex also takes a QB. Set a slot to 0 if your league doesn't use it.</p>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;flex-wrap:wrap;gap:8px 16px;justify-content:space-between;align-items:baseline"><h3>Start these players</h3><span class="mono" id="luTotal"></span></div>
+      <div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl" style="min-width:560px"><thead><tr><th>Slot</th><th>Player</th><th class="r">Projection</th><th>Tools</th><th>Matchup</th></tr></thead><tbody id="luStart"></tbody></table></div>
+      <h3 style="margin-top:16px">Bench</h3>
+      <div class="tbl-wrap" style="margin-top:6px"><table class="tooltbl" style="min-width:560px"><tbody id="luBench"></tbody></table></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
+        <div><h3>Waiver pickups that would start for you</h3><p class="note" id="luWaiverNote"></p></div>
+        <div class="slider" style="min-width:220px"><div class="top"><label class="label" for="luOwn">Rostered in at most</label><span class="mono" id="luOwnV"></span></div><input type="range" id="luOwn" min="5" max="80" step="5"></div>
+      </div>
+      <div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl" style="min-width:640px"><thead><tr><th>Player</th><th class="r">Rostered</th><th class="r">Projection</th><th>Would replace</th><th class="r">Gain</th></tr></thead><tbody id="luWaivers"></tbody></table></div>
+      <h3 style="margin-top:16px">Best available at each position</h3>
+      <div class="mgrid" id="luAvail" style="margin-top:8px"></div>
+    </div>
   </section>
 
   <!-- PLAYER STATS DIRECTORY -->
@@ -662,8 +702,8 @@ function render(){
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
   $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));
-  ['week','sites','stats','player','ros','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
-  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();renderModel();
+  ['week','sites','stats','player','ros','lineup','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();renderModel();
 }
 
 // ---- site projections ----
@@ -746,6 +786,78 @@ function renderSites(){
 }
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
 document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortS=th.dataset.sort;renderSites();};
+
+// ---- suggested lineup ----
+const DEF_SLOTS={QB:1,RB:2,WR:2,TE:1,FLEX:1,SFLEX:0,K:1,DST:1};
+const SLOT_LBL={QB:'QB',RB:'RB',WR:'WR',TE:'TE',FLEX:'Flex',SFLEX:'Superflex',K:'K',DST:'D/ST'};
+const SLOT_OK={QB:['QB'],RB:['RB'],WR:['WR'],TE:['TE'],FLEX:['RB','WR','TE'],SFLEX:['QB','RB','WR','TE'],K:['K'],DST:['DST']};
+const OWN=(function(){const m={};(SD.espnOwn||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,v]=l.split('|');m[nkey(nm,ps)]=+v;});return m;})();
+function ownOf(key){if(OWN[key]!=null)return {pct:OWN[key],src:'ESPN'};const e=AD.ecr&&AD.ecr[key];if(e&&e[8]!=null)return {pct:e[8],src:'FantasyPros avg'};return null;}
+// Every player with a projection this week: real players use the full model; players without stats use the site average
+let _lp=null,_lpKey='';
+function lineupPool(){
+  const ck=S.week+'|'+S.scoring+'|'+S.passTD+'|'+JSON.stringify(S.w);if(_lp&&_lpKey===ck)return _lp;
+  const m=new Map();
+  for(const p of realPlayers()){const w=weekProj(p);m.set(p.key,{key:p.key,p,name:p.name,pos:p.pos,team:p.team,proj:w.proj,real:true});}
+  if(S.week===SD.week)for(const r of SITES){if(m.has(r.key))continue;const v=siteVals(r);if(!v.n)continue;
+    m.set(r.key,{key:r.key,p:null,name:r.name,pos:r.pos,team:r.team,proj:v.avg,real:false});}
+  _lp=m;_lpKey=ck;return m;}
+function optimize(keys){
+  const pool=lineupPool(),slots=Object.assign({},DEF_SLOTS,S.slots||{});
+  const avail=keys.map(k=>pool.get(k)).filter(Boolean).sort((a,b)=>b.proj-a.proj);
+  const used=new Set(),start=[];let total=0;
+  for(const sl of ['QB','RB','WR','TE','K','DST','FLEX','SFLEX'])for(let i=0;i<(slots[sl]||0);i++){
+    const x=avail.find(c=>!used.has(c.key)&&SLOT_OK[sl].includes(c.pos)&&c.proj>0);
+    start.push({slot:sl,x:x||null});if(x){used.add(x.key);total+=x.proj;}}
+  const order={QB:0,RB:1,WR:2,TE:3,FLEX:4,SFLEX:5,K:6,DST:7};start.sort((a,b)=>order[a.slot]-order[b.slot]);
+  return {start,bench:avail.filter(c=>!used.has(c.key)),total};}
+ui.luOwn=50;
+function renderLineup(){
+  const pool=lineupPool(),slots=Object.assign({},DEF_SLOTS,S.slots||{});
+  $('#luWk').textContent=S.week;
+  // slot inputs
+  if(!$('#luSlots').dataset.built){$('#luSlots').innerHTML=Object.keys(DEF_SLOTS).map(k=>`<div class="field"><label class="label" for="slot-${k}">${SLOT_LBL[k]}</label><input id="slot-${k}" type="number" min="0" max="4" value="${slots[k]}"></div>`).join('');
+    $('#luSlots').dataset.built='1';Object.keys(DEF_SLOTS).forEach(k=>$('#slot-'+k).oninput=e=>{const v=Math.max(0,Math.min(4,Math.round(n(e.target.value))));S.slots=Object.assign({},DEF_SLOTS,S.slots||{},{[k]:v});save();renderLineup();});}
+  // add-player list
+  const lab=x=>`${x.name}${x.team?' ('+x.team+')':''} · ${x.pos}`;
+  if(!$('#luAddList').dataset.n||+$('#luAddList').dataset.n!==pool.size){$('#luAddList').innerHTML=[...pool.values()].sort((a,b)=>b.proj-a.proj).map(x=>`<option value="${esc(lab(x))}"></option>`).join('');$('#luAddList').dataset.n=pool.size;}
+  const roster=S.mine.filter(k=>pool.has(k));
+  $('#luCount').textContent=roster.length?`(${roster.length})`:'';
+  const order={QB:0,RB:1,WR:2,TE:3,K:4,DST:5};
+  $('#luRoster').innerHTML=roster.length?`<div class="chips">${roster.map(k=>pool.get(k)).sort((a,b)=>order[a.pos]-order[b.pos]||b.proj-a.proj).map(x=>`<span class="chip" style="cursor:default"><span class="pos ${x.pos}">${x.pos}</span> ${esc(x.name)} <button class="btn sm" data-unstar="${esc(x.key)}" aria-label="Remove ${esc(x.name)}" style="padding:0 6px;margin-left:4px">×</button></span>`).join('')}</div>`:'<p class="muted">No players yet. Add your roster above, or star players on the Start / Sit tab.</p>';
+  const L=optimize(roster);
+  const tcell=x=>x&&x.real?votesBar(consensus(x.p)):'<span class="muted">sites only</span>';
+  const mcell=x=>x&&x.real?(onBye(x.p)?'<span class="muted">—</span>':matchPill(x.p)+' '+statusPill(x.p)):'';
+  const pname=x=>x.real&&PL.has(x.key)?`<button class="plink" data-k="${esc(x.key)}">${esc(x.name)}</button>`:esc(x.name);
+  $('#luStart').innerHTML=L.start.map(r=>`<tr><td><b>${SLOT_LBL[r.slot]}</b></td><td>${r.x?`<span class="pos ${r.x.pos}">${r.x.pos}</span> ${pname(r.x)} <span class="muted">${esc(r.x.team||'')}</span>`:'<span class="muted">Empty: add a player who fits this slot</span>'}</td><td class="r big">${r.x?f1(r.x.proj):'—'}</td><td>${r.x?tcell(r.x):''}</td><td style="white-space:nowrap">${mcell(r.x)}</td></tr>`).join('');
+  $('#luTotal').textContent=roster.length?`Projected total: ${f1(L.total)} pts`:'';
+  $('#luBench').innerHTML=L.bench.length?L.bench.map(x=>{const why=x.proj<=0?(x.real&&onBye(x.p)?'On bye':'Out or not expected to play'):'Lower projection';return `<tr><td style="width:40%"><span class="pos ${x.pos}">${x.pos}</span> ${pname(x)} <span class="muted">${esc(x.team||'')}</span></td><td class="r num">${f1(x.proj)}</td><td class="note">${why}</td></tr>`;}).join(''):'<tr><td class="muted">Nobody on the bench.</td></tr>';
+  // waiver scan
+  $('#luOwn').value=ui.luOwn;$('#luOwnV').textContent=ui.luOwn+'% of leagues';
+  const rs=new Set(roster);
+  const avail=[...pool.values()].filter(x=>!rs.has(x.key)&&x.proj>0).map(x=>({x,own:ownOf(x.key)})).filter(o=>o.own&&o.own.pct<=ui.luOwn).sort((a,b)=>b.x.proj-a.x.proj);
+  $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of ESPN leagues (FantasyPros' cross-site average when ESPN has no number). Sleeper doesn't publish roster rates. Check your own league before you count on one.`;
+  if(roster.length){
+    const sugg=[];for(const o of avail.slice(0,150)){const L2=optimize([...roster,o.x.key]);const gain=L2.total-L.total;if(gain>0.3){const slot=L2.start.find(r=>r.x&&r.x.key===o.x.key);
+      const out=L.start.find(r=>r.slot===slot.slot&&!L2.start.some(r2=>r2.x&&r.x&&r2.x.key===r.x.key));sugg.push({...o,gain,slot:slot.slot,out:out&&out.x});}}
+    sugg.sort((a,b)=>b.gain-a.gain);
+    $('#luWaivers').innerHTML=sugg.length?sugg.slice(0,12).map(o=>`<tr><td><span class="pos ${o.x.pos}">${o.x.pos}</span> ${pname(o.x)} <span class="muted">${esc(o.x.team||'')}</span>${o.x.real?' '+statusPill(o.x.p):''}</td><td class="r num">${n1(o.own.pct)}%<span class="subn">${o.own.src}</span></td><td class="r big">${f1(o.x.proj)}</td><td>${o.out?`${SLOT_LBL[o.slot]}: ${esc(o.out.name)} (${f1(o.out.proj)})`:`Empty ${SLOT_LBL[o.slot]} slot`}</td><td class="r num" style="color:var(--good);font-weight:700">+${f1(o.gain)}</td></tr>`).join(''):`<tr><td colspan="5" class="muted">No available player projects higher than your current starters. Nice roster.</td></tr>`;
+  }else $('#luWaivers').innerHTML='<tr><td colspan="5" class="muted">Add your roster to see which pickups would start for you.</td></tr>';
+  $('#luAvail').innerHTML=['QB','RB','WR','TE','K','DST'].map(pos=>{const list=avail.filter(o=>o.x.pos===pos).slice(0,4);
+    return `<div class="metric"><div class="top"><span class="label" style="color:var(--ink)">${pos}</span></div>${list.length?list.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px"><span>${pname(o.x)} <span class="muted" style="font-size:.8rem">${esc(o.x.team||'')} · ${n1(o.own.pct)}%</span></span><b class="mono">${f1(o.x.proj)}</b></div>`).join(''):'<span class="muted">None under the threshold</span>'}</div>`;}).join('');
+}
+function luAdd(){const v=$('#luAdd').value.trim().toLowerCase();if(!v)return;const pool=[...lineupPool().values()];
+  const lab=x=>`${x.name}${x.team?' ('+x.team+')':''} · ${x.pos}`.toLowerCase();
+  const hit=pool.find(x=>lab(x)===v)||pool.filter(x=>x.name.toLowerCase().includes(v)).sort((a,b)=>b.proj-a.proj)[0];
+  if(!hit){toast('No player matches that name');return;}
+  if(!S.mine.includes(hit.key)){S.mine.push(hit.key);save();}$('#luAdd').value='';toast(hit.name+' added');renderLineup();}
+$('#luAddBtn').onclick=luAdd;
+$('#luAdd').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();luAdd();}};
+$('#luAdd').oninput=e=>{const v=e.target.value.trim().toLowerCase();if([...lineupPool().values()].some(x=>`${x.name}${x.team?' ('+x.team+')':''} · ${x.pos}`.toLowerCase()===v))luAdd();};
+$('#luOwn').oninput=e=>{ui.luOwn=+e.target.value;renderLineup();};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-unstar]');if(!b)return;S.mine=S.mine.filter(k=>k!==b.dataset.unstar);save();renderLineup();});
+$('#luClear').onclick=e=>{const b=e.target;if(b.dataset.confirm){S.mine=[];save();renderLineup();b.textContent='Clear roster';delete b.dataset.confirm;toast('Roster cleared');}
+  else{b.dataset.confirm='1';b.textContent='Tap again to clear';setTimeout(()=>{if(b.dataset.confirm){delete b.dataset.confirm;b.textContent='Clear roster';}},3000);}};
 
 // ---- start/sit tools: every source ranks the player at his position, then votes ----
 const CUT={QB:[12,18],RB:[24,36],WR:[30,42],TE:[12,18],K:[12,16],DST:[12,16]};
