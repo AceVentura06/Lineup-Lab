@@ -763,13 +763,15 @@ function toolTable(){
   const siteRank=src=>sameWk?rankBy(SITES.map(r=>[r.key,r.pos,siteVals(r)[src]])):{};
   _tools={model,espn:siteRank('espn'),sleeper:siteRank('sleeper'),cbsProj:siteRank('cbs')};_toolsKey=ck;return _tools;
 }
+function kickedOff(p){const g=gameOf(p);if(!g||!g.day||!g.time)return false;const t=Date.parse(g.day+'T'+g.time+':00-04:00');return Number.isFinite(t)&&Date.now()>t;}
 function toolsFor(p){
   if(!p.real)return [];
   const t=toolTable(),sameWk=S.week===SD.week,k=p.key,out=[];
   const add=(name,rk,detail)=>{if(rk!=null)out.push({name,rank:rk,vote:voteOf(p.pos,Math.round(rk)),detail});};
   if(t.model[k])add('Ace Lineup Lab model',t.model[k].rank,`${f1(t.model[k].val)} pts before blending with sites`);
   const e=ecrOf(p);if(e&&e[1])add('FantasyPros consensus (100+ experts)',e[1],`best ${e[3]}, worst ${e[4]} overall${e[5]?' · grade '+e[5]:''}`);
-  const er=sameWk?ESPNR[k]:null;if(er)add(`ESPN analysts (${er[1]})`,er[0],`best ${p.pos}${er[2]}, worst ${p.pos}${er[3]}`);
+  // ESPN drops players to the bottom once their game has kicked off, so skip it then
+  const er=sameWk&&!kickedOff(p)?ESPNR[k]:null;if(er)add('ESPN analysts',er[0],`${er[1]} analysts · best ${p.pos}${er[2]}, worst ${p.pos}${er[3]}`);
   const c=advWeek()&&AD.cbs&&AD.cbs.ranks?AD.cbs.ranks[k]:null;
   if(c)add('CBS experts',c[0],CBSX.map((n,i)=>c[i+1]!=null?`${n.split(' ').pop()} ${p.pos}${c[i+1]}`:'').filter(Boolean).join(' · '));
   if(t.espn[k])add('ESPN projection',t.espn[k].rank,`${f1(t.espn[k].val)} pts`);
