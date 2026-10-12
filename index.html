@@ -197,6 +197,18 @@ td.none{color:var(--muted)}
 .kv b{font-family:var(--f-mono);font-size:1.05rem;font-weight:600}
 .srcrow{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--line)}
 .srcrow:last-child{border-bottom:0}
+/* team-colored player pages */
+.teamed{--t-accent:var(--team-lo)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .teamed{--t-accent:var(--team-hi)}}
+:root[data-theme="dark"] .teamed{--t-accent:var(--team-hi)}
+.team-hero{background:var(--team);color:var(--team-ink);border-radius:10px;padding:20px 22px 18px;border-bottom:6px solid var(--team2);position:relative;overflow:hidden}
+.team-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;border:28px solid var(--team2);opacity:.18;pointer-events:none}
+.team-hero>*{position:relative}
+.team-hero .meta{color:inherit;opacity:.88}
+.team-hero h1{color:inherit}
+.teamed .tile,.teamed .metric,.teamed .card{border-top:3px solid var(--t-accent);background:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
+.teamed .chart .bar{fill:var(--t-accent)}
+.teamed .back{color:var(--t-accent)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.9rem}
 @media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:all .25s ease}}
 </style>
@@ -867,9 +879,24 @@ function boxScore(p){
    <tr><td class="label">Season</td>${cols.map(c=>`<td class="r num">${c[1]}</td>`).join('')}</tr>
    <tr><td class="label">Per game</td>${cols.map(c=>`<td class="r num muted">${c.length===3?'—':n1(c[1]/g)}</td>`).join('')}</tr></tbody></table></div>`;
 }
+// Team colors: [main, secondary]. Teams whose main color is very light use their dark color as the main.
+const TEAM_COLORS={ARI:['#97233F','#FFB612'],ATL:['#A71930','#000000'],BAL:['#241773','#9E7C0C'],BUF:['#00338D','#C60C30'],CAR:['#0085CA','#101820'],
+ CHI:['#0B162A','#C83803'],CIN:['#FB4F14','#000000'],CLE:['#311D00','#FF3C00'],DAL:['#003594','#869397'],DEN:['#FB4F14','#002244'],DET:['#0076B6','#B0B7BC'],
+ GB:['#203731','#FFB612'],HOU:['#03202F','#A71930'],IND:['#002C5F','#A2AAAD'],JAX:['#006778','#D7A22A'],KC:['#E31837','#FFB81C'],LAC:['#0080C6','#FFC20E'],
+ LAR:['#003594','#FFA300'],LV:['#000000','#A5ACAF'],MIA:['#008E97','#FC4C02'],MIN:['#4F2683','#FFC62F'],NE:['#002244','#C60C30'],NO:['#101820','#D3BC8D'],
+ NYG:['#0B2265','#A71930'],NYJ:['#125740','#FFFFFF'],PHI:['#004C54','#A5ACAF'],PIT:['#101820','#FFB612'],SEA:['#002244','#69BE28'],SF:['#AA0000','#B3995D'],
+ TB:['#D50A0A','#34302B'],TEN:['#0C2340','#4B92DB'],WAS:['#5A1414','#FFB612']};
+function lum(hex){const c=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.03928?v/12.92:((v+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2];}
+function teamVars(t){const [a,b]=TEAM_COLORS[t]||['#1f6b3a','#a87a0c'];const la=lum(a),lb=lum(b);
+  const ink=la>.35?'#111111':'#ffffff';
+  // accent on light pages: the darker-but-not-black color; on dark pages: the brighter color
+  const lo=la<.5?a:lb<.5?b:'#555555';
+  const hi=la>=.12&&la<.85?a:lb>=.12&&lb<.85?b:(la>lb?a:b);
+  return `--team:${a};--team2:${b};--team-ink:${ink};--team-lo:${lo};--team-hi:${hi}`;}
 function renderPlayer(){
   const p=PL.get(ui.player);const el=$('#p-player');
   if(!p){el.innerHTML='<p class="muted">Player not found.</p>';return;}
+  el.className='panel teamed';el.setAttribute('style',teamVars(p.team));
   const pr=ppgRank(p),vals=p.weeks.map(wpts).filter(v=>v!=null);
   const mean=vals.reduce((a,b)=>a+b,0)/(vals.length||1),sd=Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/(vals.length||1));
   const site=SITEBY.get(p.key),sv=site?siteVals(site):null;
@@ -895,7 +922,7 @@ function renderPlayer(){
    <div class="tile"><span class="label">Actual / game</span><span class="v">${n1(xf.actPg)}</span><span class="s">receiving + rushing</span></div>
    <div class="tile"><span class="label">Over expected</span><span class="v" style="color:${xf.fpoe>=0?'var(--good)':'var(--bad)'}">${xf.fpoe>=0?'+':''}${n1(xf.fpoe)}</span><span class="s">${Math.abs(xf.fpoe)<1.5?'Scoring about as his usage predicts':xf.fpoe>0?'Outscoring his usage; may cool off':'Underscoring his usage; may bounce back'}</span></div></div></div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
-   <div class="ph"><div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span>${esc(p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
+   <div class="ph team-hero"><div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span>${esc(p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${esc(site.team)} v ${esc(site.opp)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${pr?ord(pr.r)+' of '+pr.n+' '+p.pos+'s':''}</span></div>
