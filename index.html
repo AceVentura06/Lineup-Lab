@@ -797,7 +797,8 @@ const DEF_SLOTS={QB:1,RB:2,WR:2,TE:1,FLEX:1,SFLEX:0,K:1,DST:1};
 const SLOT_LBL={QB:'QB',RB:'RB',WR:'WR',TE:'TE',FLEX:'Flex',SFLEX:'Superflex',K:'K',DST:'D/ST'};
 const SLOT_OK={QB:['QB'],RB:['RB'],WR:['WR'],TE:['TE'],FLEX:['RB','WR','TE'],SFLEX:['QB','RB','WR','TE'],K:['K'],DST:['DST']};
 const OWN=(function(){const m={};(SD.espnOwn||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,v]=l.split('|');m[nkey(nm,ps)]=+v;});return m;})();
-function ownOf(key){if(OWN[key]!=null)return {pct:OWN[key],src:'ESPN'};const e=AD.ecr&&AD.ecr[key];if(e&&e[8]!=null)return {pct:e[8],src:'FantasyPros avg'};return null;}
+// Cross-site average roster rate (FantasyPros); ESPN's rate when FantasyPros doesn't list the player
+function ownOf(key){const e=AD.ecr&&AD.ecr[key];if(e&&e[8]!=null)return {pct:e[8],src:'cross-site avg'};if(OWN[key]!=null)return {pct:OWN[key],src:'ESPN'};return null;}
 // Every player with a projection this week: real players use the full model; players without stats use the site average
 let _lp=null,_lpKey='';
 function lineupPool(){
@@ -841,7 +842,7 @@ function renderLineup(){
   $('#luOwn').value=ui.luOwn;$('#luOwnV').textContent=ui.luOwn+'% of leagues';
   const rs=new Set(roster);
   const avail=[...pool.values()].filter(x=>!rs.has(x.key)&&x.proj>0).map(x=>({x,own:ownOf(x.key)})).filter(o=>o.own&&o.own.pct<=ui.luOwn).sort((a,b)=>b.x.proj-a.x.proj);
-  $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of ESPN leagues (FantasyPros' cross-site average when ESPN has no number). Sleeper doesn't publish roster rates. Check your own league before you count on one.`;
+  $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of leagues, using FantasyPros' average across fantasy sites (ESPN's rate for players FantasyPros doesn't list). Sleeper doesn't publish roster rates. Check your own league before you count on one.`;
   if(roster.length){
     const sugg=[];for(const o of avail.slice(0,150)){const L2=optimize([...roster,o.x.key]);const gain=L2.total-L.total;if(gain>0.3){const slot=L2.start.find(r=>r.x&&r.x.key===o.x.key);
       const now=new Set(L2.start.filter(r=>r.x).map(r=>r.x.key));const out=L.start.find(r=>r.x&&!now.has(r.x.key));sugg.push({...o,gain,slot:slot.slot,out:out&&out.x});}}
