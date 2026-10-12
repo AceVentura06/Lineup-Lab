@@ -19,7 +19,7 @@ img{max-width:100%}
   --turf:#1f6b3a; --turf-soft:#dcebe0; --gold:#a87a0c; --gold-soft:#f6ecd0;
   --good:#1f7a43; --good-soft:#dff1e6; --warn:#a46a00; --warn-soft:#fbefd6; --bad:#b0352b; --bad-soft:#f8e1de;
   --qb:#7a3fa8; --rb:#1f6b3a; --wr:#1d5fa8; --te:#b25a12; --k:#59666d; --dst:#8a2f4a;
-  --s-espn:#c8352a; --s-yahoo:#6b3fc4; --s-sleeper:#138a8a;
+  --s-espn:#c8352a; --s-yahoo:#6b3fc4; --s-sleeper:#138a8a; --s-cbs:#1d5fa8;
   --f-display:"Saira Condensed","Arial Narrow",Impact,sans-serif;
   --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -29,12 +29,12 @@ img{max-width:100%}
   --bg:#0f1712; --surface:#16211a; --surface-2:#1b281f; --line:#2b3a30; --ink:#e6eee8; --muted:#97a89c;
   --turf:#5cc282; --turf-soft:#1d3a27; --gold:#e2b544; --gold-soft:#3a3018;
   --good:#5cc282; --good-soft:#1d3a27; --warn:#e8b04a; --warn-soft:#3a2e15; --bad:#f07a6e; --bad-soft:#3d1f1c;
-  --qb:#b88be0; --rb:#5cc282; --wr:#6fa8ec; --te:#eb9b55; --k:#a3b1b8; --dst:#e07c9b; --s-espn:#f0786b; --s-yahoo:#a98bf0; --s-sleeper:#4fc8c8; color-scheme:dark}}
+  --qb:#b88be0; --rb:#5cc282; --wr:#6fa8ec; --te:#eb9b55; --k:#a3b1b8; --dst:#e07c9b; --s-espn:#f0786b; --s-yahoo:#a98bf0; --s-sleeper:#4fc8c8; --s-cbs:#6fa8ec; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1712; --surface:#16211a; --surface-2:#1b281f; --line:#2b3a30; --ink:#e6eee8; --muted:#97a89c;
   --turf:#5cc282; --turf-soft:#1d3a27; --gold:#e2b544; --gold-soft:#3a3018;
   --good:#5cc282; --good-soft:#1d3a27; --warn:#e8b04a; --warn-soft:#3a2e15; --bad:#f07a6e; --bad-soft:#3d1f1c;
-  --qb:#b88be0; --rb:#5cc282; --wr:#6fa8ec; --te:#eb9b55; --k:#a3b1b8; --dst:#e07c9b; --s-espn:#f0786b; --s-yahoo:#a98bf0; --s-sleeper:#4fc8c8; color-scheme:dark}
+  --qb:#b88be0; --rb:#5cc282; --wr:#6fa8ec; --te:#eb9b55; --k:#a3b1b8; --dst:#e07c9b; --s-espn:#f0786b; --s-yahoo:#a98bf0; --s-sleeper:#4fc8c8; --s-cbs:#6fa8ec; color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
@@ -143,7 +143,7 @@ input[type=range]{width:100%;accent-color:var(--turf)}
 .legend{display:flex;gap:14px;font-size:.85rem;font-weight:600;flex-wrap:wrap}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%}
-.sw.espn,.sd.espn{background:var(--s-espn)}.sw.fp,.sd.fp{background:var(--s-yahoo)}.sw.sleeper,.sd.sleeper{background:var(--s-sleeper)}
+.sw.espn,.sd.espn{background:var(--s-espn)}.sw.cbs,.sd.cbs{background:var(--s-cbs)}.sw.fp,.sd.fp{background:var(--s-yahoo)}.sw.sleeper,.sd.sleeper{background:var(--s-sleeper)}
 .yahoo-note{background:var(--surface-2);border:1px dashed var(--line);border-radius:8px;padding:10px 14px;font-size:.9rem}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable:hover{color:var(--ink)}
@@ -211,6 +211,13 @@ td.none{color:var(--muted)}
 .teamed .tile,.teamed .metric,.teamed .card{border-top:3px solid var(--t-accent);background:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
 .teamed .chart .bar{fill:var(--t-accent)}
 .teamed .back{color:var(--t-accent)}
+.votes{display:inline-flex;gap:2px;vertical-align:middle}
+.votes i{display:block;width:8px;height:14px;border-radius:2px}
+.votes i.v-s{background:var(--good)}.votes i.v-f{background:var(--gold)}.votes i.v-x{background:var(--line)}
+.tooltbl{width:100%;min-width:0;border-collapse:collapse;margin-top:10px}
+.tooltbl td,.tooltbl th{padding:6px 8px;border-bottom:1px solid var(--line);font-size:.88rem}
+.tooltbl tr:last-child td{border-bottom:0}
+.tooltbl td.win{font-weight:700;color:var(--turf)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.9rem}
 @media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:all .25s ease}}
 </style>
@@ -266,7 +273,7 @@ td.none{color:var(--muted)}
       <label class="mine-toggle"><input type="checkbox" id="mineOnly"> <span>My team only <span class="muted mono" id="mineCount"></span></span></label>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>#</th><th>Player</th><th class="r">Avg pts</th><th>Matchup</th><th class="r" title="Team implied points from the betting line">Vegas</th><th class="r" title="FantasyPros expert consensus rank at his position">Experts</th><th class="r">Projection</th><th>Floor – ceiling</th><th>Call</th></tr></thead>
+      <thead><tr><th>#</th><th>Player</th><th class="r">Avg pts</th><th>Matchup</th><th class="r" title="Team implied points from the betting line">Vegas</th><th title="How each start/sit tool votes: green start, gold flex, gray sit">Tools</th><th class="r">Projection</th><th>Floor – ceiling</th><th>Call</th></tr></thead>
       <tbody id="weekBody"></tbody>
     </table></div>
   </section>
@@ -281,14 +288,14 @@ td.none{color:var(--muted)}
     <div class="sitebar">
       <div class="field" style="flex:1 1 220px"><label class="label" for="siteSearch">Find a player or team</label><input id="siteSearch" type="search" placeholder="e.g. Nacua, or DAL"></div>
       <div class="legend">
-        <span><i class="sw espn"></i>ESPN</span><span><i class="sw sleeper"></i>Sleeper</span><span><i class="sw fp"></i>FantasyPros experts</span>
+        <span><i class="sw espn"></i>ESPN</span><span><i class="sw sleeper"></i>Sleeper</span><span><i class="sw cbs"></i>CBS Sports</span><span><i class="sw fp"></i>FantasyPros experts</span>
       </div>
     </div>
     <div class="yahoo-note" id="yahooNote"></div>
     <div class="tbl-wrap"><table class="sites">
       <thead><tr>
         <th>#</th><th>Player</th><th>Game</th>
-        <th class="r sortable" data-sort="espn">ESPN</th><th class="r sortable" data-sort="sleeper">Sleeper</th><th class="r sortable" data-sort="fp">FantasyPros</th>
+        <th class="r sortable" data-sort="espn">ESPN</th><th class="r sortable" data-sort="sleeper">Sleeper</th><th class="r sortable" data-sort="cbs">CBS</th><th class="r sortable" data-sort="fp">FantasyPros</th>
         <th class="r sortable" data-sort="avg">Average</th><th>Range across sites</th><th class="sortable" data-sort="spread">Agreement</th>
       </tr></thead>
       <tbody id="sitesBody"></tbody>
@@ -346,9 +353,10 @@ Matchup    = 1 + weight × (oppRank − 16.5) / 15.5
 Vegas      = 1 + weight × (team implied pts − team's usual pts) / team's usual pts
 Weather    = wind 15+ mph: passing −5%, kickers −10% (20+ mph: −10% / −18%)
 Health     = injury status, adjusted by Wed–Fri practice (DNP / limited / full)
-Projection = (1 − w) × Model + w × average(ESPN, Sleeper, FantasyPros)
+Projection = (1 − w) × Model + w × average(ESPN, Sleeper, CBS, FantasyPros)
 On bye, Out, or IR → 0</div>
         <p class="note">For real players: Base is season points per game from Sleeper. Matchup rank is how many fantasy points the opponent has allowed to that position per game (weeks 1–4; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls assume a 12-team league.</p>
+        <p><b>Start/sit tools.</b> Each player is also run through up to seven tools: this model, the FantasyPros expert consensus, ESPN's analysts, CBS's three experts, and the ESPN, Sleeper and CBS projections. Each tool's rank at the position becomes a vote (12-team league: QB/TE top 12 start, RB top 24, WR top 30; the next tier is flex). The Start / Sit call uses the average rank across tools.</p>
         <p><b>3. Floor and ceiling.</b> Half from the position's typical swing (QB ±22%, RB ±30%, WR ±35%, TE ±38%, K ±35%, DST ±45%) and half from the player's own week-to-week swings once he has 3+ games. Two players with close projections? The narrower range is the safer start.</p>
         <p><b>4. Rest of season.</b></p>
         <div class="formula">Pts/game  = Base × Schedule × Trend × Health
@@ -534,9 +542,10 @@ function renderWeek(){
   // calls use 12-team starter cutoffs by projected positional rank
   const byPos={};all.filter(r=>r.p.real&&r.proj>0).forEach(r=>{(byPos[r.p.pos]=byPos[r.p.pos]||[]).push(r.proj)});
   Object.values(byPos).forEach(a=>a.sort((x,y)=>y-x));
-  const CUT={QB:[12,18],RB:[24,36],WR:[30,42],TE:[12,18],K:[12,16],DST:[12,16]};
   const call=r=>{
     if(r.proj===0)return `<span class="pill p-bad">Sit · ${onBye(r.p)?'bye':'out'}</span>`;
+    const cn=r.p.real?consensus(r.p):null;
+    if(cn&&cn.total>=3){const rk=Math.round(cn.avg),cls={start:'p-good',flex:'p-gold',sit:'p-mute'}[cn.vote];return `<span class="pill ${cls}" title="Average rank across ${cn.total} tools">${cn.vote[0].toUpperCase()+cn.vote.slice(1)} · ${r.p.pos}${rk}</span>`;}
     const arr=byPos[r.p.pos]||[];let rk=arr.findIndex(v=>v<=r.proj)+1;if(!rk)rk=arr.length+1;const c=CUT[r.p.pos];
     return rk<=c[0]?`<span class="pill p-good">Start · ${r.p.pos}${rk}</span>`:rk<=c[1]?`<span class="pill p-gold">Flex · ${r.p.pos}${rk}</span>`:`<span class="pill p-mute">Sit · ${r.p.pos}${rk}</span>`;
   };
@@ -545,11 +554,11 @@ function renderWeek(){
   const total=rows.length;rows=rows.slice(0,200);
   const maxHi=Math.max(1,...rows.map(r=>r.hi));
   $('#wkNote').textContent=ui.mineOnly?`Your starred players, ranked by this week's projection.`:`${total} players with real stats this season${total>200?' (showing the top 200; search or filter to see more)':''}. Tap ☆ to add someone to your team.`;
-  $('#weekBody').innerHTML=rows.length?rows.map((r,i)=>{const e=r.p.real?ecrOf(r.p):null;return `<tr>
+  $('#weekBody').innerHTML=rows.length?rows.map((r,i)=>{return `<tr>
     <td class="rank">${i+1}</td><td style="white-space:nowrap">${nameCell(r.p,true)}</td>
     <td class="r num muted">${f1(r.b)}</td><td style="white-space:nowrap">${onBye(r.p)?'<span class="muted">—</span>':matchPill(r.p)}</td>
     <td class="r num">${onBye(r.p)?'<span class="muted">—</span>':vegasCell(r.p)}</td>
-    <td class="r num">${e&&e[1]?`${r.p.pos}${e[1]}<span class="subn">${e[5]?'grade '+esc(e[5]):''}</span>`:'<span class="muted">—</span>'}</td>
+    <td>${r.proj>0&&r.p.real?votesBar(consensus(r.p)):'<span class="muted">—</span>'}</td>
     <td class="r big">${f1(r.proj)}${r.sites!=null&&r.proj>0?`<span class="subn">model ${f1(r.model)} · sites ${f1(r.sites)}</span>`:''}</td>
     <td><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted" style="font-size:.75rem">${f1(r.lo)} – ${f1(r.hi)}</div></td>
     <td>${call(r)}</td></tr>`}).join(''):`<tr><td colspan="9" class="muted">${ui.mineOnly?'No starred players yet. Turn off "My team only" and tap ☆ next to your players.':'No players match.'}</td></tr>`;
@@ -591,9 +600,16 @@ function renderH2H(){
   else if(diff<1){const safe=(ww.hi-ww.lo)<=(wl.hi-wl.lo)?W:L,risky=safe===W?L:W;
     msg=`<b>Coin flip</b><br>Less than a point apart. Need a safe week? Start <b style="font-size:1rem">${esc(safe.name)}</b> (steadier). Chasing a big score? Start <b style="font-size:1rem">${esc(risky.name)}</b>.`;}
   else msg=`<b>Start ${esc(W.name)}</b><br>Projected ${f1(diff)} points ahead${diff>4?', a clear edge':''}.${L.status!=='Healthy'&&!onBye(L)?` ${esc(L.name)} is ${L.status.toLowerCase()}, which adds risk.`:''}`;
-  const ea=A.real?ecrOf(A):null,eb=B.real?ecrOf(B):null;
-  if(ea&&eb&&ea[1]&&eb[1]&&A.pos===B.pos&&diff>=1){const expW=ea[0]<=eb[0]?A:B;msg+=expW===W?` FantasyPros experts agree (${W.pos}${(W===A?ea:eb)[1]} vs ${L.pos}${(W===A?eb:ea)[1]}).`:` FantasyPros experts lean the other way (${expW.pos}${(expW===A?ea:eb)[1]} for ${esc(expW.name)}).`;}
-  $('#verdict').innerHTML=`<div class="verdict">${msg}</div>`;
+  // Run both players through every tool
+  const ta=toolsFor(A),tb=toolsFor(B),names=[...new Set([...ta,...tb].map(x=>x.name))];
+  let va=0,vb=0;const rowsT=names.map(nm=>{const x=ta.find(t=>t.name===nm),y=tb.find(t=>t.name===nm);
+    let w='';if(x&&y){const sx=x.rank/CUT[A.pos][0],sy=y.rank/CUT[B.pos][0];if(Math.abs(sx-sy)<1e-9)w='tie';else if(sx<sy){w='a';va++;}else{w='b';vb++;}}
+    return `<tr><td>${esc(nm)}</td><td class="r num${w==='a'?' win':''}">${x?A.pos+Math.round(x.rank):'—'}</td><td class="r num${w==='b'?' win':''}">${y?B.pos+Math.round(y.rank):'—'}</td></tr>`;}).join('');
+  if(va+vb>0&&!(wa.proj===0&&wb.proj===0)){const TW=va>=vb?A:B,tv=Math.max(va,vb),tt=va+vb;
+    if(diff<1&&tt>=3&&tv/tt>=2/3)msg=`<b>Start ${esc(TW.name)}</b><br>The projections are within a point, so the tools break the tie: <b style="font-size:1rem">${tv} of ${tt}</b> pick ${esc(TW.name)}.`;
+    else msg+=TW===W||diff<1?` <b style="font-size:1rem">${tv} of ${tt}</b> tools pick ${esc(TW.name)}.`:` But <b style="font-size:1rem">${tv} of ${tt}</b> tools pick ${esc(TW.name)}, so it's closer than the projection says.`;}
+  const tblT=names.length?`<div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div><p class="note" style="margin-top:6px">Each tool's rank at the player's position this week. When the players play different positions, ranks are compared against each position's starter cutoff.</p>`:'';
+  $('#verdict').innerHTML=`<div class="verdict">${msg}</div>${tblT}`;
 }
 
 function renderRos(){
@@ -620,12 +636,14 @@ const SRC_INFO=[
  ['FTN charting','FTN Data (via nflverse)','First-read, catchable and contested targets, play action'],
  ['NFL injury reports','NFL injury reports (via nflverse)','Practice participation and game status'],
  ['Betting lines','Sportsbook lines (via nflverse)','Spreads, totals, implied team points'],
- ['Weather','Open-Meteo','Game-time wind, rain and temperature for outdoor games']];
+ ['Weather','Open-Meteo','Game-time wind, rain and temperature for outdoor games'],
+ ['ESPN analysts','ESPN analysts','Weekly positional rankings from ESPN\'s fantasy analysts'],
+ ['CBS Sports','CBS Sports','Weekly rankings from Jamey Eisenberg, Dave Richard and Heath Cummings, plus CBS projections']];
 function renderSources(){
   const st=AD.sources||{};
   $('#srcNote').textContent=`Last updated ${SD.pulled||'—'}. Each update pulls all ${SRC_INFO.length} sources; if one fails, the site keeps the rest.`;
   $('#srcList').innerHTML=SRC_INFO.map(([k,name,what])=>{
-    const x=k==='Sleeper'?{ok:!!SD.sleeper}:k==='ESPN'?{ok:!!SD.espn}:st[k];
+    const x=k==='Sleeper'?{ok:!!SD.sleeper}:k==='ESPN'?{ok:!!SD.espn}:k==='ESPN analysts'?{ok:!!SD.espnRanks,detail:SD.espnRanks?SD.espnRanks.split('\n').length+' players ranked':'not posted yet'}:st[k];
     const pill=!x?'<span class="pill p-mute">Not loaded</span>':x.ok?'<span class="pill p-good">Working</span>':'<span class="pill p-warn">Failed last update</span>';
     return `<div class="srcrow"><b>${esc(name)}</b><span class="note">${esc(what)}${x&&x.detail?' · '+esc(x.detail):''}</span>${pill}</div>`;}).join('');
 }
@@ -691,18 +709,21 @@ const SITES=(function(){
     const r=get(nm,ps);r.name=nm;r.team=tm;r.opp=op;r.sleeper={ppr:+a,half:+b,std:+c};});
   (SD.espn||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,a,c]=l.split('|');const r=get(nm,ps);r.espn={ppr:+a,half:(+a+ +c)/2,std:+c};});
   if(AD.ecrCurrent&&AD.week===SD.week)for(const r of m.values()){const e=AD.ecr[r.key];if(e&&e[6]!=null)r.fp={ppr:e[6]};}
+  if(AD.cbs&&AD.week===SD.week)for(const r of m.values()){const v=AD.cbs.proj[r.key];if(v!=null)r.cbs={ppr:v};}
   return [...m.values()];
 })();
 const hasFP=SITES.some(r=>r.fp);
 ui.posS='All';ui.sortS='avg';ui.q='';
-function fpPts(r){if(!r.fp)return null;if(S.scoring==='ppr'||r.pos==='K'||r.pos==='DST'||r.pos==='QB')return r.fp.ppr;
-  const s=PL.get(r.key),rpg=s&&s.gp?s.s.rec/s.gp:0;return Math.max(0,r.fp.ppr-(S.scoring==='half'?.5:1)*rpg);}
-function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]?r[s][S.scoring]:null});v.fp=fpPts(r);
+// FantasyPros and CBS publish PPR only; other formats subtract the player's catches per game
+function pprConv(r,src){const x=r[src];if(!x)return null;if(S.scoring==='ppr'||r.pos==='K'||r.pos==='DST'||r.pos==='QB')return x.ppr;
+  const s=PL.get(r.key),rpg=s&&s.gp?s.s.rec/s.gp:0;return Math.max(0,x.ppr-(S.scoring==='half'?.5:1)*rpg);}
+const fpPts=r=>pprConv(r,'fp');
+function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]?r[s][S.scoring]:null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
   const xs=Object.values(v).filter(x=>x!=null);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
 function renderSites(){
   $('#sitesWk').textContent=SD.week;
   $('#sitesNote').textContent=`Updated ${SD.pulled||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring (use the toggle up top) · Games already played keep their pregame projection. Teams on bye aren't listed.`;
-  $('#yahooNote').innerHTML=hasFP?'<b>FantasyPros</b> is the consensus of its experts\' rankings, converted to points. It\'s published in PPR; for half-PPR and standard, the site subtracts the player\'s catches per game. Yahoo isn\'t included because it only shows projections to signed-in league members.':'<b>FantasyPros consensus for this week isn\'t posted yet.</b> It usually appears by Wednesday. Yahoo isn\'t included because it only shows projections to signed-in league members.';
+  $('#yahooNote').innerHTML=hasFP?'<b>FantasyPros</b> is the consensus of its experts\' rankings, converted to points. CBS and FantasyPros publish PPR numbers; for half-PPR and standard, the site subtracts the player\'s catches per game. Yahoo isn\'t included because it only shows projections to signed-in league members.':'<b>FantasyPros consensus for this week isn\'t posted yet.</b> It usually appears by Wednesday. Yahoo isn\'t included because it only shows projections to signed-in league members.';
   chips($('#posSites'),ui.posS,'posS');
   const q=ui.q.trim().toLowerCase();
   let rows=SITES.filter(r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||r.opp.toLowerCase()===q))
@@ -713,18 +734,54 @@ function renderSites(){
   const maxV=Math.max(1,...rows.slice(0,400).map(x=>x.v.max));
   const cell=(v,s,x)=>v[s]==null?'<td class="r num none">—</td>':`<td class="r num${x.n>1&&v[s]===x.max?' top':''}">${f1(v[s])}</td>`;
   $('#sitesBody').innerHTML=rows.length?rows.slice(0,400).map((x,i)=>{const {r,v}=x;
-    const dots=['espn','sleeper','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('');
+    const dots=['espn','sleeper','cbs','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('');
     const agree=v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
     return `<tr><td class="rank">${i+1}</td>
       <td><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}</td>
       <td class="num muted" style="white-space:nowrap">${r.team?esc(r.team)+' v '+esc(r.opp):'—'}</td>
-      ${cell(v,'espn',v)}${cell(v,'sleeper',v)}${cell(v,'fp',v)}
+      ${cell(v,'espn',v)}${cell(v,'sleeper',v)}${cell(v,'cbs',v)}${cell(v,'fp',v)}
       <td class="r big">${f1(v.avg)}</td>
       <td><div class="srange"><div class="track"></div>${v.n>1?`<div class="span" style="left:${v.min/maxV*100}%;width:${(v.max-v.min)/maxV*100}%"></div>`:''}${dots}</div></td>
-      <td>${agree}</td></tr>`}).join(''):'<tr><td colspan="9" class="muted">No players match. Try a different name or position.</td></tr>';
+      <td>${agree}</td></tr>`}).join(''):'<tr><td colspan="10" class="muted">No players match. Try a different name or position.</td></tr>';
 }
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
 document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortS=th.dataset.sort;renderSites();};
+
+// ---- start/sit tools: every source ranks the player at his position, then votes ----
+const CUT={QB:[12,18],RB:[24,36],WR:[30,42],TE:[12,18],K:[12,16],DST:[12,16]};
+const voteOf=(pos,rk)=>rk==null?null:rk<=CUT[pos][0]?'start':rk<=CUT[pos][1]?'flex':'sit';
+const ESPNR=(function(){const m={};(SD.espnRanks||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,avg,n,b,w]=l.split('|');m[nkey(nm,ps)]=[+avg,+n,+b,+w];});return m;})();
+const CBSX=(AD.cbs&&AD.cbs.experts)||[];
+let _tools=null,_toolsKey='';
+function toolTable(){
+  const ck=S.week+'|'+S.scoring+'|'+S.passTD+'|'+JSON.stringify(S.w);if(_tools&&_toolsKey===ck)return _tools;
+  const sameWk=S.week===SD.week;
+  const rankBy=(vals)=>{const byPos={};for(const [k,pos,v] of vals){if(v==null||!(v>0))continue;(byPos[pos]=byPos[pos]||[]).push([k,v]);}
+    const out={};for(const arr of Object.values(byPos)){arr.sort((a,b)=>b[1]-a[1]);arr.forEach(([k,v],i)=>out[k]={rank:i+1,val:v});}return out;};
+  const real=realPlayers();
+  const model=rankBy(real.map(p=>[p.key,p.pos,weekProj(p).model]));
+  const siteRank=src=>sameWk?rankBy(SITES.map(r=>[r.key,r.pos,siteVals(r)[src]])):{};
+  _tools={model,espn:siteRank('espn'),sleeper:siteRank('sleeper'),cbsProj:siteRank('cbs')};_toolsKey=ck;return _tools;
+}
+function toolsFor(p){
+  if(!p.real)return [];
+  const t=toolTable(),sameWk=S.week===SD.week,k=p.key,out=[];
+  const add=(name,rk,detail)=>{if(rk!=null)out.push({name,rank:rk,vote:voteOf(p.pos,Math.round(rk)),detail});};
+  if(t.model[k])add('Ace Lineup Lab model',t.model[k].rank,`${f1(t.model[k].val)} pts before blending with sites`);
+  const e=ecrOf(p);if(e&&e[1])add('FantasyPros consensus (100+ experts)',e[1],`best ${e[3]}, worst ${e[4]} overall${e[5]?' · grade '+e[5]:''}`);
+  const er=sameWk?ESPNR[k]:null;if(er)add(`ESPN analysts (${er[1]})`,er[0],`best ${p.pos}${er[2]}, worst ${p.pos}${er[3]}`);
+  const c=advWeek()&&AD.cbs&&AD.cbs.ranks?AD.cbs.ranks[k]:null;
+  if(c)add('CBS experts',c[0],CBSX.map((n,i)=>c[i+1]!=null?`${n.split(' ').pop()} ${p.pos}${c[i+1]}`:'').filter(Boolean).join(' · '));
+  if(t.espn[k])add('ESPN projection',t.espn[k].rank,`${f1(t.espn[k].val)} pts`);
+  if(t.sleeper[k])add('Sleeper projection',t.sleeper[k].rank,`${f1(t.sleeper[k].val)} pts`);
+  if(t.cbsProj[k])add('CBS projection',t.cbsProj[k].rank,`${f1(t.cbsProj[k].val)} pts`);
+  return out;
+}
+function consensus(p){const ts=toolsFor(p);if(!ts.length)return null;
+  const avg=ts.reduce((a,x)=>a+x.rank,0)/ts.length;const n={start:0,flex:0,sit:0};ts.forEach(x=>n[x.vote]++);
+  return {tools:ts,avg,vote:voteOf(p.pos,Math.round(avg)),n,total:ts.length};}
+function votesBar(c){if(!c)return '<span class="muted">—</span>';
+  return `<span class="votes" title="${c.n.start} start · ${c.n.flex} flex · ${c.n.sit} sit">${'<i class="v-s"></i>'.repeat(c.n.start)}${'<i class="v-f"></i>'.repeat(c.n.flex)}${'<i class="v-x"></i>'.repeat(c.n.sit)}</span><span class="subn">${c.n.start} of ${c.total} start</span>`;}
 
 // ---- player stats ----
 const STD=(typeof STATS_DATA!=='undefined'&&STATS_DATA)||{fields:[],rows:'',dst:''};
@@ -927,6 +984,9 @@ function renderPlayer(){
      ${e?`<div><span class="label">FantasyPros experts</span><b>${p.pos}${e[1]??'—'} · grade ${esc(e[5]||'—')}</b><span class="note">Best ${e[3]}, worst ${e[4]} overall · spread ±${e[2]}</span></div>`:''}
      ${sv2?`<div><span class="label">Projections</span><b>${n1(wp.proj)} pts</b><span class="note">${[['espn','ESPN'],['sleeper','Sleeper'],['fp','FantasyPros']].filter(([k])=>sv2[k]!=null).map(([k,l])=>l+' '+n1(sv2[k])).join(' · ')}${wp.model?' · model '+n1(wp.model):''}</span></div>`:''}
    </div></div>`:'';
+  const cons=consensus(realPlayers().find(x=>x.key===p.key)||{real:false});
+  const toolsCard=cons?`<div class="card"><h3>Start/sit tools</h3><p class="note" style="margin:4px 0 8px">${cons.n.start} of ${cons.total} tools say start, ${cons.n.flex} flex, ${cons.n.sit} sit. Average rank: ${p.pos}${Math.round(cons.avg)}.</p>
+   <div class="tbl-wrap"><table class="tooltbl"><tbody>${cons.tools.map(t=>`<tr><td>${esc(t.name)}</td><td class="r num">${p.pos}${Math.round(t.rank)}</td><td><span class="pill ${({start:'p-good',flex:'p-gold',sit:'p-mute'})[t.vote]}">${t.vote[0].toUpperCase()+t.vote.slice(1)}</span></td><td class="note">${esc(t.detail||'')}</td></tr>`).join('')}</tbody></table></div></div>`:'';
   const xfpCard=xf?`<div class="card"><h3>Expected fantasy points</h3><p class="note" style="margin:4px 0 12px">Every target and carry is valued at what an average player scores in that spot (depth of target and field position), using this season's play-by-play. Compare it with what he actually scored.</p>
    <div class="tiles"><div class="tile"><span class="label">Expected / game</span><span class="v">${n1(xf.pg)}</span><span class="s">from usage alone</span></div>
    <div class="tile"><span class="label">Actual / game</span><span class="v">${n1(xf.actPg)}</span><span class="s">receiving + rushing</span></div>
@@ -941,7 +1001,7 @@ function renderPlayer(){
      <div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${sv?n1(weekProj(realPlayers().find(x=>x.key===p.key)||{pos:p.pos}).proj):'—'}</span><span class="s">${sv?'model + sites blend':'No projection (bye or out)'}</span></div>
      <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
-   ${thisWeek}${xfpCard}
+   ${thisWeek}${toolsCard}${xfpCard}
    <div class="card"><h3>Points by week</h3>${weekChart(p)}<p class="note">Range so far: ${vals.length?n1(Math.min(...vals))+' to '+n1(Math.max(...vals)):'—'} points. The dashed line is his season average.</p></div>
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>

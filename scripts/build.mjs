@@ -24,7 +24,7 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
   log(`Sleeper projections: ${sleeper.split('\n').length}`);
 
   // --- ESPN projections (unofficial API; keep last good copy if it fails) ---
-  let espn = '';
+  let espn = '', espnRanks = '';
   try {
     const POSN = { 1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'DEF' };
     const filt = { players: { filterSlotIds: { value: [0, 2, 4, 6, 16, 17] },
@@ -38,13 +38,20 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
         const p = e.player;
         const s = (p.stats || []).find(s => s.scoringPeriodId === week && s.statSourceId === 1 && s.statSplitTypeId === 1);
         if (s) m[p.id] = [p.fullName, POSN[p.defaultPositionId] || p.defaultPositionId, +s.appliedTotal.toFixed(1)];
+        // ESPN analysts' weekly positional ranks (PPR)
+        const rk = (p.rankings && p.rankings[String(week)] || []).filter(r => r.rankType === 'PPR');
+        const ind = rk.filter(r => r.rankSourceId !== 0 && r.rank > 0).map(r => r.rank);
+        const avg = rk.find(r => r.rankSourceId === 0 && r.averageRank)?.averageRank ?? (ind.length ? ind.reduce((a, b) => a + b, 0) / ind.length : null);
+        if (avg && ind.length) rankOut[p.id] = [p.fullName, POSN[p.defaultPositionId] || p.defaultPositionId, +avg.toFixed(2), ind.length, Math.min(...ind), Math.max(...ind)];
       }
       return m;
     };
+    const rankOut = {};
     const ppr = await get(3), std = await get(1);
     espn = Object.keys(ppr).filter(k => ppr[k][2] > 0.5).map(k => [ppr[k][0], ppr[k][1], ppr[k][2], std[k] ? std[k][2] : ppr[k][2]].join('|')).join('\n');
     if (!espn) throw new Error('ESPN returned no projections');
-    log(`ESPN projections: ${espn.split('\n').length}`);
+    espnRanks = Object.values(rankOut).map(r => r.join('|')).join('\n');
+    log(`ESPN projections: ${espn.split('\n').length}, analyst rankings: ${Object.keys(rankOut).length}`);
   } catch (e) {
     log(`ESPN failed (${e.message}); ${prevEspn && prevEspn.week === week ? 'keeping last copy' : 'leaving empty'}`);
     espn = prevEspn && prevEspn.week === week ? prevEspn.text : '';
@@ -130,7 +137,7 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
 
   return {
     season, week, through,
-    sites: { week, sleeper, espn, yahoo: '' },
+    sites: { week, sleeper, espn, espnRanks, yahoo: '' },
     stats: { through, fields: ['name', 'pos', 'team', 'gp', ...F, 'tm_pass_att', 'tm_rush_att', 'tm_tgt', 'tm_air', 'tm_rz_rush', 'tm_rz_tgt', 'weeks'], rows, dst: dstText },
     ctx: {
       sched: teams.map(t => t + '|' + opp[t].join(',')).join('\n'),

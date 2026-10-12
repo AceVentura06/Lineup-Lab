@@ -48,6 +48,8 @@ const STADIUMS = {
   'Lucas Oil Stadium': [39.7601, -86.1639], 'Mercedes-Benz Stadium': [33.7554, -84.4008]
 };
 
+import { buildCbs } from './cbs.mjs';
+
 export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {} }) {
   const out = { season, week, sources: {}, players: {}, games: {}, ecr: {}, practice: {} };
   const ok = (name, detail) => { out.sources[name] = { ok: true, detail }; log(`${name}: ${detail}`); };
@@ -252,6 +254,13 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
     out.ecrCurrent = checked > 0 && match / checked > 0.6;
     ok('FantasyPros consensus', `${Object.keys(out.ecr).length} players${out.ecrCurrent ? '' : ' (last week\'s rankings; this week\'s not posted yet)'}`);
   } catch (e) { fail('FantasyPros consensus', e); }
+
+  // 9. CBS Sports: three experts' weekly rankings + consensus, and weekly projections
+  try {
+    const c = await buildCbs({ fetchText, season, week, nkey, games: out.games, log });
+    out.cbs = c;
+    ok('CBS Sports', `${Object.keys(c.proj).length} projections, ${Object.keys(c.ranks).length} expert rankings${c.ranksCurrent ? '' : ' (this week\'s rankings not posted yet)'}`);
+  } catch (e) { fail('CBS Sports', e); }
 
   // Compact per-player output keyed like the site's other data
   const F = ['g', 'tgt', 'tmTgt', 'ay', 'tmAy', 'rec', 'recYd', 'yac', 'recEpa', 'car', 'rushYd', 'rushEpa', 'att', 'cmp', 'passEpa', 'sacks', 'passAy', 'cpoeW', 'cpoeN',

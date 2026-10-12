@@ -10,7 +10,7 @@ A fantasy football evaluator: weekly start/sit projections, ESPN vs. Sleeper pro
 - every hour on Sundays, noon to midnight Eastern
 - whenever you click **Actions → Update data → Run workflow**
 
-The script pulls from 12 sources and rewrites the files in `data/`:
+The script pulls from 14 sources and rewrites the files in `data/`:
 
 | Source | Used for |
 | --- | --- |
@@ -24,6 +24,8 @@ The script pulls from 12 sources and rewrites the files in `data/`:
 | NFL injury reports | Practice participation and game status |
 | Betting lines | Spreads, totals, implied team points |
 | Open-Meteo | Game-time weather at outdoor stadiums |
+| ESPN analysts | Weekly positional rankings |
+| CBS Sports | Expert rankings (Eisenberg, Richard, Cummings) and projections |
 
 If any single source fails, the rest still update. If nothing changed, it skips the commit. GitHub Pages then republishes the site within a few minutes.
 
@@ -35,6 +37,7 @@ If any single source fails, the rest still update. If nothing changed, it skips 
 | `data/*.js` | Generated data — don't edit by hand |
 | `scripts/build.mjs` | Sleeper and ESPN data |
 | `scripts/adv.mjs` | Every other source |
+| `scripts/cbs.mjs` | CBS Sports pages |
 | `scripts/update.mjs` | Runs the build and writes `data/` |
 
 ## One-time setup
