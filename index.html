@@ -414,8 +414,8 @@ let S={players:[],mine:[],scoring:'ppr',week:5,passTD:4,w:{...DEF_W}};
 try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});}}catch(e){}
 S.players=[];if(!Array.isArray(S.mine))S.mine=[];
 if(typeof SITE_DATA!=='undefined'&&SITE_DATA.week)S.week=SITE_DATA.week;
-let ui={tab:'week',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
-try{const t=localStorage.getItem(KEY+'.tab');if(t)ui.tab=t==='player'?'stats':t;}catch(e){}
+let ui={tab:'stats',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
+
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
 const $=s=>document.querySelector(s);
