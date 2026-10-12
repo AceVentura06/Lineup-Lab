@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Lineup Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Source+Sans+3:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
+img{max-width:100%}
+/* Layout: a game-day stat sheet — header scoreboard with settings, tabbed boards below, yard-line hashmarks as dividers */
+:root{
+  --bg:#eef1ec; --surface:#ffffff; --surface-2:#f5f7f3; --line:#d5dcd3; --ink:#15211a; --muted:#5b6a60;
+  --turf:#1f6b3a; --turf-soft:#dcebe0; --gold:#a87a0c; --gold-soft:#f6ecd0;
+  --good:#1f7a43; --good-soft:#dff1e6; --warn:#a46a00; --warn-soft:#fbefd6; --bad:#b0352b; --bad-soft:#f8e1de;
+  --qb:#7a3fa8; --rb:#1f6b3a; --wr:#1d5fa8; --te:#b25a12; --k:#59666d; --dst:#8a2f4a;
+  --s-espn:#c8352a; --s-yahoo:#6b3fc4; --s-sleeper:#138a8a;
+  --f-display:"Saira Condensed","Arial Narrow",Impact,sans-serif;
+  --f-body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1712; --surface:#16211a; --surface-2:#1b281f; --line:#2b3a30; --ink:#e6eee8; --muted:#97a89c;
+  --turf:#5cc282; --turf-soft:#1d3a27; --gold:#e2b544; --gold-soft:#3a3018;
+  --good:#5cc282; --good-soft:#1d3a27; --warn:#e8b04a; --warn-soft:#3a2e15; --bad:#f07a6e; --bad-soft:#3d1f1c;
+  --qb:#b88be0; --rb:#5cc282; --wr:#6fa8ec; --te:#eb9b55; --k:#a3b1b8; --dst:#e07c9b; --s-espn:#f0786b; --s-yahoo:#a98bf0; --s-sleeper:#4fc8c8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1712; --surface:#16211a; --surface-2:#1b281f; --line:#2b3a30; --ink:#e6eee8; --muted:#97a89c;
+  --turf:#5cc282; --turf-soft:#1d3a27; --gold:#e2b544; --gold-soft:#3a3018;
+  --good:#5cc282; --good-soft:#1d3a27; --warn:#e8b04a; --warn-soft:#3a2e15; --bad:#f07a6e; --bad-soft:#3d1f1c;
+  --qb:#b88be0; --rb:#5cc282; --wr:#6fa8ec; --te:#eb9b55; --k:#a3b1b8; --dst:#e07c9b; --s-espn:#f0786b; --s-yahoo:#a98bf0; --s-sleeper:#4fc8c8; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:.01em}
+h1{font-size:clamp(2rem,6vw,2.8rem);font-weight:800;line-height:1;text-transform:uppercase}
+h2{font-size:1.45rem;font-weight:700;text-transform:uppercase}
+h3{font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+p{margin:0}
+.muted{color:var(--muted)}
+.mono,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;font-weight:700;color:var(--muted)}
+
+/* header */
+.board{background:var(--turf);color:#fff;border-radius:10px;padding:18px 20px;display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justify-content:space-between;position:relative;overflow:hidden}
+:root[data-theme="dark"] .board{color:#0f1712}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .board{color:#0f1712}}
+.board::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 59px,rgba(255,255,255,.14) 59px 61px);pointer-events:none}
+.board>*{position:relative}
+.board .sub{opacity:.85;font-size:.95rem;max-width:42ch}
+.controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end}
+.ctl{display:flex;flex-direction:column;gap:4px}
+.ctl .label{color:inherit;opacity:.8}
+.seg{display:inline-flex;border:2px solid currentColor;border-radius:6px;overflow:hidden}
+.seg button{all:unset;cursor:pointer;padding:6px 12px;font-family:var(--f-display);font-weight:700;font-size:1rem;letter-spacing:.04em;text-transform:uppercase}
+.seg button[aria-pressed="true"]{background:currentColor}
+.seg button[aria-pressed="true"] span{color:var(--turf)}
+.seg button:focus-visible{outline:3px solid var(--gold);outline-offset:-3px}
+.board select,.board input{font:inherit;font-family:var(--f-mono);padding:5px 8px;border-radius:6px;border:2px solid currentColor;background:transparent;color:inherit;width:auto}
+.board select option{color:#15211a}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);overflow-x:auto}
+.tabs button{all:unset;cursor:pointer;padding:10px 14px;font-family:var(--f-display);font-weight:700;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--turf)}
+.tabs button:focus-visible{outline:2px solid var(--turf)}
+
+.panel{display:flex;flex-direction:column;gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.hash{height:10px;background:repeating-linear-gradient(90deg,var(--line) 0 2px,transparent 2px 18px);opacity:.9}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{all:unset;cursor:pointer;padding:4px 12px;border-radius:999px;border:1px solid var(--line);font-weight:600;font-size:.88rem;background:var(--surface)}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip:focus-visible{outline:2px solid var(--turf);outline-offset:2px}
+
+.pos{display:inline-block;min-width:34px;text-align:center;font-family:var(--f-display);font-weight:800;font-size:.8rem;padding:1px 6px;border-radius:4px;color:var(--surface);letter-spacing:.04em}
+.pos.QB{background:var(--qb)}.pos.RB{background:var(--rb)}.pos.WR{background:var(--wr)}.pos.TE{background:var(--te)}.pos.K{background:var(--k)}.pos.DST{background:var(--dst)}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.75rem;font-weight:700;white-space:nowrap}
+.p-good{background:var(--good-soft);color:var(--good)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-gold{background:var(--gold-soft);color:var(--gold)}.p-mute{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.ex{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:0 4px;margin-left:4px}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);background:var(--surface-2);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.rank{font-family:var(--f-display);font-weight:800;font-size:1.15rem;color:var(--muted)}
+.pname{font-weight:700}
+.big{font-family:var(--f-mono);font-weight:600;font-size:1.05rem}
+.range{position:relative;height:16px;min-width:120px}
+.range .track{position:absolute;top:7px;left:0;right:0;height:2px;background:var(--line)}
+.range .band{position:absolute;top:4px;height:8px;border-radius:4px;background:var(--turf-soft);border:1px solid var(--turf)}
+.range .dot{position:absolute;top:2px;width:12px;height:12px;border-radius:50%;background:var(--turf);transform:translateX(-6px)}
+.bar{height:8px;border-radius:4px;background:var(--surface-2);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;background:var(--turf)}
+
+/* head to head */
+.h2h{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:start}
+.h2h .vs{font-family:var(--f-display);font-weight:800;font-size:1.6rem;color:var(--muted);padding-top:22px}
+.side{display:flex;flex-direction:column;gap:8px;min-width:0}
+.side select{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
+.side .proj{font-family:var(--f-mono);font-size:2rem;font-weight:600;line-height:1}
+.side.win .proj{color:var(--turf)}
+.verdict{margin-top:6px;padding:12px 14px;border-radius:8px;background:var(--gold-soft);color:var(--ink);border-left:4px solid var(--gold)}
+.verdict b{font-family:var(--f-display);font-size:1.15rem;text-transform:uppercase;letter-spacing:.03em}
+@media (max-width:560px){.h2h{grid-template-columns:1fr}.h2h .vs{padding:0;text-align:center}}
+
+/* forms */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field input,.field select,textarea{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
+.field input:focus,.field select:focus,textarea:focus{outline:2px solid var(--turf);outline-offset:0}
+.field small{color:var(--muted);font-size:.78rem;line-height:1.3}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btn{all:unset;cursor:pointer;padding:8px 14px;border-radius:6px;font-weight:700;font-size:.9rem;border:1px solid var(--line);background:var(--surface)}
+.btn.primary{background:var(--turf);border-color:var(--turf);color:var(--surface)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:3px 9px;font-size:.8rem}
+.btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+textarea{font-family:var(--f-mono);font-size:.8rem;min-height:110px;resize:vertical}
+
+.split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.split{grid-template-columns:1fr}}
+.slider{display:flex;flex-direction:column;gap:6px}
+.slider .top{display:flex;justify-content:space-between;gap:8px}
+input[type=range]{width:100%;accent-color:var(--turf)}
+.formula{font-family:var(--f-mono);font-size:.85rem;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:12px;overflow-x:auto;white-space:pre}
+.prose{max-width:68ch;display:flex;flex-direction:column;gap:10px}
+.prose ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.note{font-size:.85rem;color:var(--muted)}
+.sitebar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;justify-content:space-between}
+.legend{display:flex;gap:14px;font-size:.85rem;font-weight:600;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{display:inline-block;width:10px;height:10px;border-radius:50%}
+.sw.espn,.sd.espn{background:var(--s-espn)}.sw.yahoo,.sd.yahoo{background:var(--s-yahoo)}.sw.sleeper,.sd.sleeper{background:var(--s-sleeper)}
+.yahoo-note{background:var(--surface-2);border:1px dashed var(--line);border-radius:8px;padding:10px 14px;font-size:.9rem}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--ink)}
+th.sortable[aria-sort]{color:var(--ink)}
+th.sortable[aria-sort]::after{content:" ▾"}
+td.top{color:var(--turf);font-weight:700}
+td.none{color:var(--muted)}
+.srange{position:relative;height:18px;min-width:130px}
+.srange .track{position:absolute;top:8px;left:0;right:0;height:2px;background:var(--line)}
+.srange .span{position:absolute;top:7px;height:4px;background:var(--muted);opacity:.5;border-radius:2px}
+.sd{position:absolute;top:3px;width:12px;height:12px;border-radius:50%;transform:translateX(-6px);border:2px solid var(--surface)}
+.plink{all:unset;cursor:pointer;font-weight:700;border-bottom:1px dotted var(--muted)}
+.plink:hover{color:var(--turf);border-bottom-color:var(--turf)}
+.plink:focus-visible{outline:2px solid var(--turf);outline-offset:2px}
+.spark{display:inline-flex;gap:2px;align-items:flex-end;height:22px}
+.spark i{display:block;width:7px;background:var(--turf);border-radius:1px;opacity:.8}
+.spark i.dnp{background:var(--line);height:3px!important}
+.ph{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between}
+.ph h1{font-size:clamp(1.8rem,5vw,2.5rem)}
+.ph .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-weight:600}
+.back{all:unset;cursor:pointer;font-weight:700;color:var(--turf);font-size:.9rem}
+.back:focus-visible{outline:2px solid var(--turf);outline-offset:2px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile .v{font-family:var(--f-mono);font-size:1.6rem;font-weight:600;line-height:1.1}
+.tile .s{font-size:.8rem;color:var(--muted)}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+.chart .val{fill:var(--ink);font-weight:600}
+.chart .bar{fill:var(--turf)}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .avg{stroke:var(--gold);stroke-width:2;stroke-dasharray:5 4}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.metric{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface);display:flex;flex-direction:column;gap:6px;min-width:0}
+.metric .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.metric .mv{font-family:var(--f-mono);font-weight:600;font-size:1.25rem}
+.metric .rk{font-size:.78rem;color:var(--muted);font-weight:600}
+.metric .why{font-size:.82rem;color:var(--muted);line-height:1.4}
+.pbar{height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.pbar i{display:block;height:100%}
+.pbar i.hi{background:var(--good)}.pbar i.mid{background:var(--gold)}.pbar i.lo{background:var(--muted)}
+.stub{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.star{all:unset;cursor:pointer;font-size:1.05rem;line-height:1;color:var(--muted);margin-right:6px;vertical-align:-1px}
+.star.on{color:var(--gold)}
+.star:focus-visible{outline:2px solid var(--gold);outline-offset:2px;border-radius:3px}
+.mine-toggle{display:inline-flex;gap:8px;align-items:center;font-weight:600;cursor:pointer;padding-bottom:8px}
+.mine-toggle input{accent-color:var(--turf);width:16px;height:16px}
+.side select optgroup{font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.9rem}
+@media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:all .25s ease}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="board">
+    <div>
+      <div class="label" style="color:inherit;opacity:.8">Fantasy football evaluator</div>
+      <h1>Lineup Lab</h1>
+      <p class="sub">Rate your players for this week and the rest of the season. Change the scoring and every number updates.</p>
+      <p class="sub" id="updStamp" style="font-size:.85rem;opacity:.75"></p>
+    </div>
+    <div class="controls">
+      <div class="ctl"><span class="label">Scoring</span>
+        <div class="seg" id="scoringSeg" role="group" aria-label="Scoring format">
+          <button data-v="ppr"><span>PPR</span></button><button data-v="half"><span>Half</span></button><button data-v="std"><span>Standard</span></button>
+        </div>
+      </div>
+      <div class="ctl"><label class="label" for="weekIn">Week</label><input id="weekIn" type="number" min="1" max="17" style="width:64px"></div>
+      <div class="ctl"><label class="label" for="passTdIn">Pass TD</label><select id="passTdIn"><option value="4">4 pts</option><option value="6">6 pts</option></select></div>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
+    <button role="tab" data-tab="sites" id="t-sites">Site Projections</button>
+    <button role="tab" data-tab="stats" id="t-stats">Player Stats</button>
+    <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
+    <button role="tab" data-tab="players" id="t-players">Custom Players</button>
+    <button role="tab" data-tab="model" id="t-model">How It Works</button>
+  </nav>
+
+  <!-- START / SIT -->
+  <section class="panel" id="p-week" role="tabpanel">
+    <div class="card">
+      <h2>Head to head</h2>
+      <p class="muted" style="margin-bottom:14px">Pick two players you're deciding between this week.</p>
+      <div class="h2h">
+        <div class="side" id="sideA"></div>
+        <div class="vs">VS</div>
+        <div class="side" id="sideB"></div>
+      </div>
+      <div id="verdict"></div>
+    </div>
+    <div class="hash"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
+      <div><h2>Week <span id="wkLabel"></span> board</h2><p class="note" id="wkNote">Every NFL player with real stats this season. Star your roster to filter to it.</p></div>
+      <div class="chips" id="posWeek"></div>
+    </div>
+    <div class="sitebar">
+      <div class="field" style="flex:1 1 220px"><label class="label" for="wkSearch">Find a player or team</label><input id="wkSearch" type="search" placeholder="e.g. Kittle, or SF"></div>
+      <label class="mine-toggle"><input type="checkbox" id="mineOnly"> <span>My team only <span class="muted mono" id="mineCount"></span></span></label>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Player</th><th class="r">Avg pts</th><th>Matchup</th><th class="r">Model</th><th class="r">Sites</th><th>Floor – ceiling</th><th>Call</th></tr></thead>
+      <tbody id="weekBody"></tbody>
+    </table></div>
+  </section>
+
+  <!-- SITE PROJECTIONS -->
+  <section class="panel" id="p-sites" role="tabpanel" hidden>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
+      <div><h2>Week <span id="sitesWk"></span> projections by site</h2>
+        <p class="note" id="sitesNote"></p></div>
+      <div class="chips" id="posSites"></div>
+    </div>
+    <div class="sitebar">
+      <div class="field" style="flex:1 1 220px"><label class="label" for="siteSearch">Find a player or team</label><input id="siteSearch" type="search" placeholder="e.g. Nacua, or DAL"></div>
+      <div class="legend">
+        <span><i class="sw espn"></i>ESPN</span><span><i class="sw yahoo"></i>Yahoo</span><span><i class="sw sleeper"></i>Sleeper</span>
+      </div>
+    </div>
+    <div class="yahoo-note" id="yahooNote"><b>Yahoo isn't included.</b> Yahoo only shows projections to signed-in league members, so the automatic updates can't reach it. Ask Claude to add it through Yahoo's developer API if you want it.</div>
+    <div class="tbl-wrap"><table class="sites">
+      <thead><tr>
+        <th>#</th><th>Player</th><th>Game</th>
+        <th class="r sortable" data-sort="espn">ESPN</th><th class="r sortable" data-sort="yahoo">Yahoo</th><th class="r sortable" data-sort="sleeper">Sleeper</th>
+        <th class="r sortable" data-sort="avg">Average</th><th>Range across sites</th><th class="sortable" data-sort="spread">Agreement</th>
+      </tr></thead>
+      <tbody id="sitesBody"></tbody>
+    </table></div>
+    <p class="note">Average uses whichever sites have a projection for that player. "Split" means the sites are 4+ points apart: worth reading the news before you decide. Click a column header to sort.</p>
+  </section>
+
+  <!-- PLAYER STATS DIRECTORY -->
+  <section class="panel" id="p-stats" role="tabpanel" hidden>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
+      <div><h2>Season stats</h2><p class="note" id="statsNote"></p></div>
+      <div class="chips" id="posStats"></div>
+    </div>
+    <div class="sitebar">
+      <div class="field" style="flex:1 1 220px"><label class="label" for="statSearch">Find a player or team</label><input id="statSearch" type="search" placeholder="e.g. Bijan, or KC"></div>
+      <p class="note" style="max-width:40ch">Tap any player to open his page with game logs, usage, and efficiency stats.</p>
+    </div>
+    <div class="tbl-wrap"><table class="dir">
+      <thead><tr><th>#</th><th>Player</th><th class="r">GP</th>
+        <th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="tot">Total</th>
+        <th class="r sortable" data-sort="snap">Snap %</th><th class="r sortable" data-sort="use">Key usage</th><th>Last 4 weeks</th></tr></thead>
+      <tbody id="statsBody"></tbody>
+    </table></div>
+    <p class="note">Key usage is the stat that best predicts each position's scoring: share of fantasy points from rushing for QBs, share of team carries for RBs, target share for WRs and TEs, field-goal rate for kickers, takeaways per game for defenses.</p>
+  </section>
+
+  <!-- PLAYER PAGE -->
+  <section class="panel" id="p-player" hidden></section>
+
+  <!-- ROS -->
+  <section class="panel" id="p-ros" role="tabpanel" hidden>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
+      <div><h2>Rest-of-season rankings</h2><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
+      <div class="chips" id="posRos"></div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>#</th><th>Player</th><th class="r">Pts / game</th><th class="r">Games left</th><th class="r">Total pts</th><th>Vs. top at position</th><th>Tier</th></tr></thead>
+      <tbody id="rosBody"></tbody>
+    </table></div>
+    <p class="note">Tiers compare each player to the best player at his position on your list: 90%+ every-week starter, 75%+ solid starter, 60%+ flex or matchup play, below that bench or stash.</p>
+  </section>
+
+  <!-- PLAYERS -->
+  <section class="panel" id="p-players" role="tabpanel" hidden>
+    <div class="card">
+      <h2 id="formTitle">Add a player</h2>
+      <p class="muted" style="margin:4px 0 14px">Every NFL player with stats this season is already on the Start / Sit board. Use this only for someone missing, like a player returning from injury. Enter per-game averages from this season (any stats site lists them). The tool turns them into fantasy points for whatever scoring you pick.</p>
+      <form id="pForm" novalidate>
+        <div class="form-grid">
+          <div class="field"><label class="label" for="f-name">Name</label><input id="f-name" required></div>
+          <div class="field"><label class="label" for="f-pos">Position</label><select id="f-pos"><option>QB</option><option>RB</option><option>WR</option><option>TE</option><option>K</option><option>DST</option></select></div>
+          <div class="field"><label class="label" for="f-team">Team</label><input id="f-team" placeholder="e.g. NE"></div>
+          <div class="field"><label class="label" for="f-opp">This week's opponent</label><input id="f-opp" placeholder="e.g. @ BUF"></div>
+          <div class="field"><label class="label" for="f-oppRank">Opp. rank vs. position</label><input id="f-oppRank" type="number" min="1" max="32" value="16"><small>1 = toughest defense, 32 = easiest</small></div>
+          <div class="field"><label class="label" for="f-status">Status</label><select id="f-status"><option>Healthy</option><option>Questionable</option><option>Doubtful</option><option>Out</option><option>IR</option></select></div>
+          <div class="field"><label class="label" for="f-bye">Bye week</label><input id="f-bye" type="number" min="5" max="14" placeholder="e.g. 9"></div>
+          <div class="field"><label class="label" for="f-trend">Usage trend</label><select id="f-trend"><option>Rising</option><option selected>Steady</option><option>Falling</option></select><small>Snaps, targets, carries lately</small></div>
+          <div class="field"><label class="label" for="f-sched">Rest-of-season schedule</label><select id="f-sched"><option>Easy</option><option selected>Average</option><option>Hard</option></select></div>
+        </div>
+        <h3 style="margin:18px 0 10px">Per-game averages</h3>
+        <div class="form-grid" id="statFields"></div>
+        <div class="btns" style="margin-top:16px">
+          <button class="btn primary" type="submit" id="saveBtn">Add player</button>
+          <button class="btn" type="button" id="cancelEdit" hidden>Cancel edit</button>
+        </div>
+      </form>
+    </div>
+    <div class="hash"></div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
+      <h2>Your list <span class="muted mono" id="countLbl" style="font-size:1rem"></span></h2>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Player</th><th>Opp.</th><th>Status</th><th class="r">Avg pts</th><th>Trend</th><th>Bye</th><th></th></tr></thead>
+      <tbody id="listBody"></tbody>
+    </table></div>
+    <div class="card">
+      <h3>Back up or move your list</h3>
+      <p class="note" style="margin:4px 0 10px">Your players are saved in this browser only. Copy this text to keep a backup, or paste a saved list and load it.</p>
+      <textarea id="ioText" aria-label="Player list data"></textarea>
+      <div class="btns" style="margin-top:8px"><button class="btn sm" id="copyIO">Copy list</button><button class="btn sm" id="loadIO">Load pasted list</button></div>
+    </div>
+  </section>
+
+  <!-- MODEL -->
+  <section class="panel" id="p-model" role="tabpanel" hidden>
+    <div class="split">
+      <div class="card prose">
+        <h2>How a player is graded</h2>
+        <p><b>1. Base points.</b> Per-game stats are converted with your scoring:</p>
+        <div class="formula" id="scoreFormula"></div>
+        <p><b>2. This week.</b> Base points get three adjustments:</p>
+        <div class="formula">Projection = Base × Matchup × Trend × Health
+Matchup = 1 + weight × (oppRank − 16.5) / 15.5
+On bye, Out, or IR → 0</div>
+        <p class="note">For real players: Base is season points per game from Sleeper. Matchup rank is how many fantasy points the opponent has allowed to that position per game (weeks 1–4; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls assume a 12-team league.</p>
+        <p><b>3. Floor and ceiling.</b> Each position has a typical week-to-week swing (QB ±22%, RB ±30%, WR ±35%, TE ±38%, K ±35%, DST ±45%). Two players with close projections? The narrower range is the safer start.</p>
+        <p><b>4. Rest of season.</b></p>
+        <div class="formula">Pts/game  = Base × Schedule × Trend × Health
+Games left = 18 − week (minus bye if still ahead)
+Total      = Pts/game × Games left</div>
+        <p class="note">Kickers and defenses use the average fantasy points you enter, since PPR doesn't change them.</p>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:18px">
+        <div><h2>Tune the model</h2><p class="muted">Decide how much each factor should matter. Every table updates live.</p></div>
+        <div class="slider"><div class="top"><label class="label" for="w-match">Matchup impact</label><span class="mono" id="w-match-v"></span></div><input type="range" id="w-match" min="0" max="0.35" step="0.01"><small class="note">How far the best/worst matchup moves a projection.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-trend">Usage trend impact</label><span class="mono" id="w-trend-v"></span></div><input type="range" id="w-trend" min="0" max="0.25" step="0.01"><small class="note">Boost for rising roles, cut for shrinking ones.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-sched">ROS schedule impact</label><span class="mono" id="w-sched-v"></span></div><input type="range" id="w-sched" min="0" max="0.2" step="0.01"><small class="note">Easy or hard remaining schedule.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-q">Questionable discount</label><span class="mono" id="w-q-v"></span></div><input type="range" id="w-q" min="0" max="0.4" step="0.01"><small class="note">Risk that a questionable player sits or gets limited snaps.</small></div>
+        <div class="btns"><button class="btn sm" id="resetW">Reset to defaults</button></div>
+      </div>
+    </div>
+    <div class="card prose" style="max-width:none">
+      <h2>Stats that predict fantasy points</h2>
+      <p>Research on fantasy scoring keeps finding the same thing: <b>opportunity predicts points better than efficiency</b>. Volume stats are stable from week to week, while yards per carry and TD rates swing a lot in small samples. Player pages rank every stat below against the rest of the position.</p>
+      <div class="split" style="gap:24px">
+        <div><h3>On every player page</h3><ul>
+          <li><b>Snap share</b> – playing time, the base of everything else.</li>
+          <li><b>Target share</b> – the strongest single predictor for WRs and TEs.</li>
+          <li><b>Yards per team pass attempt</b> and <b>yards per snap</b> – free stand-ins for yards per route run.</li>
+          <li><b>Air yards share</b> (completed) – downfield role.</li>
+          <li><b>Red-zone share</b> (carries and targets) – touchdown opportunity, steadier than TD totals.</li>
+          <li><b>Carry share</b> and <b>opportunities per game</b> for RBs.</li>
+          <li><b>Share of fantasy points from rushing</b> and <b>team carry share</b> for QBs.</li>
+          <li><b>First downs per target</b>, yards after contact, broken tackles, yards after catch, drop rate.</li>
+        </ul></div>
+        <div><h3>Worth knowing, but behind paywalls</h3><ul>
+          <li><b>Yards per route run (YPRR)</b> and <b>targets per route run (TPRR)</b> – the best receiver efficiency stats. They need route counts from PFF or Fantasy Points Data.</li>
+          <li><b>Full air yards and aDOT</b> (including incompletions) and <b>WOPR</b>, which combines target share and air yards share.</li>
+          <li><b>Route participation</b> – how often a receiver runs a route on pass plays. Better than snap share for WRs and TEs.</li>
+          <li><b>Expected fantasy points</b> – what a player's usage is worth on average. Players scoring well above it tend to regress.</li>
+          <li><b>Team context</b>: pass rate over expected, plays per game, and Vegas implied team totals.</li>
+        </ul></div>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
+<script>
+(function(){
+const KEY='lineuplab.v1';
+const DEF_W={match:.15,trend:.08,sched:.06,q:.10};
+const VOL={QB:.22,RB:.30,WR:.35,TE:.38,K:.35,DST:.45};
+const STAT_FIELDS={
+  QB:[['passYds','Pass yds'],['passTD','Pass TD'],['int','INT'],['rushYds','Rush yds'],['rushTD','Rush TD'],['fum','Fumbles lost']],
+  RB:[['rushYds','Rush yds'],['rushTD','Rush TD'],['rec','Receptions'],['recYds','Rec yds'],['recTD','Rec TD'],['fum','Fumbles lost']],
+  WR:[['rec','Receptions'],['recYds','Rec yds'],['recTD','Rec TD'],['rushYds','Rush yds'],['rushTD','Rush TD'],['fum','Fumbles lost']],
+  TE:[['rec','Receptions'],['recYds','Rec yds'],['recTD','Rec TD'],['fum','Fumbles lost']],
+  K:[['avgPts','Avg fantasy pts']],DST:[['avgPts','Avg fantasy pts']]};
+const ALL_STATS=['passYds','passTD','int','rushYds','rushTD','rec','recYds','recTD','fum','avgPts'];
+
+function P(o){return Object.assign({id:Math.random().toString(36).slice(2,9),team:'',opp:'',oppRank:16,status:'Healthy',bye:'',trend:'Steady',sched:'Average',example:true},o)}
+const EXAMPLES=[
+ P({name:'Dalton Reyes',pos:'QB',oppRank:24,bye:10,trend:'Steady',sched:'Easy',passYds:265,passTD:2.0,int:.7,rushYds:22,rushTD:.2,fum:.2}),
+ P({name:'Cole Whitaker',pos:'QB',oppRank:9,bye:7,trend:'Rising',sched:'Average',passYds:228,passTD:1.6,int:.9,rushYds:46,rushTD:.4,fum:.3}),
+ P({name:'Theo Banks',pos:'QB',oppRank:30,bye:12,trend:'Steady',sched:'Hard',passYds:212,passTD:1.3,int:.6,rushYds:12,rushTD:.1,fum:.1}),
+ P({name:'Isaiah Monroe',pos:'RB',oppRank:18,bye:9,trend:'Steady',sched:'Average',rushYds:78,rushTD:.6,rec:3.4,recYds:27,recTD:.15,fum:.1}),
+ P({name:'Andre Lowell',pos:'RB',oppRank:5,bye:11,trend:'Falling',sched:'Hard',rushYds:64,rushTD:.5,rec:1.6,recYds:11,recTD:.05,fum:.15}),
+ P({name:'Kenji Fuller',pos:'RB',oppRank:27,bye:8,trend:'Rising',sched:'Easy',rushYds:41,rushTD:.3,rec:5.0,recYds:38,recTD:.2,fum:.05}),
+ P({name:'Ruben Castillo',pos:'RB',oppRank:21,bye:6,status:'Questionable',trend:'Steady',sched:'Average',rushYds:57,rushTD:.4,rec:2.2,recYds:16,recTD:.1,fum:.1}),
+ P({name:'Darius Holt',pos:'WR',oppRank:14,bye:9,trend:'Steady',sched:'Average',rec:6.8,recYds:91,recTD:.7,rushYds:3,fum:.05}),
+ P({name:'Malik Ashford',pos:'WR',oppRank:29,bye:13,trend:'Rising',sched:'Easy',rec:5.3,recYds:71,recTD:.5,fum:.05}),
+ P({name:'Tyson Garber',pos:'WR',oppRank:11,bye:7,trend:'Steady',sched:'Average',rec:7.6,recYds:67,recTD:.3,fum:.1}),
+ P({name:'Evan Pryor',pos:'WR',oppRank:22,bye:10,trend:'Falling',sched:'Hard',rec:3.9,recYds:62,recTD:.5,rushYds:6,fum:0}),
+ P({name:'Grant Okafor',pos:'TE',oppRank:26,bye:8,trend:'Steady',sched:'Average',rec:5.6,recYds:58,recTD:.5,fum:.05}),
+ P({name:'Luke Bertrand',pos:'TE',oppRank:7,bye:11,trend:'Rising',sched:'Easy',rec:4.1,recYds:42,recTD:.4,fum:0}),
+ P({name:'Sam Hadley',pos:'TE',oppRank:19,bye:6,status:'Doubtful',trend:'Steady',sched:'Hard',rec:3.3,recYds:31,recTD:.3,fum:0}),
+ P({name:'Nico Varga',pos:'K',oppRank:20,bye:9,avgPts:8.6}),
+ P({name:'Peter Lund',pos:'K',oppRank:12,bye:12,avgPts:7.4}),
+ P({name:'Defense A',pos:'DST',oppRank:28,bye:10,avgPts:8.1,trend:'Rising'}),
+ P({name:'Defense B',pos:'DST',oppRank:8,bye:7,avgPts:6.4})
+];
+
+let S={players:[],mine:[],scoring:'ppr',week:5,passTD:4,w:{...DEF_W}};
+try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});}}catch(e){}
+S.players=S.players.filter(p=>!p.example);if(!Array.isArray(S.mine))S.mine=[];
+if(typeof SITE_DATA!=='undefined'&&SITE_DATA.week)S.week=SITE_DATA.week;
+let ui={tab:'week',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
+try{const t=localStorage.getItem(KEY+'.tab');if(t)ui.tab=t==='player'?'stats':t;}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+
+const $=s=>document.querySelector(s);
+const n=v=>{v=parseFloat(v);return isFinite(v)?v:0};
+const f1=v=>(Math.round(v*10)/10).toFixed(1);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const recPts=()=>({ppr:1,half:.5,std:0}[S.scoring]);
+
+// ---- real players for start/sit ----
+const CX=(typeof CTX_DATA!=='undefined'&&CTX_DATA)||{sched:'',ranks:'',inj:''};
+const SCHED={},RANKS={},INJ={};
+(CX.sched||'').split('\n').filter(Boolean).forEach(l=>{const [t,s]=l.split('|');SCHED[t]=s.split(',');});
+(CX.ranks||'').split('\n').filter(Boolean).forEach(l=>{const [t,s]=l.split('|');RANKS[t]=s.split(',').map(x=>{const [r,v]=x.split(':');return {r:+r,v:+v};});});
+const PIDX={QB:0,RB:1,WR:2,TE:3,K:4,DST:5};
+const INJMAP={Questionable:'Questionable',Doubtful:'Doubtful',Out:'Out',IR:'IR',PUP:'IR',NA:'IR',DNR:'IR',Sus:'Out'};
+let _real=null,_realWk=null;
+function realPlayers(){
+  if(_real&&_realWk===S.week)return _real;
+  if(!Object.keys(INJ).length)(CX.inj||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,,st]=l.split('|');INJ[nkey(nm,ps)]=INJMAP[st]||'Healthy';});
+  const out=[];
+  for(const p of PL.values()){
+    if(p.gp<1)continue;
+    if(p.pos!=='K'&&p.pos!=='DST'&&p.s.pts_ppr/p.gp<4)continue;
+    const sc=SCHED[p.team]||[];const os=sc[S.week-1]||'';const bye=sc.indexOf('BYE')+1||'';
+    const ot=os.replace('@','');const rk=RANKS[ot]?RANKS[ot][PIDX[p.pos]]:null;
+    // trend from recent snap share (QBs: recent points)
+    let trend='Steady';const played=p.weeks.filter(Boolean);
+    if(played.length>=3&&p.pos!=='K'&&p.pos!=='DST'){
+      const last=played.slice(-2);
+      if(p.pos==='QB'){const r=(last.reduce((a,w)=>a+w.ppr,0)/2)/(p.s.pts_ppr/p.gp||1);trend=r>=1.25?'Rising':r<=.75?'Falling':'Steady';}
+      else{const seas=100*dv(p.s.off_snp,p.s.tm_off_snp);const rec=last.reduce((a,w)=>a+(w.snap||0),0)/2;trend=rec-seas>=7?'Rising':rec-seas<=-7?'Falling':'Steady';}
+    }
+    // rest-of-season schedule from remaining opponents' points allowed
+    const rem=sc.slice(S.week-1,17).filter(x=>x&&x!=='BYE').map(x=>RANKS[x.replace('@','')]?.[PIDX[p.pos]]?.r).filter(Boolean);
+    const avgR=rem.length?rem.reduce((a,b)=>a+b,0)/rem.length:16.5;
+    out.push({id:p.key,key:p.key,real:true,name:p.name,pos:p.pos,team:p.team,opp:os==='BYE'?'':os,oppRank:rk?rk.r:16,oppAllowed:rk?rk.v:null,
+      status:INJ[p.key]||'Healthy',bye,trend,sched:avgR>=19.5?'Easy':avgR<=13.5?'Hard':'Average',schedRank:avgR});
+  }
+  _real=out;_realWk=S.week;return out;
+}
+const pool=()=>[...realPlayers(),...S.players];
+const isMine=p=>S.mine.includes(p.key||p.id);
+function siteAvg(p){if(!p.real)return null;const r=SITEBY.get(p.key);if(!r||S.week!==SD.week)return null;const v=siteVals(r);return v.n?v.avg:null;}
+
+function base(p){
+  if(p.real){const s=PL.get(p.key);return s?ppg(s):0;}
+  if(p.pos==='K'||p.pos==='DST')return n(p.avgPts);
+  return n(p.passYds)*.04+n(p.passTD)*S.passTD-n(p.int)*2+n(p.rushYds)*.1+n(p.rushTD)*6+n(p.rec)*recPts()+n(p.recYds)*.1+n(p.recTD)*6-n(p.fum)*2;
+}
+const trendM=p=>1+({Rising:1,Steady:0,Falling:-1}[p.trend]||0)*S.w.trend;
+const schedM=p=>1+({Easy:1,Average:0,Hard:-1}[p.sched]||0)*S.w.sched;
+const matchM=p=>1+S.w.match*((Math.min(32,Math.max(1,n(p.oppRank)||16))-16.5)/15.5);
+const healthWk=p=>({Healthy:1,Questionable:1-S.w.q,Doubtful:.35,Out:0,IR:0}[p.status]??1);
+const healthRos=p=>({Healthy:1,Questionable:.98,Doubtful:.93,Out:.88,IR:.5}[p.status]??1);
+const onBye=p=>n(p.bye)===S.week;
+
+function weekProj(p){
+  const b=base(p);
+  if(onBye(p))return {b,proj:0,lo:0,hi:0};
+  const proj=b*matchM(p)*trendM(p)*healthWk(p);
+  const v=VOL[p.pos]||.3;
+  return {b,proj,lo:proj*(1-v),hi:proj*(1+v)};
+}
+function rosProj(p){
+  let games=Math.max(0,18-S.week);
+  if(n(p.bye)>S.week&&n(p.bye)<=17)games-=1;
+  const ppg=base(p)*schedM(p)*trendM(p)*healthRos(p);
+  return {ppg,games,total:ppg*games};
+}
+
+function statusPill(p){
+  if(onBye(p))return '<span class="pill p-mute">Bye</span>';
+  const m={Healthy:'',Questionable:'p-warn',Doubtful:'p-bad',Out:'p-bad',IR:'p-bad'}[p.status];
+  return m?`<span class="pill ${m}">${p.status==='Questionable'?'Q':p.status==='Doubtful'?'D':esc(p.status)}</span>`:'';
+}
+function nameCell(p,star){
+  const k=p.key||p.id,on=isMine(p);
+  const st=star?`<button class="star${on?' on':''}" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on?'Remove from':'Add to'} my team" title="${on?'On my team':'Add to my team'}">${on?'★':'☆'}</button>`:'';
+  const nm=p.real&&PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:`<span class="pname">${esc(p.name)}</span>`;
+  return `${st}<span class="pos ${p.pos}">${p.pos}</span> ${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}${p.team?` <span class="muted" style="font-size:.85rem">${esc(p.team)}</span>`:''}`;
+}
+function matchPill(p){
+  const r=n(p.oppRank)||16;
+  const cls=r>=22?'p-good':r<=10?'p-bad':'p-mute';
+  const word=r>=22?'Soft':r<=10?'Tough':'Neutral';
+  const tip=p.oppAllowed!=null?`${p.opp} allows ${p.oppAllowed} ${p.pos} pts/game (PPR), ${r===32?'most':r===1?'fewest':'rank '+r+' of 32'}`:'';
+  return `<span class="pill ${cls}" title="${esc(tip)}">${word} · ${r}</span>${p.opp?` <span class="muted" style="font-size:.82rem">${esc(p.opp)}</span>`:''}`;
+}
+
+function chips(el,cur,key){
+  const pos=['All','QB','RB','WR','TE','K','DST'];
+  el.innerHTML=pos.map(x=>`<button class="chip" aria-pressed="${x===cur}" data-p="${x}">${x}</button>`).join('');
+  el.onclick=e=>{const b=e.target.closest('button');if(!b)return;ui[key]=b.dataset.p;render();};
+}
+
+function renderWeek(){
+  $('#wkLabel').textContent=S.week;
+  chips($('#posWeek'),ui.posW,'posW');
+  $('#mineCount').textContent=S.mine.length?`(${S.mine.length})`:'';
+  $('#mineOnly').checked=!!ui.mineOnly;
+  const all=pool().map(p=>({p,...weekProj(p)}));
+  // calls use 12-team starter cutoffs by projected positional rank
+  const byPos={};all.filter(r=>r.p.real&&r.proj>0).forEach(r=>{(byPos[r.p.pos]=byPos[r.p.pos]||[]).push(r.proj)});
+  Object.values(byPos).forEach(a=>a.sort((x,y)=>y-x));
+  const CUT={QB:[12,18],RB:[24,36],WR:[30,42],TE:[12,18],K:[12,16],DST:[12,16]};
+  const call=r=>{
+    if(r.proj===0)return `<span class="pill p-bad">Sit · ${onBye(r.p)?'bye':'out'}</span>`;
+    const arr=byPos[r.p.pos]||[];let rk=arr.findIndex(v=>v<=r.proj)+1;if(!rk)rk=arr.length+1;const c=CUT[r.p.pos];
+    return rk<=c[0]?`<span class="pill p-good">Start · ${r.p.pos}${rk}</span>`:rk<=c[1]?`<span class="pill p-gold">Flex · ${r.p.pos}${rk}</span>`:`<span class="pill p-mute">Sit · ${r.p.pos}${rk}</span>`;
+  };
+  const q=(ui.qW||'').trim().toLowerCase();
+  let rows=all.filter(r=>(ui.posW==='All'||r.p.pos===ui.posW)&&(!ui.mineOnly||isMine(r.p))&&(!q||r.p.name.toLowerCase().includes(q)||(r.p.team||'').toLowerCase()===q)).sort((a,b)=>b.proj-a.proj);
+  const total=rows.length;rows=rows.slice(0,200);
+  const maxHi=Math.max(1,...rows.map(r=>r.hi));
+  $('#wkNote').textContent=ui.mineOnly?`Your starred players, ranked by this week's projection.`:`${total} players with real stats this season${total>200?' (showing the top 200; search or filter to see more)':''}. Tap ☆ to add someone to your team.`;
+  $('#weekBody').innerHTML=rows.length?rows.map((r,i)=>{const sa=siteAvg(r.p);return `<tr>
+    <td class="rank">${i+1}</td><td style="white-space:nowrap">${nameCell(r.p,true)}</td>
+    <td class="r num muted">${f1(r.b)}</td><td style="white-space:nowrap">${onBye(r.p)?'<span class="muted">—</span>':matchPill(r.p)}</td>
+    <td class="r big">${f1(r.proj)}</td><td class="r num muted">${sa==null?'—':f1(sa)}</td>
+    <td><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted" style="font-size:.75rem">${f1(r.lo)} – ${f1(r.hi)}</div></td>
+    <td>${call(r)}</td></tr>`}).join(''):`<tr><td colspan="8" class="muted">${ui.mineOnly?'No starred players yet. Turn off "My team only" and tap ☆ next to your players.':'No players match.'}</td></tr>`;
+  renderH2H();
+}
+
+function renderH2H(){
+  const ps=pool().map(p=>({p,w:weekProj(p)}));
+  if(ps.length<2){$('#sideA').innerHTML='<p class="muted">Not enough players to compare.</p>';$('#sideB').innerHTML='';$('#verdict').innerHTML='';return;}
+  const byId=new Map(ps.map(x=>[x.p.id,x.p]));
+  if(!byId.has(ui.a)||!byId.has(ui.b)||ui.a===ui.b){
+    const mine=ps.filter(x=>isMine(x.p)&&x.w.proj>0).sort((a,b)=>b.w.proj-a.w.proj);
+    let pair=null;for(const pos of ['WR','RB','TE','QB']){const m=mine.filter(x=>x.p.pos===pos);if(m.length>=2){pair=[m[0].p.id,m[1].p.id];break;}}
+    if(!pair){const wr=ps.filter(x=>x.p.pos==='WR'&&x.w.proj>0).sort((a,b)=>b.w.proj-a.w.proj);pair=[wr[11]?.p.id||ps[0].p.id,wr[12]?.p.id||ps[1].p.id];}
+    if(!byId.has(ui.a))ui.a=pair[0];if(!byId.has(ui.b)||ui.b===ui.a)ui.b=pair[1]===ui.a?pair[0]:pair[1];
+  }
+  const groups=['QB','RB','WR','TE','K','DST'].map(pos=>{const g=ps.filter(x=>x.p.pos===pos).sort((a,b)=>(isMine(b.p)-isMine(a.p))||b.w.proj-a.w.proj);return [pos,g];});
+  const opts=sel=>groups.map(([pos,g])=>`<optgroup label="${pos}">${g.map(x=>`<option value="${esc(x.p.id)}" ${x.p.id===sel?'selected':''}>${isMine(x.p)?'★ ':''}${esc(x.p.name)}${x.p.team?' ('+esc(x.p.team)+')':''}</option>`).join('')}</optgroup>`).join('');
+  const A=byId.get(ui.a),B=byId.get(ui.b),wa=weekProj(A),wb=weekProj(B);
+  const side=(id,p,w,win,label)=>{const sa=siteAvg(p);return `<label class="label" for="${id}">${label}</label><select id="${id}">${opts(p.id)}</select>
+    <div class="proj">${f1(w.proj)}</div><div class="note">model projection · range ${f1(w.lo)}–${f1(w.hi)}${sa!=null?` · sites avg ${f1(sa)}`:''}</div>
+    <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
+  $('#sideA').className='side'+(wa.proj>=wb.proj?' win':'');$('#sideB').className='side'+(wb.proj>wa.proj?' win':'');
+  $('#sideA').innerHTML=side('selA',A,wa,0,'Player 1');$('#sideB').innerHTML=side('selB',B,wb,0,'Player 2');
+  $('#selA').onchange=e=>{ui.a=e.target.value;renderH2H()};$('#selB').onchange=e=>{ui.b=e.target.value;renderH2H()};
+  const diff=Math.abs(wa.proj-wb.proj),W=wa.proj>=wb.proj?A:B,L=W===A?B:A,ww=W===A?wa:wb,wl=W===A?wb:wa;
+  let msg;
+  if(wa.proj===0&&wb.proj===0)msg=`<b>Neither</b><br>Both are out or on bye this week.`;
+  else if(diff<1){const safe=(ww.hi-ww.lo)<=(wl.hi-wl.lo)?W:L,risky=safe===W?L:W;
+    msg=`<b>Coin flip</b><br>Less than a point apart. Need a safe week? Start <b style="font-size:1rem">${esc(safe.name)}</b> (steadier). Chasing a big score? Start <b style="font-size:1rem">${esc(risky.name)}</b>.`;}
+  else msg=`<b>Start ${esc(W.name)}</b><br>Projected ${f1(diff)} points ahead${diff>4?', a clear edge':''}.${L.status!=='Healthy'&&!onBye(L)?` ${esc(L.name)} is ${L.status.toLowerCase()}, which adds risk.`:''}`;
+  $('#verdict').innerHTML=`<div class="verdict">${msg}</div>`;
+}
+
+function renderRos(){
+  chips($('#posRos'),ui.posR,'posR');
+  const all=pool().map(p=>({p,...rosProj(p)}));
+  const best={};all.forEach(r=>{best[r.p.pos]=Math.max(best[r.p.pos]||0,r.ppg)});
+  const rows=all.filter(r=>ui.posR==='All'||r.p.pos===ui.posR).sort((a,b)=>b.total-a.total).slice(0,250);
+  const tier=r=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;
+    return f>=.9?'<span class="pill p-good">Tier 1 · every week</span>':f>=.75?'<span class="pill p-gold">Tier 2 · solid starter</span>':f>=.6?'<span class="pill p-warn">Tier 3 · flex / matchup</span>':'<span class="pill p-mute">Tier 4 · bench</span>';};
+  $('#rosBody').innerHTML=rows.length?rows.map((r,i)=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;return `<tr>
+    <td class="rank">${i+1}</td><td style="white-space:nowrap">${nameCell(r.p,true)}</td><td class="r big">${f1(r.ppg)}</td><td class="r num">${r.games}</td><td class="r num">${Math.round(r.total)}</td>
+    <td><div class="bar"><i style="width:${Math.max(0,f*100)}%"></i></div><div class="num muted" style="font-size:.75rem">${Math.round(f*100)}%</div></td><td>${tier(r)}</td></tr>`}).join(''):`<tr><td colspan="7" class="muted">No players at this position yet.</td></tr>`;
+}
+
+function renderStatFields(pos,p){
+  $('#statFields').innerHTML=STAT_FIELDS[pos].map(([k,l])=>`<div class="field"><label class="label" for="s-${k}">${l}</label><input id="s-${k}" type="number" step="0.1" min="${k==='avgPts'?'-10':'0'}" value="${p&&p[k]!=null?p[k]:''}" placeholder="0"></div>`).join('');
+}
+function renderList(){
+  $('#countLbl').textContent=`(${S.players.length})`;
+  const order={QB:0,RB:1,WR:2,TE:3,K:4,DST:5};
+  const ps=[...S.players].sort((a,b)=>order[a.pos]-order[b.pos]||base(b)-base(a));
+  $('#listBody').innerHTML=ps.length?ps.map(p=>`<tr><td>${nameCell(p)}</td><td class="num">${n(p.oppRank)||16}${p.opp?' <span class="muted">'+esc(p.opp)+'</span>':''}</td><td>${esc(p.status)}</td><td class="r num">${f1(base(p))}</td><td>${esc(p.trend)}</td><td class="num">${p.bye||'—'}</td>
+    <td class="r" style="white-space:nowrap"><button class="btn sm" data-edit="${p.id}">Edit</button> <button class="btn sm danger" data-del="${p.id}">Delete</button></td></tr>`).join(''):`<tr><td colspan="7" class="muted">No players yet. Add one above or load the examples.</td></tr>`;
+  $('#ioText').value=JSON.stringify(S.players.map(({id,...r})=>r));
+}
+
+function renderModel(){
+  const rp=recPts();
+  $('#scoreFormula').textContent=`Pass yd ×0.04   Pass TD ×${S.passTD}   INT −2
+Rush/Rec yd ×0.1   Rush/Rec TD ×6
+Reception ×${rp}  (${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]})
+Fumble lost −2`;
+  [['match',v=>'±'+Math.round(v*100)+'%'],['trend',v=>'±'+Math.round(v*100)+'%'],['sched',v=>'±'+Math.round(v*100)+'%'],['q',v=>'−'+Math.round(v*100)+'%']].forEach(([k,fmt])=>{
+    $('#w-'+k).value=S.w[k];$('#w-'+k+'-v').textContent=fmt(S.w[k]);});
+}
+
+function render(){
+  document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
+  $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));
+  ['week','sites','stats','player','ros','players','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();renderList();renderModel();
+}
+
+// ---- site projections ----
+const SD=(typeof SITE_DATA!=='undefined'&&SITE_DATA)||{week:5,sleeper:'',espn:'',yahoo:''};
+const SUFFIX=/\b(jr|sr|ii|iii|iv|v)\b/g;
+const ALIAS={'mitchell tinsley':'mitch tinsley'};
+function nkey(name,pos){
+  if(pos==='DEF'){const w=name.replace(/D\/ST/i,'').trim().split(/\s+/);return 'def:'+w[w.length-1].toLowerCase();}
+  let k=name.toLowerCase().replace(/[.'’]/g,'').replace(SUFFIX,'').replace(/\s+/g,' ').trim();
+  return ALIAS[k]||k;
+}
+const SITES=(function(){
+  const m=new Map();
+  const get=(name,pos)=>{const k=nkey(name,pos);if(!m.has(k))m.set(k,{key:k,name:name.replace(/\s+(Jr\.|Sr\.|II|III|IV)$/,''),pos:pos==='DEF'?'DST':pos,team:'',opp:'',espn:null,yahoo:null,sleeper:null});return m.get(k);};
+  (SD.sleeper||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,tm,op,a,b,c]=l.split('|');if(!['QB','RB','WR','TE','K','DEF'].includes(ps))return;
+    const r=get(nm,ps);r.name=nm;r.team=tm;r.opp=op;r.sleeper={ppr:+a,half:+b,std:+c};});
+  (SD.espn||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,a,c]=l.split('|');const r=get(nm,ps);r.espn={ppr:+a,half:(+a+ +c)/2,std:+c};});
+  (SD.yahoo||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,a,b,c]=l.split('|');const r=get(nm,ps);r.yahoo={ppr:+a,half:+b,std:+c};});
+  return [...m.values()];
+})();
+const hasYahoo=SITES.some(r=>r.yahoo);
+ui.posS='All';ui.sortS='avg';ui.q='';
+function siteVals(r){const v={};['espn','yahoo','sleeper'].forEach(s=>{v[s]=r[s]?r[s][S.scoring]:null});
+  const xs=Object.values(v).filter(x=>x!=null);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
+function renderSites(){
+  $('#sitesWk').textContent=SD.week;
+  $('#sitesNote').textContent=`Updated ${SD.pulled||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring (use the toggle up top) · Games already played keep their pregame projection. Teams on bye aren't listed.`;
+  $('#yahooNote').hidden=hasYahoo;
+  chips($('#posSites'),ui.posS,'posS');
+  const q=ui.q.trim().toLowerCase();
+  let rows=SITES.filter(r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||r.opp.toLowerCase()===q))
+    .map(r=>({r,v:siteVals(r)})).filter(x=>x.v.max>=2||q);
+  const key=ui.sortS;
+  rows.sort((a,b)=>key==='spread'?b.v.spread-a.v.spread:((b.v[key]??-1)-(a.v[key]??-1)));
+  document.querySelectorAll('table.sites th.sortable').forEach(th=>th.dataset.sort===key?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
+  const maxV=Math.max(1,...rows.slice(0,400).map(x=>x.v.max));
+  const cell=(v,s,x)=>v[s]==null?'<td class="r num none">—</td>':`<td class="r num${x.n>1&&v[s]===x.max?' top':''}">${f1(v[s])}</td>`;
+  $('#sitesBody').innerHTML=rows.length?rows.slice(0,400).map((x,i)=>{const {r,v}=x;
+    const dots=['espn','yahoo','sleeper'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${s}: ${f1(v[s])}"></span>`).join('');
+    const agree=v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
+    return `<tr><td class="rank">${i+1}</td>
+      <td><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}</td>
+      <td class="num muted" style="white-space:nowrap">${r.team?esc(r.team)+' v '+esc(r.opp):'—'}</td>
+      ${cell(v,'espn',v)}${cell(v,'yahoo',v)}${cell(v,'sleeper',v)}
+      <td class="r big">${f1(v.avg)}</td>
+      <td><div class="srange"><div class="track"></div>${v.n>1?`<div class="span" style="left:${v.min/maxV*100}%;width:${(v.max-v.min)/maxV*100}%"></div>`:''}${dots}</div></td>
+      <td>${agree}</td></tr>`}).join(''):'<tr><td colspan="9" class="muted">No players match. Try a different name or position.</td></tr>';
+}
+$('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
+document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortS=th.dataset.sort;renderSites();};
+
+// ---- player stats ----
+const STD=(typeof STATS_DATA!=='undefined'&&STATS_DATA)||{fields:[],rows:'',dst:''};
+const PL=new Map();
+(function(){
+  const F=STD.fields,dst={};
+  (STD.dst||'').split('\n').filter(Boolean).forEach(l=>{const a=l.split('|');dst[a[0]]={sack:+a[1],int:+a[2],fr:+a[3],ya:+a[4],td:+a[5],sf:+a[6]};});
+  (STD.rows||'').split('\n').filter(Boolean).forEach(l=>{
+    const a=l.split('|'),s={};
+    F.forEach((f,i)=>{if(i>3&&f!=='weeks')s[f]=a[i]===''?0:+a[i];});
+    const weeks=a[a.length-1].split(';').map(w=>{if(w==='-')return null;const [p,r,t,sn]=w.split(':');return {ppr:+p,rec:+r,ptd:+t,snap:sn===''?null:+sn};});
+    const pos=a[1]==='DEF'?'DST':a[1];
+    const p={key:nkey(a[0],a[1]),name:a[0],pos,team:a[2],gp:+a[3],s,weeks,d:a[1]==='DEF'?dst[a[2]]||null:null};
+    PL.set(p.key,p);
+  });
+})();
+const SITEBY=new Map(SITES.map(r=>[r.key,r]));
+const adj=()=>({ppr:0,half:.5,std:1}[S.scoring]);
+const tot=p=>p.s.pts_ppr-adj()*p.s.rec+(S.passTD-4)*p.s.pass_td;
+const ppg=p=>p.gp?tot(p)/p.gp:0;
+const wpts=w=>w?w.ppr-adj()*w.rec+(S.passTD-4)*w.ptd:null;
+const dv=(a,b)=>b?a/b:null;
+const pct=v=>v==null?'—':(v*100).toFixed(1)+'%';
+const n1=v=>v==null?'—':(Math.round(v*10)/10).toFixed(1);
+const n2=v=>v==null?'—':v.toFixed(2);
+const QUAL={QB:p=>p.s.pass_att>=40,RB:p=>p.s.rush_att+p.s.rec_tgt>=12,WR:p=>p.s.rec_tgt>=6,TE:p=>p.s.rec_tgt>=6,K:p=>p.s.fga>=3,DST:p=>true};
+const snapM={k:'snap',l:'Snap share',f:p=>dv(p.s.off_snp,p.s.tm_off_snp),fmt:pct,why:'Share of his team\'s offensive plays he was on the field for. Playing time sets the ceiling on every other stat.'};
+const METRICS={
+ QB:[snapM,
+  {k:'rfp',l:'Fantasy points from rushing',f:p=>dv(p.s.rush_yd*.1+p.s.rush_td*6,tot(p)),fmt:pct,why:'Rushing yards are worth about 2.5x passing yards in fantasy. QBs who run a lot have higher floors and ceilings.'},
+  {k:'rsh',l:'Share of team carries',f:p=>dv(p.s.rush_att,p.s.tm_rush_att),fmt:pct,why:'How much of the team\'s run game goes through the QB, including scrambles and designed runs.'},
+  {k:'ra',l:'Rush attempts per game',f:p=>dv(p.s.rush_att,p.gp),fmt:n1,why:'Rushing volume is one of the most stable QB stats from week to week.'},
+  {k:'rzr',l:'Red-zone carries per game',f:p=>dv(p.s.rush_rz_att,p.gp),fmt:n1,why:'Goal-line rushing turns into 6-point TDs instead of 4-point passing TDs.'},
+  {k:'pa',l:'Pass attempts per game',f:p=>dv(p.s.pass_att,p.gp),fmt:n1,why:'Volume. More attempts means more chances for yards and TDs.'},
+  {k:'ypa',l:'Yards per attempt',f:p=>dv(p.s.pass_yd,p.s.pass_att),fmt:n1,why:'The best simple measure of passing efficiency.'},
+  {k:'tdr',l:'TD rate',f:p=>dv(p.s.pass_td,p.s.pass_att),fmt:pct,why:'TDs per attempt. Very high rates tend to drop back toward average (about 4.5%).'},
+  {k:'rzp',l:'Red-zone pass attempts per game',f:p=>dv(p.s.pass_rz_att,p.gp),fmt:n1,why:'Passing TD chances. More stable than the TD total itself.'},
+  {k:'cay',l:'Completed air yards per attempt',f:p=>dv(p.s.pass_air_yd,p.s.pass_att),fmt:n1,why:'How far downfield his completions travel. Deep passers have bigger weekly swings.'},
+  {k:'int',l:'INT rate',f:p=>dv(p.s.pass_int,p.s.pass_att),fmt:pct,low:1,why:'Interceptions per attempt. Lower is better.'},
+  {k:'sk',l:'Sack rate',f:p=>dv(p.s.pass_sack,p.s.pass_att+p.s.pass_sack),fmt:pct,low:1,why:'Sacks kill drives. High sack rates often mean a weak offensive line.'}],
+ RB:[snapM,
+  {k:'rsh',l:'Share of team carries',f:p=>dv(p.s.rush_att,p.s.tm_rush_att),fmt:pct,why:'The main RB workload stat. Backs with 60%+ of carries are true lead backs.'},
+  {k:'tsh',l:'Target share',f:p=>dv(p.s.rec_tgt,p.s.tm_tgt),fmt:pct,why:'A target is worth about 2–3x a carry in PPR. Pass-catching backs have safer floors.'},
+  {k:'opp',l:'Opportunities per game',f:p=>dv(p.s.rush_att+p.s.rec_tgt,p.gp),fmt:n1,why:'Carries plus targets. Raw volume is the strongest predictor of RB scoring.'},
+  {k:'rzs',l:'Red-zone carry share',f:p=>dv(p.s.rush_rz_att,p.s.tm_rz_rush),fmt:pct,why:'Who gets the ball near the goal line. This is where most RB touchdowns come from.'},
+  {k:'rzt',l:'Red-zone targets per game',f:p=>dv(p.s.rec_rz_tgt,p.gp),fmt:n2,why:'Short-yardage receiving TDs.'},
+  {k:'ypc',l:'Yards per carry',f:p=>dv(p.s.rush_yd,p.s.rush_att),fmt:n1,why:'Efficiency. Noisier than volume and shaped heavily by the offensive line.'},
+  {k:'yco',l:'Yards after contact per carry',f:p=>dv(p.s.rush_yac,p.s.rush_att),fmt:n2,why:'The part of rushing yards the back creates himself, less dependent on blocking.'},
+  {k:'btk',l:'Broken tackles per carry',f:p=>dv(p.s.rush_btkl,p.s.rush_att),fmt:pct,why:'Elusiveness. Backs who break tackles tend to keep their jobs.'},
+  {k:'fd',l:'First-down rate',f:p=>dv(p.s.rush_fd,p.s.rush_att),fmt:pct,why:'Carries that move the chains. A sign the back is trusted in key spots.'},
+  {k:'ypt',l:'Yards per target',f:p=>dv(p.s.rec_yd,p.s.rec_tgt),fmt:n1,why:'Receiving efficiency.'}],
+ WR:null,TE:null,
+ K:[{k:'fgp',l:'Field-goal rate',f:p=>dv(p.s.fgm,p.s.fga),fmt:pct,why:'Accuracy. Missed kicks cost points and can cost a kicker his job.'},
+  {k:'fga',l:'Field-goal attempts per game',f:p=>dv(p.s.fga,p.gp),fmt:n1,why:'Volume. Kickers on offenses that stall in the red zone get more tries.'},
+  {k:'f50',l:'50+ yard makes',f:p=>p.s.fgm_50p,fmt:v=>String(v),why:'Long field goals are often worth bonus points.'},
+  {k:'xpg',l:'Extra points per game',f:p=>dv(p.s.xpm,p.gp),fmt:n1,why:'A proxy for how many TDs his offense scores.'}],
+ DST:[{k:'sk',l:'Sacks per game',f:p=>p.d?dv(p.d.sack,p.gp):null,fmt:n1,why:'Pass rush is the most stable defensive scoring source.'},
+  {k:'to',l:'Takeaways per game',f:p=>p.d?dv(p.d.int+p.d.fr,p.gp):null,fmt:n1,why:'Interceptions and fumble recoveries. Big points, but random from week to week.'},
+  {k:'pa',l:'Points allowed per game',f:p=>dv(p.s.pts_allow,p.gp),fmt:n1,low:1,why:'Most leagues score by points allowed tiers.'},
+  {k:'ya',l:'Yards allowed per game',f:p=>p.d?dv(p.d.ya,p.gp):null,fmt:v=>v==null?'—':Math.round(v)+'',low:1,why:'Overall defensive quality.'}]
+};
+METRICS.WR=[snapM,
+  {k:'tsh',l:'Target share',f:p=>dv(p.s.rec_tgt,p.s.tm_tgt),fmt:pct,why:'The single best stat for predicting receiver scoring. 25%+ is elite.'},
+  {k:'tpg',l:'Targets per game',f:p=>dv(p.s.rec_tgt,p.gp),fmt:n1,why:'Raw volume.'},
+  {k:'yptpa',l:'Yards per team pass attempt',f:p=>dv(p.s.rec_yd,p.s.tm_pass_att),fmt:n2,why:'The closest free stand-in for yards per route run. Above 2.0 is elite.'},
+  {k:'yps',l:'Receiving yards per snap',f:p=>dv(p.s.rec_yd,p.s.off_snp),fmt:n2,why:'Another route-run stand-in: how productive he is when he\'s on the field.'},
+  {k:'cay',l:'Share of team completed air yards',f:p=>dv(p.s.rec_air_yd,p.s.tm_air),fmt:pct,why:'Downfield role. Air yards predict future yards, even when they aren\'t caught yet.'},
+  {k:'rzs',l:'Red-zone target share',f:p=>dv(p.s.rec_rz_tgt,p.s.tm_rz_tgt),fmt:pct,why:'Where receiving TDs come from. More stable than TD totals.'},
+  {k:'ypt',l:'Yards per target',f:p=>dv(p.s.rec_yd,p.s.rec_tgt),fmt:n1,why:'Efficiency per look.'},
+  {k:'cr',l:'Catch rate',f:p=>dv(p.s.rec,p.s.rec_tgt),fmt:pct,why:'Catches per target. Depends partly on how deep he\'s targeted.'},
+  {k:'yac',l:'Yards after catch per reception',f:p=>dv(p.s.rec_yar,p.s.rec),fmt:n1,why:'What he creates with the ball in his hands.'},
+  {k:'fdt',l:'First downs per target',f:p=>dv(p.s.rec_fd,p.s.rec_tgt),fmt:pct,why:'Strongly tied to future target volume: QBs keep throwing to players who move the chains.'},
+  {k:'dr',l:'Drop rate',f:p=>dv(p.s.rec_drop,p.s.rec_tgt),fmt:pct,low:1,why:'Drops per target. Lower is better.'}];
+METRICS.TE=METRICS.WR;
+const PRIMARY={QB:'rfp',RB:'rsh',WR:'tsh',TE:'tsh',K:'fgp',DST:'to'};
+function rankOf(p,m){
+  const pool=[...PL.values()].filter(q=>q.pos===p.pos&&q.gp>=2&&QUAL[p.pos](q)).map(q=>({q,v:m.f(q)})).filter(x=>x.v!=null&&isFinite(x.v));
+  pool.sort((a,b)=>m.low?a.v-b.v:b.v-a.v);
+  const i=pool.findIndex(x=>x.q===p);return i<0?null:{r:i+1,n:pool.length};
+}
+function ppgRank(p){const pool=[...PL.values()].filter(q=>q.pos===p.pos&&q.gp>=2).sort((a,b)=>ppg(b)-ppg(a));const i=pool.indexOf(p);return i<0?null:{r:i+1,n:pool.length};}
+const ord=n=>{const t=n%100;if(t>=11&&t<=13)return n+'th';return n+({1:'st',2:'nd',3:'rd'}[n%10]||'th');};
+function spark(p){const ws=p.weeks.slice(-5).filter((w,i,arr)=>true);const vals=p.weeks.map(wpts);const mx=Math.max(1,...vals.filter(v=>v!=null));
+  return `<span class="spark" aria-label="Weekly points">${p.weeks.map((w,i)=>[w,i]).slice(-4).map(([w,i])=>w?`<i style="height:${Math.max(2,(wpts(w)/mx)*22)}px" title="Wk ${i+1}: ${n1(wpts(w))}"></i>`:'<i class="dnp" title="Did not play"></i>').join('')}</span>`;}
+ui.posT='All';ui.sortT='ppg';ui.qT='';
+function renderStats(){
+  $('#statsNote').textContent=`${STD.through||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring · Source: Sleeper`;
+  chips($('#posStats'),ui.posT,'posT');
+  const q=ui.qT.trim().toLowerCase();
+  const use=p=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);return m?m.f(p):null;};
+  let rows=[...PL.values()].filter(p=>(ui.posT==='All'||p.pos===ui.posT)&&(!q||p.name.toLowerCase().includes(q)||p.team.toLowerCase()===q));
+  const key={ppg:ppg,tot:tot,snap:p=>dv(p.s.off_snp,p.s.tm_off_snp),use:use}[ui.sortT];
+  rows.sort((a,b)=>(key(b)??-1)-(key(a)??-1));
+  document.querySelectorAll('table.dir th.sortable').forEach(th=>th.dataset.sort===ui.sortT?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
+  $('#statsBody').innerHTML=rows.length?rows.slice(0,450).map((p,i)=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);const sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp);
+    return `<tr><td class="rank">${i+1}</td><td><span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button> <span class="muted" style="font-size:.85rem">${esc(p.team)}</span></td>
+    <td class="r num">${p.gp}</td><td class="r big">${n1(ppg(p))}</td><td class="r num">${n1(tot(p))}</td><td class="r num">${sn==null?'—':Math.round(sn*100)+'%'}</td>
+    <td class="r num" title="${m?esc(m.l):''}">${m?m.fmt(m.f(p)):'—'} <span class="stub">${m?{rfp:'rush FP',rsh:'carries',tsh:'tgt share',fgp:'FG',to:'TO/g'}[m.k]:''}</span></td><td>${spark(p)}</td></tr>`}).join(''):'<tr><td colspan="8" class="muted">No players match.</td></tr>';
+}
+$('#statSearch').oninput=e=>{ui.qT=e.target.value;renderStats();};
+document.querySelector('table.dir thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortT=th.dataset.sort;renderStats();};
+
+function weekChart(p){
+  const vals=p.weeks.map(wpts),W=520,H=200,pl=34,pb=44,pt=22,cw=(W-pl-10)/vals.length;
+  const mx=Math.max(5,...vals.filter(v=>v!=null));const top=Math.ceil(mx/5)*5;const y=v=>pt+(H-pt-pb)*(1-Math.max(0,v)/top);
+  const avg=ppg(p);let g='';
+  for(let t=0;t<=top;t+=top/4){g+=`<line class="grid" x1="${pl}" x2="${W-10}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl-6}" y="${y(t)+4}" text-anchor="end">${Math.round(t)}</text>`;}
+  vals.forEach((v,i)=>{const x=pl+i*cw+cw*.2,bw=cw*.6,w=p.weeks[i];
+    if(v!=null){g+=`<rect class="bar" x="${x}" y="${y(v)}" width="${bw}" height="${Math.max(1,y(0)-y(v))}" rx="3"/><text class="val" x="${x+bw/2}" y="${y(v)-6}" text-anchor="middle">${n1(v)}</text>`;}
+    else g+=`<text x="${x+bw/2}" y="${y(0)-6}" text-anchor="middle">—</text>`;
+    g+=`<text x="${x+bw/2}" y="${H-pb+16}" text-anchor="middle">Wk ${i+1}</text>`;
+    if(w&&w.snap!=null&&p.pos!=='K'&&p.pos!=='DST')g+=`<text x="${x+bw/2}" y="${H-pb+32}" text-anchor="middle">${w.snap}% snaps</text>`;});
+  g+=`<line class="avg" x1="${pl}" x2="${W-10}" y1="${y(avg)}" y2="${y(avg)}"/><text x="${W-12}" y="${y(avg)-5}" text-anchor="end" style="fill:var(--gold)">avg ${n1(avg)}</text>`;
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Fantasy points by week">${g}</svg>`;
+}
+function boxScore(p){
+  const s=p.s,g=p.gp||1;let cols;
+  if(p.pos==='QB')cols=[['Cmp / Att',`${s.pass_cmp}/${s.pass_att}`,null],['Pass yds',s.pass_yd],['Pass TD',s.pass_td],['INT',s.pass_int],['Sacks',s.pass_sack],['Rush att',s.rush_att],['Rush yds',s.rush_yd],['Rush TD',s.rush_td],['Fum lost',s.fum_lost]];
+  else if(p.pos==='RB')cols=[['Carries',s.rush_att],['Rush yds',s.rush_yd],['Rush TD',s.rush_td],['Targets',s.rec_tgt],['Rec',s.rec],['Rec yds',s.rec_yd],['Rec TD',s.rec_td],['Fum lost',s.fum_lost]];
+  else if(p.pos==='K')cols=[['FG made',s.fgm],['FG att',s.fga],['50+ made',s.fgm_50p],['XP made',s.xpm],['XP att',s.xpa]];
+  else if(p.pos==='DST'){const d=p.d||{};cols=[['Sacks',d.sack??0],['INT',d.int??0],['Fum rec',d.fr??0],['TDs',d.td??0],['Pts allowed',s.pts_allow],['Yds allowed',d.ya??0]];}
+  else cols=[['Targets',s.rec_tgt],['Rec',s.rec],['Rec yds',s.rec_yd],['Rec TD',s.rec_td],['Rush att',s.rush_att],['Rush yds',s.rush_yd],['Fum lost',s.fum_lost]];
+  return `<div class="tbl-wrap"><table style="min-width:520px"><thead><tr><th></th>${cols.map(c=>`<th class="r">${c[0]}</th>`).join('')}</tr></thead><tbody>
+   <tr><td class="label">Season</td>${cols.map(c=>`<td class="r num">${c[1]}</td>`).join('')}</tr>
+   <tr><td class="label">Per game</td>${cols.map(c=>`<td class="r num muted">${c.length===3?'—':n1(c[1]/g)}</td>`).join('')}</tr></tbody></table></div>`;
+}
+function renderPlayer(){
+  const p=PL.get(ui.player);const el=$('#p-player');
+  if(!p){el.innerHTML='<p class="muted">Player not found.</p>';return;}
+  const pr=ppgRank(p),vals=p.weeks.map(wpts).filter(v=>v!=null);
+  const mean=vals.reduce((a,b)=>a+b,0)/(vals.length||1),sd=Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/(vals.length||1));
+  const site=SITEBY.get(p.key),sv=site?siteVals(site):null;
+  const startLine={QB:18,RB:12,WR:12,TE:9,K:8,DST:8}[p.pos];
+  const boom=vals.length?vals.filter(v=>v>=startLine).length:0;
+  const sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp);
+  const ms=METRICS[p.pos].map(m=>{const v=m.f(p),rk=rankOf(p,m);const frac=rk?1-(rk.r-1)/Math.max(1,rk.n-1):null;
+    return `<div class="metric"><div class="top"><span class="label" style="color:var(--ink)">${esc(m.l)}</span><span class="mv">${m.fmt(v)}</span></div>
+     ${frac!=null?`<div class="pbar" aria-hidden="true"><i class="${frac>=.67?'hi':frac>=.33?'mid':'lo'}" style="width:${Math.max(4,frac*100)}%"></i></div><span class="rk">${ord(rk.r)} of ${rk.n} ${p.pos}s</span>`:'<span class="rk">Not enough volume to rank</span>'}
+     <span class="why">${esc(m.why)}</span></div>`}).join('');
+  el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
+   <div class="ph"><div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span>${esc(p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
+     ${sv?`<div class="meta">Week ${SD.week}: ${esc(site.team)} v ${esc(site.opp)}</div>`:''}</div>
+   <div class="tiles">
+     <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${pr?ord(pr.r)+' of '+pr.n+' '+p.pos+'s':''}</span></div>
+     <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]}</span></div>
+     ${sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
+     <div class="tile"><span class="label">Week ${SD.week} projection</span><span class="v">${sv?n1(sv.avg):'—'}</span><span class="s">${sv?['espn','sleeper'].filter(s=>sv[s]!=null).map(s=>(s==='espn'?'ESPN ':'Sleeper ')+n1(sv[s])).join(' · '):'No projection (bye or out)'}</span></div>
+     <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
+   </div>
+   <div class="card"><h3>Points by week</h3>${weekChart(p)}<p class="note">Range so far: ${vals.length?n1(Math.min(...vals))+' to '+n1(Math.max(...vals)):'—'} points. The dashed line is his season average.</p></div>
+   <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
+   <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season.</p>
+   <div class="mgrid">${ms}</div></div>`;
+  $('#backBtn').onclick=()=>{ui.tab=ui.prev||'stats';render();window.scrollTo(0,0);};
+}
+document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;ui.player=b.dataset.k;ui.tab='player';render();window.scrollTo(0,0);});
+
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
+
+// events
+$('#scoringSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.scoring=b.dataset.v;save();render();};
+$('#weekIn').oninput=e=>{const v=Math.round(n(e.target.value));if(v>=1&&v<=17){S.week=v;save();renderWeek();renderRos();}};
+$('#passTdIn').onchange=e=>{S.passTD=n(e.target.value);save();render();};
+document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.tab=b.dataset.tab;try{localStorage.setItem(KEY+'.tab',ui.tab)}catch(_){}render();};
+['match','trend','sched','q'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);save();renderModel();renderWeek();renderRos();});
+$('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
+
+$('#f-pos').onchange=e=>renderStatFields(e.target.value,ui.editing?S.players.find(p=>p.id===ui.editing):null);
+function resetForm(){
+  $('#pForm').reset();ui.editing=null;$('#formTitle').textContent='Add a player';$('#saveBtn').textContent='Add player';$('#cancelEdit').hidden=true;
+  $('#f-oppRank').value=16;$('#f-trend').value='Steady';$('#f-sched').value='Average';renderStatFields($('#f-pos').value);
+}
+$('#pForm').onsubmit=e=>{
+  e.preventDefault();
+  const name=$('#f-name').value.trim();if(!name){$('#f-name').focus();toast('Enter a player name');return;}
+  const pos=$('#f-pos').value;
+  const o={name,pos,team:$('#f-team').value.trim(),opp:$('#f-opp').value.trim(),oppRank:Math.min(32,Math.max(1,Math.round(n($('#f-oppRank').value)||16))),
+    status:$('#f-status').value,bye:$('#f-bye').value?Math.round(n($('#f-bye').value)):'',trend:$('#f-trend').value,sched:$('#f-sched').value,example:false};
+  ALL_STATS.forEach(k=>o[k]=0);
+  STAT_FIELDS[pos].forEach(([k])=>o[k]=n($('#s-'+k).value));
+  if(ui.editing){const i=S.players.findIndex(p=>p.id===ui.editing);S.players[i]=Object.assign({},S.players[i],o);toast('Player updated');}
+  else{S.players.push(P(o));toast(name+' added');}
+  save();resetForm();render();
+};
+$('#cancelEdit').onclick=()=>{resetForm();};
+$('#listBody').onclick=e=>{
+  const ed=e.target.closest('[data-edit]'),del=e.target.closest('[data-del]');
+  if(ed){const p=S.players.find(x=>x.id===ed.dataset.edit);ui.editing=p.id;
+    $('#f-name').value=p.name;$('#f-pos').value=p.pos;$('#f-team').value=p.team||'';$('#f-opp').value=p.opp||'';$('#f-oppRank').value=p.oppRank||16;
+    $('#f-status').value=p.status;$('#f-bye').value=p.bye||'';$('#f-trend').value=p.trend;$('#f-sched').value=p.sched;renderStatFields(p.pos,p);
+    $('#formTitle').textContent='Edit '+p.name;$('#saveBtn').textContent='Save changes';$('#cancelEdit').hidden=false;$('#pForm').scrollIntoView({behavior:'smooth',block:'start'});}
+  if(del){
+    if(del.dataset.confirm){S.players=S.players.filter(x=>x.id!==del.dataset.del);save();render();toast('Player removed');}
+    else{del.dataset.confirm='1';del.textContent='Confirm';setTimeout(()=>{if(del.isConnected){delete del.dataset.confirm;del.textContent='Delete';}},3000);}
+  }
+};
+$('#wkSearch').oninput=e=>{ui.qW=e.target.value;renderWeek();};
+$('#mineOnly').onchange=e=>{ui.mineOnly=e.target.checked;renderWeek();};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-star]');if(!b)return;const k=b.dataset.star;S.mine=S.mine||[];
+  const i=S.mine.indexOf(k);if(i>=0)S.mine.splice(i,1);else S.mine.push(k);save();renderWeek();renderRos();});
+$('#copyIO').onclick=()=>{const t=$('#ioText');navigator.clipboard?.writeText(t.value).then(()=>toast('List copied'),()=>{t.select();toast('Press Ctrl/Cmd+C to copy');})??(t.select(),toast('Press Ctrl/Cmd+C to copy'));};
+$('#loadIO').onclick=()=>{try{const d=JSON.parse($('#ioText').value);if(!Array.isArray(d))throw 0;
+  const ok=d.filter(p=>p&&p.name&&STAT_FIELDS[p.pos]).map(p=>P(Object.assign({},p,{id:undefined,example:false})));ok.forEach(p=>p.id=Math.random().toString(36).slice(2,9));
+  if(!ok.length)throw 0;S.players=ok;save();render();toast(`Loaded ${ok.length} players`);}catch(e){toast('That text isn\'t a saved player list');}};
+
+renderStatFields('QB');
+render();
+try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled} · refreshes automatically every few hours`:'';}catch(e){}
+})();
+</script>
+</body>
+</html>
