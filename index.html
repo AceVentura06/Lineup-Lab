@@ -107,6 +107,8 @@ td.r,th.r{text-align:right}
 .h2h{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:start}
 .h2h .vs{font-family:var(--f-display);font-weight:800;font-size:1.6rem;color:var(--muted);padding-top:22px}
 .side{display:flex;flex-direction:column;gap:8px;min-width:0}
+.side input.pick{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
+.side input.pick:focus{outline:2px solid var(--turf);outline-offset:0}
 .side select{font:inherit;padding:7px 9px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);width:100%}
 .side .proj{font-family:var(--f-mono);font-size:2rem;font-weight:600;line-height:1}
 .side.win .proj{color:var(--turf)}
@@ -235,10 +237,10 @@ td.none{color:var(--muted)}
   </header>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
     <button role="tab" data-tab="sites" id="t-sites">Site Projections</button>
     <button role="tab" data-tab="stats" id="t-stats">Player Stats</button>
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
+    <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
   </nav>
 
@@ -246,7 +248,7 @@ td.none{color:var(--muted)}
   <section class="panel" id="p-week" role="tabpanel">
     <div class="card">
       <h2>Head to head</h2>
-      <p class="muted" style="margin-bottom:14px">Pick two players you're deciding between this week.</p>
+      <p class="muted" style="margin-bottom:14px">Type two players' names to compare them for this week. Your starred players are marked in the suggestions.</p>
       <div class="h2h">
         <div class="side" id="sideA"></div>
         <div class="vs">VS</div>
@@ -565,16 +567,24 @@ function renderH2H(){
     if(!byId.has(ui.a))ui.a=pair[0];if(!byId.has(ui.b)||ui.b===ui.a)ui.b=pair[1]===ui.a?pair[0]:pair[1];
   }
   const groups=['QB','RB','WR','TE','K','DST'].map(pos=>{const g=ps.filter(x=>x.p.pos===pos).sort((a,b)=>(isMine(b.p)-isMine(a.p))||b.w.proj-a.w.proj);return [pos,g];});
-  const opts=sel=>groups.map(([pos,g])=>`<optgroup label="${pos}">${g.map(x=>`<option value="${esc(x.p.id)}" ${x.p.id===sel?'selected':''}>${isMine(x.p)?'★ ':''}${esc(x.p.name)}${x.p.team?' ('+esc(x.p.team)+')':''}</option>`).join('')}</optgroup>`).join('');
+  const label=p=>`${p.name}${p.team?' ('+p.team+')':''} · ${p.pos}`;
+  const byLabel=new Map(ps.map(x=>[label(x.p).toLowerCase(),x.p.id]));
+  const opts=groups.map(([pos,g])=>g.map(x=>`<option value="${esc(label(x.p))}">${isMine(x.p)?'★ On my team':''}</option>`).join('')).join('');
   const A=byId.get(ui.a),B=byId.get(ui.b),wa=weekProj(A),wb=weekProj(B);
-  const side=(id,p,w,win,label)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';return `<label class="label" for="${id}">${label}</label><select id="${id}">${opts(p.id)}</select>
+  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';return `<label class="label" for="${id}">${lbl}</label><input id="${id}" class="pick" type="search" list="${id}-list" value="${esc(label(p))}" placeholder="Type a player\'s name" autocomplete="off" spellcheck="false"><datalist id="${id}-list">${opts}</datalist>
     <div class="proj">${f1(w.proj)}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}</div>
     ${g&&g.implied!=null?`<div class="note">Vegas: team implied ${n1(g.implied)} pts (${g.spread>0?'+':''}${g.spread}, O/U ${g.total})${wt?' · '+esc(wt):''}</div>`:''}
     ${e?`<div class="note">Experts: ${p.pos}${e[1]} (best ${e[3]}, worst ${e[4]})${e[5]?' · grade '+esc(e[5]):''}</div>`:''}
     <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
   $('#sideA').className='side'+(wa.proj>=wb.proj?' win':'');$('#sideB').className='side'+(wb.proj>wa.proj?' win':'');
   $('#sideA').innerHTML=side('selA',A,wa,0,'Player 1');$('#sideB').innerHTML=side('selB',B,wb,0,'Player 2');
-  $('#selA').onchange=e=>{ui.a=e.target.value;renderH2H()};$('#selB').onchange=e=>{ui.b=e.target.value;renderH2H()};
+  const pick=(id,slot)=>{const el=$('#'+id);
+    el.onfocus=()=>{try{el.select();}catch(_){}};
+    el.oninput=()=>{const hit=byLabel.get(el.value.trim().toLowerCase());if(hit){ui[slot]=hit;renderH2H();}};
+    el.onchange=()=>{const v=el.value.trim().toLowerCase();if(!v)return;let hit=byLabel.get(v);
+      if(!hit){const m=[...byLabel.keys()].filter(k=>k.includes(v));if(m.length)hit=byLabel.get(m[0]);}
+      if(hit){ui[slot]=hit;renderH2H();}else{el.value=label(slot==='a'?A:B);toast('No player matches that name');}};};
+  pick('selA','a');pick('selB','b');
   const diff=Math.abs(wa.proj-wb.proj),W=wa.proj>=wb.proj?A:B,L=W===A?B:A,ww=W===A?wa:wb,wl=W===A?wb:wa;
   let msg;
   if(wa.proj===0&&wb.proj===0)msg=`<b>Neither</b><br>Both are out or on bye this week.`;
