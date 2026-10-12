@@ -1,4 +1,4 @@
-# Lineup Lab
+# Ace Lineup Lab
 
 A fantasy football evaluator: weekly start/sit projections, ESPN vs. Sleeper projections, player pages with usage and efficiency stats, and rest-of-season tiers. Built with Claude.
 
