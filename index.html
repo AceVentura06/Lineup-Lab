@@ -68,7 +68,7 @@ p{margin:0}
 
 /* tabs */
 .tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);overflow-x:auto}
-.tabs button{all:unset;cursor:pointer;padding:10px 14px;font-family:var(--f-display);font-weight:700;font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tabs button{all:unset;cursor:pointer;padding:10px 11px;font-family:var(--f-display);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--turf)}
 .tabs button:focus-visible{outline:2px solid var(--turf)}
 
@@ -532,8 +532,13 @@ function weekProj(p){
   const ck=(p.id||p.key)+'|'+S.week+'|'+S.scoring+'|'+S.passTD+'|'+JSON.stringify(S.w);if(_wp.has(ck))return _wp.get(ck);
   const b=base(p);let r;
   if(onBye(p))r={b,proj:0,lo:0,hi:0,model:0,sites:null};
-  else{const h=healthWk(p);const model=b*matchM(p)*trendM(p)*vegasM(p)*weatherM(p)*h;
-    const sa=siteAvg(p);const proj=h===0?0:sa!=null?(1-S.w.blend)*model+S.w.blend*sa*(h<1?Math.max(.4,h):1):model;
+  else{const h=healthWk(p),sa=siteAvg(p),gp=p.real?(PL.get(p.key)?.gp||0):9;
+    // small samples: with no site projection, pull toward a typical backup; with one, lean on the sites more
+    const POSBASE={QB:12,RB:6,WR:6,TE:4,K:7.5,DST:6.5};
+    const bAdj=sa==null&&gp<3?(gp*b+(3-gp)*(POSBASE[p.pos]||6))/3:b;
+    const model=bAdj*matchM(p)*trendM(p)*vegasM(p)*weatherM(p)*h;
+    const wB=gp<3?S.w.blend+(1-S.w.blend)*(3-gp)/3:S.w.blend;
+    const proj=h===0?0:sa!=null?(1-wB)*model+wB*sa*(h<1?Math.max(.4,h):1):model;
     const v=volOf(p);r={b,proj,model,sites:sa,lo:proj*(1-v),hi:proj*(1+v)};}
   if(_wp.size>4000)_wp.clear();_wp.set(ck,r);return r;
 }
@@ -839,9 +844,10 @@ function renderLineup(){
   $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of ESPN leagues (FantasyPros' cross-site average when ESPN has no number). Sleeper doesn't publish roster rates. Check your own league before you count on one.`;
   if(roster.length){
     const sugg=[];for(const o of avail.slice(0,150)){const L2=optimize([...roster,o.x.key]);const gain=L2.total-L.total;if(gain>0.3){const slot=L2.start.find(r=>r.x&&r.x.key===o.x.key);
-      const out=L.start.find(r=>r.slot===slot.slot&&!L2.start.some(r2=>r2.x&&r.x&&r2.x.key===r.x.key));sugg.push({...o,gain,slot:slot.slot,out:out&&out.x});}}
+      const now=new Set(L2.start.filter(r=>r.x).map(r=>r.x.key));const out=L.start.find(r=>r.x&&!now.has(r.x.key));sugg.push({...o,gain,slot:slot.slot,out:out&&out.x});}}
     sugg.sort((a,b)=>b.gain-a.gain);
-    $('#luWaivers').innerHTML=sugg.length?sugg.slice(0,12).map(o=>`<tr><td><span class="pos ${o.x.pos}">${o.x.pos}</span> ${pname(o.x)} <span class="muted">${esc(o.x.team||'')}</span>${o.x.real?' '+statusPill(o.x.p):''}</td><td class="r num">${n1(o.own.pct)}%<span class="subn">${o.own.src}</span></td><td class="r big">${f1(o.x.proj)}</td><td>${o.out?`${SLOT_LBL[o.slot]}: ${esc(o.out.name)} (${f1(o.out.proj)})`:`Empty ${SLOT_LBL[o.slot]} slot`}</td><td class="r num" style="color:var(--good);font-weight:700">+${f1(o.gain)}</td></tr>`).join(''):`<tr><td colspan="5" class="muted">No available player projects higher than your current starters. Nice roster.</td></tr>`;
+    {const per={},kept=[];for(const o of sugg){per[o.x.pos]=(per[o.x.pos]||0)+1;if(per[o.x.pos]<=3)kept.push(o);}sugg.length=0;sugg.push(...kept);}
+    $('#luWaivers').innerHTML=sugg.length?sugg.slice(0,12).map(o=>`<tr><td><span class="pos ${o.x.pos}">${o.x.pos}</span> ${pname(o.x)} <span class="muted">${esc(o.x.team||'')}</span>${o.x.real?' '+statusPill(o.x.p):''}</td><td class="r num">${n1(o.own.pct)}%<span class="subn">${o.own.src}</span></td><td class="r big">${f1(o.x.proj)}</td><td>${o.out?`${esc(o.out.name)} (${f1(o.out.proj)})${o.out.pos!==o.x.pos?`<span class="subn">others shift to make room</span>`:''}`:`Empty ${SLOT_LBL[o.slot]} slot`}</td><td class="r num" style="color:var(--good);font-weight:700">+${f1(o.gain)}</td></tr>`).join(''):`<tr><td colspan="5" class="muted">No available player projects higher than your current starters. Nice roster.</td></tr>`;
   }else $('#luWaivers').innerHTML='<tr><td colspan="5" class="muted">Add your roster to see which pickups would start for you.</td></tr>';
   $('#luAvail').innerHTML=['QB','RB','WR','TE','K','DST'].map(pos=>{const list=avail.filter(o=>o.x.pos===pos).slice(0,4);
     return `<div class="metric"><div class="top"><span class="label" style="color:var(--ink)">${pos}</span></div>${list.length?list.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px"><span>${pname(o.x)} <span class="muted" style="font-size:.8rem">${esc(o.x.team||'')} · ${n1(o.own.pct)}%</span></span><b class="mono">${f1(o.x.proj)}</b></div>`).join(''):'<span class="muted">None under the threshold</span>'}</div>`;}).join('');
