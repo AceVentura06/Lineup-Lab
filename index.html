@@ -1562,9 +1562,10 @@ function renderPlayer(){
      <div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection (bye or out)'}</span></div>
      <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${tr.cons}</b> · `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
-   ${thisWeek}<div id="pNews"></div>${toolsCard}${xfpCard}
-   <div class="card"><h3>Points by week</h3>${weekChart(p)}<p class="note">Range so far: ${vals.length?n1(Math.min(...vals))+' to '+n1(Math.max(...vals)):'—'} points. The dashed line is his season average.</p></div>
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
+   ${thisWeek}
+   <div class="card"><h3>Points by week</h3>${weekChart(p)}<p class="note">Range so far: ${vals.length?n1(Math.min(...vals))+' to '+n1(Math.max(...vals)):'—'} points. The dashed line is his season average.</p></div>
+   <div id="pNews"></div>${toolsCard}${xfpCard}
    <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
    <div class="mgrid">${ms}</div></div>`;
   $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'sites');};
