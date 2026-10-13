@@ -1315,7 +1315,7 @@ function renderPlayer(){
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
    <div class="mgrid">${ms}</div></div>`;
-  $('#backBtn').onclick=()=>{ui.tab=ui.prev||'stats';render();window.scrollTo(0,0);};
+  $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'stats');};
   fillNews(p);
 }
 // start downloading a player's photo as soon as the pointer or finger lands on his name
@@ -1323,7 +1323,7 @@ const PREF=new Set();
 function prefetchShot(e){const b=e.target.closest&&e.target.closest('.plink');if(!b)return;const k=b.dataset.k;if(!k||PREF.has(k))return;
   const p=PL.get(k);const u=p&&headshotOf(p);if(!u)return;PREF.add(k);const im=new Image();im.decoding='async';im.src=u;}
 ['pointerover','touchstart','focusin'].forEach(t=>document.addEventListener(t,prefetchShot,{passive:true}));
-document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;ui.player=b.dataset.k;ui.tab='player';render();window.scrollTo(0,0);});
+document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;go('player',b.dataset.k);});
 
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
 
@@ -1331,7 +1331,24 @@ function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeou
 $('#scoringSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.scoring=b.dataset.v;save();render();};
 $('#weekIn').oninput=e=>{const v=Math.round(n(e.target.value));if(v>=1&&v<=17){S.week=v;save();renderWeek();renderRos();}};
 $('#passTdIn').onchange=e=>{S.passTD=n(e.target.value);save();render();};
-document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.tab=b.dataset.tab;try{localStorage.setItem(KEY+'.tab',ui.tab)}catch(_){}render();};
+document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);};
+// Browser history: every tab and player page gets its own address, so Back and Forward move around the site
+// (and a link like …/#player=puka-nacua opens straight to that page)
+const TABS=['stats','sites','ros','week','lineup','acc','model'];
+let navDepth=0;
+const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
+const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):'#'+t;
+function readHash(){const h=decodeURIComponent(location.hash.slice(1));
+  if(h.startsWith('player=')){const raw=h.slice(7);const k=[raw,raw.replace(/-/g,' ')].find(x=>PL.has(x));if(k)return {tab:'player',player:k};}
+  return TABS.includes(h)?{tab:h}:{tab:'stats'};}
+function go(tab,player,push=true){
+  ui.tab=tab;if(player)ui.player=player;
+  if(push){try{history.pushState({tab,player:player||null},'',hashFor(tab,player));navDepth++;}catch(_){}}
+  render();window.scrollTo(0,0);}
+window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Math.max(0,navDepth-1);
+  if(st.tab==='player'&&!PL.has(st.player))st.tab='stats';ui.tab=st.tab;if(st.player)ui.player=st.player;render();window.scrollTo(0,0);});
+(function(){const st=readHash();if(location.hash&&(st.tab!=='stats'||location.hash==='#stats')){ui.tab=st.tab;if(st.player)ui.player=st.player;render();}
+  try{history.replaceState({tab:ui.tab,player:ui.tab==='player'?ui.player:null},'',hashFor(ui.tab,ui.player));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);save();renderModel();renderWeek();renderRos();});
 $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
 
