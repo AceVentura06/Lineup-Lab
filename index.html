@@ -1054,9 +1054,11 @@ function boxScore(p){
   else if(p.pos==='K')cols=[['FG made',s.fgm],['FG att',s.fga],['50+ made',s.fgm_50p],['XP made',s.xpm],['XP att',s.xpa]];
   else if(p.pos==='DST'){const d=p.d||{};cols=[['Sacks',d.sack??0],['INT',d.int??0],['Fum rec',d.fr??0],['TDs',d.td??0],['Pts allowed',s.pts_allow],['Yds allowed',d.ya??0]];}
   else cols=[['Targets',s.rec_tgt],['Rec',s.rec],['Rec yds',s.rec_yd],['Rec TD',s.rec_td],['Rush att',s.rush_att],['Rush yds',s.rush_yd],['Fum lost',s.fum_lost]];
-  return `<div class="tbl-wrap"><table style="min-width:520px"><thead><tr><th></th>${cols.map(c=>`<th class="r">${c[0]}</th>`).join('')}</tr></thead><tbody>
-   <tr><td class="label">Season</td>${cols.map(c=>`<td class="r num">${c[1]}</td>`).join('')}</tr>
-   <tr><td class="label">Per game</td>${cols.map(c=>`<td class="r num muted">${c.length===3?'—':n1(c[1]/g)}</td>`).join('')}</tr></tbody></table></div>`;
+  cols.unshift([`Fantasy pts <span class="subn" style="display:inline">${{ppr:'PPR',half:'Half',std:'Std'}[S.scoring]}</span>`,tot(p),'fp']);
+  const sv=c=>c[2]==='fp'?`<b>${n1(c[1])}</b>`:c[1],pg=c=>c[2]===null?'—':c[2]==='fp'?`<b>${n1(c[1]/g)}</b>`:n1(c[1]/g);
+  return `<div class="tbl-wrap"><table style="min-width:600px"><thead><tr><th></th>${cols.map(c=>`<th class="r">${c[0]}</th>`).join('')}</tr></thead><tbody>
+   <tr><td class="label">Season</td>${cols.map(c=>`<td class="r num">${sv(c)}</td>`).join('')}</tr>
+   <tr><td class="label">Per game</td>${cols.map(c=>`<td class="r num muted">${pg(c)}</td>`).join('')}</tr></tbody></table></div>`;
 }
 // Team colors: [main, secondary]. Teams whose main color is very light use their dark color as the main.
 const TEAM_COLORS={ARI:['#97233F','#FFB612'],ATL:['#A71930','#000000'],BAL:['#241773','#9E7C0C'],BUF:['#00338D','#C60C30'],CAR:['#0085CA','#101820'],
