@@ -1336,7 +1336,7 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');i
 $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
 
 render();
-try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled} · refreshes automatically every few hours`:'';}catch(e){}
+try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
 })();
 </script>
 </body>
