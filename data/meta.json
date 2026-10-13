@@ -1,8 +1,8 @@
 {
-  "hash": "4ca865851eec7e4a",
-  "updated": "2026-10-13T10:41:24.689Z",
+  "hash": "6ebb221f30d4dd62",
+  "updated": "2026-10-13T15:01:23.901Z",
   "season": 2026,
-  "week": 5,
+  "week": 6,
   "through": "Weeks 1–5",
   "sources": {
     "nflverse stats": {
@@ -31,23 +31,23 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "361 entries for week 5"
+      "detail": "no week 6 report yet (comes out Wednesday)"
     },
     "Betting lines": {
       "ok": true,
-      "detail": "15 week 5 games, 15 with lines"
+      "detail": "14 week 6 games, 14 with lines"
     },
     "Weather": {
       "ok": true,
-      "detail": "0 outdoor games forecast"
+      "detail": "10 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "481 players"
+      "detail": "481 players (last week's rankings; this week's not posted yet)"
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "413 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "412 projections, 192 expert rankings"
     }
   }
 }
