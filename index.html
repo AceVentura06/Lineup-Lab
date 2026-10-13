@@ -329,7 +329,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   </header>
 
   <nav class="tabs" role="tablist">
-    <button role="tab" data-tab="sites" id="t-sites">Site Projections</button>
+    <button role="tab" data-tab="sites" id="t-sites">Projections</button>
     <button role="tab" data-tab="stats" id="t-stats">Player Stats</button>
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
     <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
@@ -369,7 +369,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   <!-- SITE PROJECTIONS -->
   <section class="panel" id="p-sites" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h2>Week <span id="sitesWk"></span> projections by site</h2>
+      <div><h2>Week <span id="sitesWk"></span> projections</h2>
         <p class="note" id="sitesNote"></p></div>
       <div class="chips" id="posSites"></div>
     </div>
@@ -1155,7 +1155,7 @@ function kickText(g){const t=kickTime(g);if(t==null)return ((g&&g.day)||'')+' '+
   const d=new Date(t),o={timeZone:'America/New_York'};
   return d.toLocaleDateString('en-US',{...o,weekday:'short',month:'short',day:'numeric'})+' · '+d.toLocaleTimeString('en-US',{...o,hour:'numeric',minute:'2-digit'})+' ET';}
 function kickedOff(p){const t=kickTime(gameOf(p));return t!=null&&Date.now()>t;}
-// Model projection (locked at kickoff) and actual points for this week's Site Projections table
+// Model projection (locked at kickoff) and actual points for this week's Projections table
 // "vs SF" at home, "at SF" on the road (from the schedule; the betting-line data as a backup)
 function oppText(r,wk=SD.week){const sc=(SCHED[r.team]||[])[wk-1];
   if(sc&&sc!=='BYE')return sc.startsWith('@')?'at '+esc(sc.slice(1)):'vs '+esc(sc);
