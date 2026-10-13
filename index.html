@@ -246,6 +246,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 /* team-colored player page */
 .team-hero .shot{position:absolute;right:70px;bottom:6px;height:calc(100% + 10px);max-height:190px;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));pointer-events:none}
 .team-hero.has-shot::after{display:none}
+.team-hero .shot.logo{bottom:50%;transform:translateY(50%);height:150px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5))}
+@media (max-width:600px){.team-hero .shot.logo{height:84px}}
 .team-hero.has-shot>.meta{padding-right:230px}
 @media (max-width:600px){.team-hero .shot{right:8px;max-height:120px}.team-hero.has-shot>.meta{padding-right:0}.team-hero.has-shot>div:not(.meta){padding-right:110px}}
 
@@ -1140,7 +1142,7 @@ function teamVars(t){const [a,b]=TEAM_COLORS[t]||['#1f6b3a','#a87a0c'];const la=
   return `--team:${a};--team2:${b};--team-ink:${ink};--team-lo:${a};--team-hi:${hi};--team-hi-ink:${hiInk};--team-stripe:${stripe}`;}
 function mix(h1,h2,w){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(h1),y=p(h2);return '#'+x.map((v,i)=>Math.round(v*(1-w)+y[i]*w).toString(16).padStart(2,'0')).join('');}
 let HEADS=null;
-function headshotOf(p){if(p.pos==='DST')return null;
+function headshotOf(p){if(p.pos==='DST')return p.team?`https://sleepercdn.com/images/team_logos/nfl/${p.team.toLowerCase()}.png`:null;
   if(!HEADS){HEADS=new Map();(CX.ids||'').split('\n').forEach(l=>{const [n,ps,id]=l.split('|');if(id)HEADS.set(nkey(n,ps==='DEF'?'DST':ps),id);});}
   const id=HEADS.get(p.key);return id?`https://sleepercdn.com/content/nfl/players/${id}.jpg`:null;}
 function renderPlayer(){
@@ -1182,7 +1184,7 @@ function renderPlayer(){
     if(me){projV=weekProj(me).proj;if(projV>0){const ps=real.filter(x=>x.pos===p.pos).map(x=>weekProj(x).proj).filter(v=>v>0);proj=p.pos+(1+ps.filter(v=>v>projV).length);}}
     return {ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
-   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot" src="${headshotOf(p)}" alt="" onerror="this.parentNode.classList.remove(\'has-shot\');this.remove()">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${esc(TEAM_NAMES[p.team]||p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
+   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${p.pos==='DST'?' logo':''}" src="${headshotOf(p)}" alt="" onerror="this.parentNode.classList.remove(\'has-shot\');this.remove()">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${esc(TEAM_NAMES[p.team]||p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${esc(site.team)} v ${esc(site.opp)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
