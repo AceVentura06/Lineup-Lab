@@ -247,7 +247,22 @@ tr.dvpdetail>td{padding:4px 8px 14px;background:var(--surface-2)}
 tr.dvpdetail .card{margin:0}
 .mpill{display:inline-flex;flex-direction:column;vertical-align:middle}
 /* ===== Prime Time broadcast layer ===== */
-.ticker{display:flex;align-items:stretch;background:var(--surface);border-radius:4px;overflow:hidden;box-shadow:0 1px 3px rgba(14,23,38,.08);margin-top:-8px}
+/* sticky, joined top area: header + ticker + tabs */
+.topbar{position:sticky;top:0;z-index:50;margin:-20px -16px 0;padding:12px 16px 0;background:var(--bg);display:flex;flex-direction:column}
+.topbar>.board{border-radius:6px 6px 0 0;box-shadow:none;transition:padding .2s}
+.topbar>.ticker{border-radius:0;border-bottom:1px solid var(--line)}
+.topbar>.tabs{background:var(--surface);padding:6px 8px;border-radius:0 0 6px 6px;box-shadow:0 2px 6px rgba(14,23,38,.08)}
+.topbar>.tabs button{background:var(--surface-2);padding:8px 11px}
+@media (min-width:760px) and (max-width:1439px){.topbar>.tabs button{font-size:.88rem;padding:7px 8px}}
+.topbar>.tabs button[aria-selected="true"]{background:var(--gold)}
+/* once you scroll, the top area slims down */
+.topbar.scrolled>.board{padding-top:10px;padding-bottom:10px}
+.topbar.scrolled .tb-hide{display:none}
+.topbar.scrolled .board h1{font-size:1.7rem}
+.topbar.scrolled .ctl>.label{display:none}
+@media (max-width:760px){.topbar.scrolled .controls{display:none}.topbar.scrolled .board h1{font-size:1.4rem}}
+
+.ticker{display:flex;align-items:stretch;background:var(--surface);border-radius:4px;overflow:hidden;box-shadow:none}
 .tk-tag{flex:none;display:flex;align-items:center;padding:0 16px 0 12px;background:var(--red);color:#fff;font-family:var(--f-display);font-weight:800;font-style:italic;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;clip-path:polygon(0 0,100% 0,88% 100%,0 100%)}
 .tk-view{flex:1;overflow:hidden;position:relative;mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
 .tk-track{display:flex;width:max-content;animation:tk var(--tk-dur,60s) linear infinite}
@@ -336,11 +351,12 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 <body>
 
 <div class="wrap">
+  <div class="topbar" id="topbar">
   <header class="board">
     <div>
-      <div class="label" style="color:inherit;opacity:.8">Fantasy football evaluator</div>
+      <div class="label tb-hide" style="color:inherit;opacity:.8">Fantasy football evaluator</div>
       <h1><span class="ace">ACE</span> LINEUP LAB</h1>
-      <p class="sub" id="updStamp" style="font-size:.85rem;opacity:.75"></p>
+      <p class="sub tb-hide" id="updStamp" style="font-size:.85rem;opacity:.75"></p>
     </div>
     <div class="controls">
       <div class="ctl hsearch"><label class="label" for="hSearch">Find a player</label><input id="hSearch" class="pick" type="search" list="hSearchList" placeholder="Any player…" autocomplete="off" spellcheck="false"><datalist id="hSearchList"></datalist></div>
@@ -370,6 +386,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <button role="tab" data-tab="acc" id="t-acc">Accuracy</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
   </nav>
+  </div>
 
   <!-- START / SIT -->
   <section class="panel" id="p-week" role="tabpanel">
@@ -1614,6 +1631,11 @@ $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');
 
 render();
 renderTicker();
+// keep the top area slim after scrolling, and make in-page jumps land below it
+(function(){const tb=$('#topbar');if(!tb)return;let on=false;
+  const pad=()=>document.documentElement.style.scrollPaddingTop=(tb.offsetHeight+8)+'px';
+  const chk=()=>{const s=window.scrollY>40;if(s!==on){on=s;tb.classList.toggle('scrolled',s);pad();}};
+  window.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',pad);chk();pad();})();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
 })();
 </script>
