@@ -1295,7 +1295,11 @@ function renderPlayer(){
     const snapF=q=>dv(q.s.off_snp,q.s.tm_off_snp);
     const real=realPlayers(),me=real.find(x=>x.key===p.key);let proj=null,projV=null;
     if(me){projV=weekProj(me).proj;if(projV>0){const ps=real.filter(x=>x.pos===p.pos).map(x=>weekProj(x).proj).filter(v=>v>0);proj=p.pos+(1+ps.filter(v=>v>projV).length);}}
-    return {ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
+    // consistency: share of weeks at a starter-level score first, then the smaller week-to-week swing (relative to his average); regulars with 3+ games
+    const cvF=q=>{const v=q.weeks.map(wpts).filter(x=>x!=null);if(v.length<3)return null;const m=v.reduce((a,b)=>a+b,0)/v.length;if(m<=0)return null;
+      const rate=v.filter(x=>x>=startLine).length/v.length,cv=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length)/m;return rate*10-Math.min(cv,9.9);};
+    const cons=rk(peers.filter(q=>q.gp>=3&&ppg(q)>=startLine/2&&cvF(q)!=null),cvF);
+    return {cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
    <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${p.pos==='DST'?' logo':''}" src="${headshotOf(p)}" alt="" onerror="this.parentNode.classList.remove(\'has-shot\');this.remove()">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${esc(TEAM_NAMES[p.team]||p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${esc(site.team)} v ${esc(site.opp)}</div>`:''}</div>
@@ -1304,7 +1308,7 @@ function renderPlayer(){
      <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${tr.tot}</b> · `:''}${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]}</span></div>
      ${sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${tr.snap}</b> · `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
      <div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection (bye or out)'}</span></div>
-     <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
+     <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${tr.cons}</b> · `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
    ${thisWeek}<div id="pNews"></div>${toolsCard}${xfpCard}
    <div class="card"><h3>Points by week</h3>${weekChart(p)}<p class="note">Range so far: ${vals.length?n1(Math.min(...vals))+' to '+n1(Math.max(...vals)):'—'} points. The dashed line is his season average.</p></div>
