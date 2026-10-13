@@ -279,3 +279,32 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
   log(`Advanced player records: ${Object.keys(out.players).length}`);
   return out;
 }
+
+// The pregame context for a past week, for backfilling: that week's betting lines and
+// injury report, with team scoring averages from the weeks before it only.
+export async function advAsOf({ fetchText, season, week }) {
+  const out = { season, week, sources: {}, players: {}, games: {}, ecr: {}, practice: {} };
+  const all = parseCSV(await fetchText(`${NFLV}/schedules/games.csv`)).filter(r => r.season === String(season) && r.game_type === 'REG');
+  for (const g of all.filter(r => r.week === String(week))) {
+    const sp = has(g.spread_line) ? num(g.spread_line) : null, tot = has(g.total_line) ? num(g.total_line) : null;
+    const base = { total: tot, roof: g.roof, stadium: g.stadium, day: g.gameday, time: g.gametime };
+    const home = team(g.home_team), away = team(g.away_team);
+    out.games[home] = { ...base, opp: away, home: true, spread: sp == null ? null : -sp, implied: sp == null || tot == null ? null : r2(tot / 2 + sp / 2) };
+    out.games[away] = { ...base, opp: home, home: false, spread: sp, implied: sp == null || tot == null ? null : r2(tot / 2 - sp / 2) };
+  }
+  const pts = {};
+  for (const g of all.filter(r => +r.week < week && has(r.home_score) && has(r.away_score)))
+    for (const [t, v] of [[team(g.home_team), num(g.home_score)], [team(g.away_team), num(g.away_score)]]) { pts[t] = pts[t] || [0, 0]; pts[t][0] += v; pts[t][1]++; }
+  out.teamPts = Object.fromEntries(Object.entries(pts).map(([t, [s, n]]) => [t, r2(s / n)]));
+  const imp = Object.values(out.games).map(g => g.implied).filter(v => v != null);
+  out.avgImplied = imp.length ? r2(imp.reduce((a, b) => a + b, 0) / imp.length) : null;
+  try {
+    const code = s => /did not/i.test(s) ? 'DNP' : /limited/i.test(s) ? 'LP' : /full/i.test(s) ? 'FP' : '';
+    for (const r of parseCSV(await fetchText(`${NFLV}/injuries/injuries_${season}.csv`)).filter(r => r.week === String(week) && r.season_type === 'REG')) {
+      const pos = r.position === 'FB' ? 'RB' : r.position;
+      if (!['QB', 'RB', 'WR', 'TE', 'K'].includes(pos)) continue;
+      out.practice[nkey(r.full_name, pos)] = [code(r.practice_status), r.report_status || '', r.report_primary_injury || r.practice_primary_injury || ''];
+    }
+  } catch { /* no injury report: everyone counts as healthy */ }
+  return out;
+}

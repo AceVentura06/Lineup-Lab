@@ -5,6 +5,9 @@ import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
 import { build } from './build.mjs';
 import { buildAdv } from './adv.mjs';
+import { projectAll } from './model.mjs';
+import { mergeSnapshot, gradeAll } from './accuracy.mjs';
+import { readdir } from 'node:fs/promises';
 
 const DIR = new URL('../data/', import.meta.url);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -38,7 +41,7 @@ catch (e) { console.log('Advanced data failed entirely:', e.message); }
 // Skip writing (and committing) when nothing changed.
 const hash = createHash('sha256').update(JSON.stringify([d.sites, d.stats, d.ctx, adv])).digest('hex').slice(0, 16);
 const meta = await readJson('meta.json');
-if (meta && meta.hash === hash) { console.log('No changes in the data.'); process.exit(0); }
+if (meta && meta.hash === hash && !process.argv.includes('--force')) { console.log('No changes in the data.'); process.exit(0); }
 
 const updated = new Date();
 const pulled = updated.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET';
@@ -51,3 +54,24 @@ if (adv) await writeFile(new URL('adv-data.js', DIR), js('ADV_DATA', { ...adv, p
 await writeFile(new URL('espn-cache.json', DIR), JSON.stringify(d.espnCache));
 await writeFile(new URL('meta.json', DIR), JSON.stringify({ hash, updated: updated.toISOString(), season: d.season, week: d.week, through: d.through, sources: adv?.sources }, null, 2));
 console.log(`Wrote data for ${d.season} week ${d.week} (${d.through}).`);
+
+// Accuracy scoreboard: save this week's pregame projections, then grade every finished week.
+try {
+  const HIST = new URL('history/', DIR);
+  await mkdir(HIST, { recursive: true });
+  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString() };
+  const ADV_DATA = adv ? { ...adv, pulled } : undefined;
+  const cur = projectAll({ SITE_DATA, STATS_DATA: d.stats, CTX_DATA: { ...d.ctx, pulled }, ADV_DATA });
+  const name = `${d.season}-w${String(cur.week).padStart(2, '0')}.json`;
+  const prev = await readJson('history/' + name);
+  const snap = mergeSnapshot(prev, cur);
+  await writeFile(new URL(name, HIST), JSON.stringify(snap));
+  const history = {};
+  for (const f of await readdir(HIST)) {
+    const m = f.match(/^(\d{4})-w(\d{2})\.json$/);
+    if (m && +m[1] === d.season) history[+m[2]] = JSON.parse(await readFile(new URL(f, HIST), 'utf8'));
+  }
+  const acc = gradeAll(history, d.stats, d.week, d.season);
+  await writeFile(new URL('accuracy-data.js', DIR), js('ACC_DATA', { ...acc, pulled }));
+  console.log(`Saved ${Object.keys(snap.players).length} pregame projections for week ${cur.week}; graded weeks: ${Object.keys(acc.weeks).join(', ') || 'none yet'}.`);
+} catch (e) { console.log('Accuracy scoreboard failed:', e.message); }

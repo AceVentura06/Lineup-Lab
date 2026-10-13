@@ -1,13 +1,14 @@
 // Builds Lineup Lab's data from Sleeper and ESPN.
 // Pure logic: takes a fetchJson(url, headers) function so it can run in Node or a browser.
-export async function build(fetchJson, { prevEspn = null, log = () => {} } = {}) {
+// asOfWeek: rebuild the data as it stood right before that week's games (used to backfill past weeks).
+export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWeek = null, season: forceSeason = null } = {}) {
   const POS = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'];
   const qs = POS.map(p => 'position[]=' + p).join('&');
   const r1 = v => { v = Math.round(v * 10) / 10; return v ? String(v) : ''; };
 
   // --- current season / week ---
   const state = await fetchJson('https://api.sleeper.app/v1/state/nfl');
-  const season = Number(state.season);
+  const season = forceSeason || Number(state.season);
   let week = Number(state.display_week || state.week) || 1;
   if (state.season_type !== 'regular') week = state.season_type === 'pre' ? 1 : 18;
   week = Math.min(18, Math.max(1, week));
@@ -15,7 +16,8 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
   // Our own week change: move to the next week at 3:30 AM Eastern on the Tuesday
   // after that week's last game, instead of waiting for Sleeper to switch.
   const sch = await fetchJson(`https://api.sleeper.app/schedule/nfl/regular/${season}`);
-  if (state.season_type === 'regular') {
+  if (asOfWeek) week = asOfWeek;
+  else if (state.season_type === 'regular') {
     const w2 = weekByCalendar(sch, Date.now());
     if (w2) { if (w2 !== week) log(`Sleeper says week ${week}; calendar says week ${w2}`); week = w2; }
   }
@@ -33,7 +35,7 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
 
   // --- ESPN projections (unofficial API; keep last good copy if it fails) ---
   let espn = '', espnRanks = '', espnOwn = '';
-  try {
+  if (!asOfWeek) try {
     const POSN = { 1: 'QB', 2: 'RB', 3: 'WR', 4: 'TE', 5: 'K', 16: 'DEF' };
     const filt = { players: { filterSlotIds: { value: [0, 2, 4, 6, 16, 17] },
       filterStatsForTopScoringPeriodIds: { value: 2, additionalValue: [`00${season}`, `10${season}`, `11${season}${week}`] },
@@ -74,11 +76,11 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
   const opp = {};
   teams.forEach(t => opp[t] = Array(18).fill('BYE'));
   sch.forEach(g => { if (g.week >= 1 && g.week <= 18) { opp[g.home][g.week - 1] = g.away; opp[g.away][g.week - 1] = '@' + g.home; } });
-  const wkGames = sch.filter(g => g.week === week), done = wkGames.filter(g => g.status === 'complete').length;
+  const wkGames = sch.filter(g => g.week === week), done = asOfWeek ? 0 : wkGames.filter(g => g.status === 'complete').length;
 
   // --- weekly stats, weeks 1..current ---
   const wk = {};
-  for (let w = 1; w <= week; w++) wk[w] = await fetchJson(`https://api.sleeper.app/stats/nfl/${season}/${w}?season_type=regular&${qs}`);
+  for (let w = 1; w <= (asOfWeek ? week - 1 : week); w++) wk[w] = await fetchJson(`https://api.sleeper.app/stats/nfl/${season}/${w}?season_type=regular&${qs}`);
   const weeks = Object.keys(wk).map(Number);
 
   const F = ['pts_ppr','pts_half_ppr','pts_std','off_snp','tm_off_snp','pass_att','pass_cmp','pass_yd','pass_td','pass_int','pass_air_yd','pass_rz_att','pass_sack','rush_att','rush_yd','rush_td','rush_yac','rush_btkl','rush_rz_att','rush_fd','rec_tgt','rec','rec_yd','rec_td','rec_air_yd','rec_yar','rec_rz_tgt','rec_drop','rec_fd','fum_lost','fgm','fga','fgm_50p','xpm','xpa','def_sack','def_int','def_fum_rec','def_td','pts_allow'];
@@ -137,7 +139,7 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
   });
 
   // --- injuries ---
-  const pl = await fetchJson('https://api.sleeper.app/v1/players/nfl');
+  const pl = asOfWeek ? {} : await fetchJson('https://api.sleeper.app/v1/players/nfl');
   const inj = Object.values(pl)
     .filter(p => p.injury_status && POS.includes(p.position) && p.team && p.active !== false && (p.search_rank || 9999) < 600)
     .map(p => [p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim(), p.position, p.team, p.injury_status].join('|')).join('\n');
