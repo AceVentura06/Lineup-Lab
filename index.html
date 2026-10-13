@@ -559,7 +559,7 @@ let S={players:[],mine:[],scoring:'ppr',week:5,passTD:4,w:{...DEF_W}};
 try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});}}catch(e){}
 S.players=[];if(!Array.isArray(S.mine))S.mine=[];
 if(typeof SITE_DATA!=='undefined'&&SITE_DATA.week)S.week=SITE_DATA.week;
-let ui={tab:'stats',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
+let ui={tab:'sites',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
 
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
@@ -1385,7 +1385,7 @@ function renderPlayer(){
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
    <div class="mgrid">${ms}</div></div>`;
-  $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'stats');};
+  $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'sites');};
   fillNews(p);
 }
 // start downloading a player's photo as soon as the pointer or finger lands on his name
@@ -1413,14 +1413,15 @@ const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
 const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):'#'+t;
 function readHash(){const h=decodeURIComponent(location.hash.slice(1));
   if(h.startsWith('player=')){const raw=h.slice(7);const k=[raw,raw.replace(/-/g,' ')].find(x=>PL.has(x));if(k)return {tab:'player',player:k};}
-  return TABS.includes(h)?{tab:h}:{tab:'stats'};}
+  return TABS.includes(h)?{tab:h}:{tab:'sites'};}
 function go(tab,player,push=true){
+  if(tab===ui.tab&&(tab!=='player'||player===ui.player))push=false;   // same page: no extra Back step
   ui.tab=tab;if(player)ui.player=player;
   if(push){try{history.pushState({tab,player:player||null},'',hashFor(tab,player));navDepth++;}catch(_){}}
   render();window.scrollTo(0,0);}
 window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Math.max(0,navDepth-1);
-  if(st.tab==='player'&&!PL.has(st.player))st.tab='stats';ui.tab=st.tab;if(st.player)ui.player=st.player;render();window.scrollTo(0,0);});
-(function(){const st=readHash();if(location.hash&&(st.tab!=='stats'||location.hash==='#stats')){ui.tab=st.tab;if(st.player)ui.player=st.player;render();}
+  if(st.tab==='player'&&!PL.has(st.player))st.tab='sites';ui.tab=st.tab;if(st.player)ui.player=st.player;render();window.scrollTo(0,0);});
+(function(){const st=readHash();if(location.hash&&(st.tab!=='sites'||location.hash==='#sites')){ui.tab=st.tab;if(st.player)ui.player=st.player;render();}
   try{history.replaceState({tab:ui.tab,player:ui.tab==='player'?ui.player:null},'',hashFor(ui.tab,ui.player));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);save();renderModel();renderWeek();renderRos();});
 $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
