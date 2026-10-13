@@ -6,6 +6,7 @@ import { gunzipSync } from 'node:zlib';
 import { build } from './build.mjs';
 import { buildAdv } from './adv.mjs';
 import { projectAll } from './model.mjs';
+import { buildNews } from './news.mjs';
 import { mergeSnapshot, gradeAll } from './accuracy.mjs';
 import { readdir } from 'node:fs/promises';
 
@@ -38,8 +39,19 @@ let adv = null;
 try { adv = await buildAdv({ fetchText, fetchGz, season: d.season, week: d.week, log: m => console.log(m) }); }
 catch (e) { console.log('Advanced data failed entirely:', e.message); }
 
+// Recent news for each player
+let news = null;
+try {
+  const F = d.stats.fields, iN = F.indexOf('name'), iP = F.indexOf('pos');
+  const players = d.stats.rows.split('\n').filter(Boolean).map(l => { const c = l.split('|'); return { name: c[iN], pos: c[iP] }; });
+  const r = await buildNews({ fetchJson, fetchText, players, log: m => console.log(m) });
+  news = r.news;
+  if (adv) adv.sources['Player news'] = { ok: true, detail: r.detail };
+  console.log('Player news:', r.detail);
+} catch (e) { console.log('Player news failed:', e.message); if (adv) adv.sources['Player news'] = { ok: false, detail: e.message }; }
+
 // Skip writing (and committing) when nothing changed.
-const hash = createHash('sha256').update(JSON.stringify([d.sites, d.stats, d.ctx, adv])).digest('hex').slice(0, 16);
+const hash = createHash('sha256').update(JSON.stringify([d.sites, d.stats, d.ctx, adv, news])).digest('hex').slice(0, 16);
 const meta = await readJson('meta.json');
 if (meta && meta.hash === hash && !process.argv.includes('--force')) { console.log('No changes in the data.'); process.exit(0); }
 
@@ -51,6 +63,7 @@ await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pul
 await writeFile(new URL('stats-data.js', DIR), js('STATS_DATA', d.stats));
 await writeFile(new URL('ctx-data.js', DIR), js('CTX_DATA', { ...d.ctx, pulled }));
 if (adv) await writeFile(new URL('adv-data.js', DIR), js('ADV_DATA', { ...adv, pulled }));
+if (news) await writeFile(new URL('news-data.js', DIR), js('NEWS_DATA', { pulled, news }));
 await writeFile(new URL('espn-cache.json', DIR), JSON.stringify(d.espnCache));
 await writeFile(new URL('meta.json', DIR), JSON.stringify({ hash, updated: updated.toISOString(), season: d.season, week: d.week, through: d.through, sources: adv?.sources }, null, 2));
 console.log(`Wrote data for ${d.season} week ${d.week} (${d.through}).`);

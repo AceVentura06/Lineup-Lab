@@ -217,6 +217,14 @@ td.none{color:var(--muted)}
 .mlist li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px 0;border-bottom:1px solid var(--line)}
 .mlist li:last-child{border-bottom:0}
 .mlist .mv{margin-left:auto;font-family:var(--f-mono);font-size:.85rem;white-space:nowrap}
+.news{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.news li{padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.news li:last-child{border-bottom:0;padding-bottom:0}
+.news .nmeta{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.news .nmeta b{color:var(--t-accent,var(--ink))}
+.news a{color:var(--ink);font-weight:700;font-size:1.02rem;text-decoration:none;line-height:1.3}
+.news a:hover{color:var(--t-accent,var(--gold));text-decoration:underline}
+.news p{font-size:.88rem;color:var(--muted);line-height:1.4}
 /* ===== Prime Time broadcast layer ===== */
 h1,h2{font-style:italic;font-weight:800;letter-spacing:.01em}
 h3{font-style:italic;font-weight:800;font-size:1.25rem}
@@ -833,6 +841,19 @@ function renderAcc(){
   body.innerHTML=`<div style="display:flex;flex-direction:column;gap:18px">${lead}${chart}${pos}${hm}</div>`;
   const as=$('#accSrc');if(as)as.onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.accS=b.dataset.s;renderAcc();};
 }
+// ---- player news (loaded the first time a player page opens) ----
+let NEWS=null,newsLoading=false;
+function loadNews(cb){if(NEWS)return cb();if(typeof NEWS_DATA!=='undefined'){NEWS=NEWS_DATA;return cb();}
+  if(newsLoading)return;newsLoading=true;const sc=document.createElement('script');sc.src='data/news-data.js?v='+Math.floor(Date.now()/300000);
+  sc.onload=()=>{NEWS=typeof NEWS_DATA!=='undefined'?NEWS_DATA:{news:{}};cb();};sc.onerror=()=>{NEWS={news:{}};cb();};document.head.appendChild(sc);}
+function ago(iso){const m=Math.max(0,(Date.now()-Date.parse(iso))/6e4);if(m<60)return Math.max(1,Math.round(m))+'m ago';const h=m/60;if(h<24)return Math.round(h)+'h ago';const d=h/24;return d<7?Math.round(d)+'d ago':new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function fillNews(p){loadNews(()=>{const el=$('#pNews');if(!el||ui.tab!=='player'||ui.player!==p.key)return;
+  const list=(NEWS.news||{})[p.key];
+  if(!list||!list.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="card"><h3 style="margin-bottom:6px">Latest news</h3><ul class="news">${list.map(([t,src,url,iso,txt])=>`<li>
+    <div class="nmeta"><b>${esc(src)}</b> · ${esc(ago(iso))}</div>
+    <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)} <span aria-hidden="true">↗</span></a>
+    ${txt?`<p>${esc(txt)}</p>`:''}</li>`).join('')}</ul></div>`;});}
 function render(){
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
   $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
@@ -1285,12 +1306,13 @@ function renderPlayer(){
      <div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection (bye or out)'}</span></div>
      <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
-   ${thisWeek}${toolsCard}${xfpCard}
+   ${thisWeek}<div id="pNews"></div>${toolsCard}${xfpCard}
    <div class="card"><h3>Points by week</h3>${weekChart(p)}<p class="note">Range so far: ${vals.length?n1(Math.min(...vals))+' to '+n1(Math.max(...vals)):'—'} points. The dashed line is his season average.</p></div>
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
    <div class="mgrid">${ms}</div></div>`;
   $('#backBtn').onclick=()=>{ui.tab=ui.prev||'stats';render();window.scrollTo(0,0);};
+  fillNews(p);
 }
 // start downloading a player's photo as soon as the pointer or finger lands on his name
 const PREF=new Set();
