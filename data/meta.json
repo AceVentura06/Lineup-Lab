@@ -1,6 +1,6 @@
 {
-  "hash": "678e7b526ebf2dce",
-  "updated": "2026-10-13T19:28:55.829Z",
+  "hash": "e7d542d263c0dafb",
+  "updated": "2026-10-13T19:38:53.067Z",
   "season": 2026,
   "week": 6,
   "through": "Weeks 1–5",
@@ -51,7 +51,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "202 players with news (ESPN 1645 articles scanned; ESPN 540, CBS Sports 24, Yahoo Sports 15, ProFootballTalk 14)"
+      "detail": "202 players with news (ESPN 1645 articles scanned; ESPN 540, CBS Sports 23, Yahoo Sports 19, ProFootballTalk 14)"
     }
   }
 }
