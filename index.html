@@ -211,6 +211,7 @@ td.none{color:var(--muted)}
 .teamed .tile,.teamed .metric,.teamed .card{border-top:3px solid var(--t-accent);background:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
 .teamed .chart .bar{fill:var(--t-accent)}
 .teamed .back{color:var(--t-accent)}
+.tile .tr{color:var(--t-accent,var(--turf));font-family:var(--f-mono);font-weight:700}
 .votes{display:inline-flex;gap:2px;vertical-align:middle}
 .votes i{display:block;width:8px;height:14px;border-radius:2px}
 .votes i.v-s{background:var(--good)}.votes i.v-f{background:var(--gold)}.votes i.v-x{background:var(--line)}
@@ -1118,14 +1119,21 @@ function renderPlayer(){
    <div class="tiles"><div class="tile"><span class="label">Expected / game</span><span class="v">${n1(xf.pg)}</span><span class="s">from usage alone</span></div>
    <div class="tile"><span class="label">Actual / game</span><span class="v">${n1(xf.actPg)}</span><span class="s">receiving + rushing</span></div>
    <div class="tile"><span class="label">Over expected</span><span class="v" style="color:${xf.fpoe>=0?'var(--good)':'var(--bad)'}">${xf.fpoe>=0?'+':''}${n1(xf.fpoe)}</span><span class="s">${Math.abs(xf.fpoe)<1.5?'Scoring about as his usage predicts':xf.fpoe>0?'Outscoring his usage; may cool off':'Underscoring his usage; may bounce back'}</span></div></div></div>`:'';
+  // positional ranks for the top boxes (Position + number, e.g. RB3)
+  const tr=(()=>{const peers=[...PL.values()].filter(q=>q.pos===p.pos);
+    const rk=(pool,fn)=>{const me=fn(p);if(me==null||!Number.isFinite(me)||!pool.includes(p))return null;return p.pos+(1+pool.filter(q=>{const v=fn(q);return Number.isFinite(v)&&v>me;}).length);};
+    const snapF=q=>dv(q.s.off_snp,q.s.tm_off_snp);
+    const real=realPlayers(),me=real.find(x=>x.key===p.key);let proj=null,projV=null;
+    if(me){projV=weekProj(me).proj;if(projV>0){const ps=real.filter(x=>x.pos===p.pos).map(x=>weekProj(x).proj).filter(v=>v>0);proj=p.pos+(1+ps.filter(v=>v>projV).length);}}
+    return {ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
    <div class="ph team-hero"><div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span>${esc(p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${esc(site.team)} v ${esc(site.opp)}</div>`:''}</div>
    <div class="tiles">
-     <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${pr?ord(pr.r)+' of '+pr.n+' '+p.pos+'s':''}</span></div>
-     <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]}</span></div>
-     ${sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
-     <div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${sv?n1(weekProj(realPlayers().find(x=>x.key===p.key)||{pos:p.pos}).proj):'—'}</span><span class="s">${sv?'model + sites blend':'No projection (bye or out)'}</span></div>
+     <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
+     <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${tr.tot}</b> · `:''}${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]}</span></div>
+     ${sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${tr.snap}</b> · `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
+     <div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection (bye or out)'}</span></div>
      <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
    ${thisWeek}${toolsCard}${xfpCard}
