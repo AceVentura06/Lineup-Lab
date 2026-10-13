@@ -352,6 +352,9 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .ticker .tk-tag{background:#0E1726;color:var(--gold)}
 /* the tag sits at the screen's left edge; the headlines run to the right edge */
 .topbar>.ticker{padding-left:0;padding-right:0}
+/* the orange ticker replaces the header's orange underline, so the black tag runs the bar's full height */
+.topbar>.board:has(+ .ticker:not([hidden])){border-bottom:0}
+.topbar>.ticker{border-bottom:0}
 .topbar>.ticker .tk-tag{padding-left:16px;padding-right:22px}
 .ticker .tk-h{color:#fff;opacity:.85}
 .ticker .tk-i,.ticker .tk-i a,.ticker .tk-a,.ticker .tk-p,.ticker .tk-dot{color:#fff}
