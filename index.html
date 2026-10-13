@@ -349,7 +349,10 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .teamed .src{border-color:color-mix(in srgb,var(--t-accent) 50%,var(--line))}
 /* ticker colors: orange bar, white text, white tag */
 .topbar>.ticker,.ticker{background:var(--gold);color:#fff;border-bottom-color:var(--gold)}
-.ticker .tk-tag{background:#fff;color:var(--gold)}
+.ticker .tk-tag{background:#0E1726;color:var(--gold)}
+/* the tag sits at the screen's left edge; the headlines run to the right edge */
+.topbar>.ticker{padding-left:0;padding-right:0}
+.topbar>.ticker .tk-tag{padding-left:16px;padding-right:22px}
 .ticker .tk-h{color:#fff;opacity:.85}
 .ticker .tk-i,.ticker .tk-i a,.ticker .tk-a,.ticker .tk-p,.ticker .tk-dot{color:#fff}
 .ticker .tk-a{border-bottom-color:rgba(255,255,255,.7)}
