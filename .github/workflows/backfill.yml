@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { ref: main }   # latest main, not the commit that triggered the run
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: node scripts/backfill.mjs ${{ github.event.inputs.from || '2' }} ${{ github.event.inputs.to || '5' }}
@@ -30,4 +31,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data
-          git diff --cached --quiet || (git commit -m "Backfill accuracy history" && git pull --rebase && git push)
+          git diff --cached --quiet || (git commit -m "Backfill accuracy history" && git pull --rebase -X theirs && git push)

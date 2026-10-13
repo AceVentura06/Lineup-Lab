@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with: { ref: main }   # latest main, not the commit that triggered the run
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -41,5 +42,6 @@ jobs:
             echo "No changes to commit."
           else
             git commit -m "Update data $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git pull --rebase -X theirs
             git push
           fi

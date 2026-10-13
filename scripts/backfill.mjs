@@ -1,4 +1,4 @@
-// One-time: rebuild earlier weeks' pregame projections for Sleeper and the model,
+// Run once (re-run any time): rebuild earlier weeks' pregame projections for Sleeper and the model,
 // using only what was known before each week's games. Usage: node scripts/backfill.mjs 2 5
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { build } from './build.mjs';
