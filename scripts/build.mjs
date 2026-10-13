@@ -146,7 +146,9 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
     ctx: {
       sched: teams.map(t => t + '|' + opp[t].join(',')).join('\n'),
       ranks: teams.map(t => t + '|' + POS.map(p => ranks[t][p].join(':')).join(',')).join('\n'),
-      inj
+      inj,
+      // Sleeper player ids, used for headshots on player pages
+      ids: Object.entries(P).filter(([, p]) => p.pos !== 'DEF').map(([id, p]) => [p.name, p.pos, id].join('|')).join('\n')
     },
     espnCache: { week, text: espn }
   };
