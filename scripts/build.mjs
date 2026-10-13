@@ -117,7 +117,7 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
   log(`Player stat rows: ${rows.split('\n').length}`);
 
   // --- fantasy points allowed by each defense, completed weeks only ---
-  const al = {}, gm = {};
+  const al = {}, gm = {}, dv = {};
   for (const w of weeks.filter(w => w < week)) {
     const seen = new Set();
     for (const e of wk[w]) {
@@ -129,6 +129,10 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
       if (!o || o === 'BYE') continue;
       const def = o.replace('@', '');
       al[def] = al[def] || {}; al[def][pos] = (al[def][pos] || 0) + (s.pts_ppr || 0);
+      // week-by-week detail for the Defense vs Position tab: who they played and what they allowed, in all three formats
+      const g = ((dv[def] = dv[def] || {})[w] = dv[def][w] || { opp: e.team, home: o.startsWith('@'), p: {} });
+      const t = g.p[pos] = g.p[pos] || [0, 0, 0];
+      t[0] += s.pts_ppr || 0; t[1] += s.pts_half_ppr || 0; t[2] += s.pts_std || 0;
       const k = def + w; if (!seen.has(k)) { seen.add(k); gm[def] = (gm[def] || 0) + 1; }
     }
   }
@@ -155,6 +159,9 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     ctx: {
       sched: teams.map(t => t + '|' + opp[t].join(',')).join('\n'),
       ranks: teams.map(t => t + '|' + POS.map(p => ranks[t][p].join(':')).join(',')).join('\n'),
+      // team|week|opponent|1 if home|QB ppr,half,std;RB …;WR …;TE …;K …;DEF …
+      dvp: Object.entries(dv).flatMap(([t, ws]) => Object.entries(ws).map(([w, g]) =>
+        [t, w, g.opp, g.home ? 1 : 0, POS.map(p => (g.p[p] || [0, 0, 0]).map(v => +v.toFixed(1)).join(',')).join(';')].join('|'))).join('\n'),
       inj,
       // Sleeper player ids, used for headshots on player pages
       ids: Object.entries(P).filter(([, p]) => p.pos !== 'DEF').map(([id, p]) => [p.name, p.pos, id].join('|')).join('\n')
