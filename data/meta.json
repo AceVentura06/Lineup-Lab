@@ -1,6 +1,6 @@
 {
-  "hash": "964f78fc04de9038",
-  "updated": "2026-10-13T15:25:26.334Z",
+  "hash": "bc71e1d29895e862",
+  "updated": "2026-10-13T18:25:16.242Z",
   "season": 2026,
   "week": 6,
   "through": "Weeks 1–5",
@@ -47,11 +47,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "412 projections, 192 expert rankings"
+      "detail": "413 projections, 192 expert rankings"
     },
     "Player news": {
       "ok": true,
-      "detail": "192 players with news (ESPN 1644 articles scanned; ESPN 474, CBS Sports 23, Yahoo Sports 21, ProFootballTalk 20)"
+      "detail": "194 players with news (ESPN 1645 articles scanned; ESPN 519, CBS Sports 23, Yahoo Sports 12, ProFootballTalk 14)"
     }
   }
 }
