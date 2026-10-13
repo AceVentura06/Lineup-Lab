@@ -1144,23 +1144,26 @@ function renderSites(){
     $('#sitesNote').textContent=P.failed?'That week could not be loaded.':`Saved right before each kickoff · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring · Scored is what each player actually put up.${P.backfilled?' This week was rebuilt afterward from what was known at the time, so only Sleeper and this site\'s model are shown.':''}`;
     $('#yahooNote').hidden=true;}
   else $('#yahooNote').hidden=false;
-  if(!past)$('#sitesNote').textContent=`Updated ${SD.pulled||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring (use the toggle up top) · Games already played keep their pregame projection, and Model locks at kickoff. Scored fills in as games are played. Teams on bye aren't listed.`;
+  if(!past)$('#sitesNote').textContent=`Updated ${SD.pulled||''}`;
   $('#yahooNote').innerHTML=hasFP?'<b>FantasyPros</b> is the consensus of its experts\' rankings, converted to points. CBS and FantasyPros publish PPR numbers; for half-PPR and standard, the player\'s catches per game are subtracted.':'<b>FantasyPros\' consensus for this week usually posts by Wednesday.</b> Until then, the average uses ESPN, Sleeper and CBS.';
   chips($('#posSites'),ui.posS,'posS');
   const q=ui.q.trim().toLowerCase(),RP=new Map(realPlayers().map(p=>[p.key,p]));
   const match=r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||oppText(r,wk).toLowerCase().endsWith(' '+q));
   let rows=past?pastRows(wk).filter(x=>match(x.r)).filter(x=>Math.max(x.v.max,x.v.model||0)>=2||q)
-    :SITES.filter(match).map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;return {r,v};}).filter(x=>x.v.max>=2||q);
+    :[...SITES.filter(match).map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;return {r,v};}).filter(x=>x.v.max>=2||q||RP.has(x.r.key)),
+      // players with no site projection this week (on bye, out, or not projected) still get a row
+      ...[...RP.values()].filter(p=>!SITEBY.has(p.key)).map(p=>({key:p.key,name:p.name,pos:p.pos,team:p.team,opp:''})).filter(match)
+        .map(r=>{const ms=modelScored(r,RP);return {r,v:{espn:null,sleeper:null,cbs:null,fp:null,n:0,avg:null,min:0,max:0,spread:0,model:ms.model,scored:ms.scored,live:ms.live}};})];
   const key=ui.sortS==='scored'&&!rows.some(x=>x.v.scored!=null)?'avg':ui.sortS;
   rows.sort((a,b)=>key==='spread'?b.v.spread-a.v.spread:((b.v[key]??-1)-(a.v[key]??-1)));
   document.querySelectorAll('table.sites th.sortable').forEach(th=>th.dataset.sort===key?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
-  const maxV=Math.max(1,...rows.slice(0,400).map(x=>x.v.max));
+  const maxV=Math.max(1,...rows.slice(0,600).map(x=>x.v.max));
   const cell=(v,s,x)=>v[s]==null?'<td class="r num none">—</td>':`<td class="r num${x.n>1&&v[s]===x.max?' top':''}">${f1(v[s])}</td>`;
-  $('#sitesBody').innerHTML=rows.length?rows.slice(0,400).map((x,i)=>{const {r,v}=x;
+  $('#sitesBody').innerHTML=rows.length?rows.slice(0,600).map((x,i)=>{const {r,v}=x;
     const dots=['espn','sleeper','cbs','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('');
-    const agree=v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
+    const agree=v.n===0?'<span class="muted">—</span>':v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
     return `<tr><td class="rank">${i+1}</td>
-      <td style="white-space:nowrap"><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}${r.team?` <span class="muted" style="font-size:.85rem">${esc(r.team)}</span>`:''}</td>
+      <td style="white-space:nowrap"><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}${r.team?` <span class="muted" style="font-size:.85rem">${esc(r.team)}</span>`:''}${!past&&RP.has(r.key)?' '+statusPill(RP.get(r.key)):''}</td>
       <td class="num muted" style="white-space:nowrap">${oppText(r,wk)}${past?'':oppRankTag(r,wk)}</td>
       ${cell(v,'espn',v)}${cell(v,'sleeper',v)}${cell(v,'cbs',v)}${cell(v,'fp',v)}
       <td class="r big">${v.avg!=null?f1(v.avg):'<span class="muted">—</span>'}</td>
