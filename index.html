@@ -238,6 +238,9 @@ table.sites th,table.sites td{padding:9px 8px}
 table.sites .srange{min-width:96px}
 .card.prose{max-width:none}
 /* ===== Prime Time broadcast layer ===== */
+.board .hsearch input{width:220px;border:0;background:var(--surface-2);color:var(--ink);border-radius:4px;padding:7px 10px;font:inherit}
+@media (max-width:600px){.board .hsearch{flex:1 1 100%}.board .hsearch input{width:100%}}
+
 h1,h2{font-style:italic;font-weight:800;letter-spacing:.01em}
 h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .label{font-family:var(--f-display);font-size:.85rem;letter-spacing:.1em}
@@ -314,6 +317,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <p class="sub" id="updStamp" style="font-size:.85rem;opacity:.75"></p>
     </div>
     <div class="controls">
+      <div class="ctl hsearch"><label class="label" for="hSearch">Find a player</label><input id="hSearch" class="pick" type="search" list="hSearchList" placeholder="Any player…" autocomplete="off" spellcheck="false"><datalist id="hSearchList"></datalist></div>
       <div class="ctl"><span class="label">Scoring</span>
         <div class="seg" id="scoringSeg" role="group" aria-label="Scoring format">
           <button data-v="ppr"><span>PPR</span></button><button data-v="half"><span>Half</span></button><button data-v="std"><span>Standard</span></button>
@@ -367,7 +371,10 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
       <div><h2>Week <span id="sitesWk"></span> projections by site</h2>
         <p class="note" id="sitesNote"></p></div>
-      <div class="chips" id="posSites"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end">
+        <div class="field" style="min-width:150px"><label class="label" for="sitesWeekSel">Week</label><select id="sitesWeekSel"></select></div>
+        <div class="chips" id="posSites"></div>
+      </div>
     </div>
     <div class="sitebar">
       <div class="field" style="flex:1 1 220px"><label class="label" for="siteSearch">Find a player or team</label><input id="siteSearch" type="search" placeholder="e.g. Nacua, or DAL"></div>
@@ -643,10 +650,20 @@ function weekProj(p){
     const v=volOf(p);r={b,proj,model,sites:sa,lo:proj*(1-v),hi:proj*(1+v)};}
   if(_wp.size>4000)_wp.clear();_wp.set(ck,r);return r;
 }
+// Rest-of-season scoring rate: season average, blended with recent form and (RB/WR/TE) expected points from usage,
+// which predicts future scoring better than actual points; players with few games are pulled toward a typical backup.
+function rosBase(p){const b=base(p);if(!p.real||p.pos==='K'||p.pos==='DST')return b;const s=PL.get(p.key);if(!s)return b;
+  const done=s.weeks.slice(0,Math.max(0,SD.week-1)).map(wpts).filter(x=>x!=null);
+  const rec=done.length>=3?done.slice(-3).reduce((a,c)=>a+c,0)/3:b;
+  const x=['RB','WR','TE'].includes(p.pos)&&s.gp>=3?xfpOf(s):null;
+  let v=x&&x.pg>0?.5*b+.2*rec+.3*x.pg:.7*b+.3*rec;
+  const gp=s.gp||0,POSBASE={QB:12,RB:6,WR:6,TE:4};
+  if(gp<3)v=(gp*v+(3-gp)*(POSBASE[p.pos]||6))/3;
+  return v;}
 function rosProj(p){
   let games=Math.max(0,18-S.week);
   if(n(p.bye)>S.week&&n(p.bye)<=17)games-=1;
-  const ppg=base(p)*schedM(p)*trendM(p)*healthRos(p);
+  const ppg=rosBase(p)*schedM(p)*trendM(p)*healthRos(p);
   return {ppg,games,total:ppg*games};
 }
 
@@ -990,14 +1007,36 @@ function pprConv(r,src){const x=r[src];if(!x)return null;if(S.scoring==='ppr'||r
 const fpPts=r=>pprConv(r,'fp');
 function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]?r[s][S.scoring]:null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
   const xs=Object.values(v).filter(x=>x!=null);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
+// ---- past weeks (saved pregame projections + actual points), loaded when picked ----
+function loadPastWeek(w,cb){window.PASTWK=window.PASTWK||{};if(PASTWK[w])return cb();
+  const sc=document.createElement('script');sc.src=`data/past/${SD.season||new Date().getFullYear()}-w${String(w).padStart(2,'0')}.js?v=${Math.floor(Date.now()/300000)}`;
+  sc.onload=cb;sc.onerror=()=>{PASTWK[w]={rows:{},failed:true};cb();};document.head.appendChild(sc);}
+function pastRows(w){const P=PASTWK[w],si=['ppr','half','std'].indexOf(S.scoring),out=[];
+  for(const [k,[name,pos,team,src,act]] of Object.entries(P.rows||{})){
+    const v={};['espn','sleeper','cbs','fp'].forEach(x=>{v[x]=src[x]&&src[x][si]!=null?src[x][si]:null;});
+    const xs=['espn','sleeper','cbs','fp'].map(x=>v[x]).filter(x=>x!=null);v.n=xs.length;v.avg=xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
+    v.min=xs.length?Math.min(...xs):0;v.max=xs.length?Math.max(...xs):0;v.spread=xs.length>1?v.max-v.min:0;
+    v.model=src.lab&&src.lab[si]!=null?src.lab[si]:null;v.scored=act?act[si]:null;v.live=false;
+    out.push({r:{key:k,name,pos,team:team||'',opp:''},v});}
+  return out;}
 function renderSites(){
-  $('#sitesWk').textContent=SD.week;
-  $('#sitesNote').textContent=`Updated ${SD.pulled||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring (use the toggle up top) · Games already played keep their pregame projection, and Model locks at kickoff. Scored fills in as games are played. Teams on bye aren't listed.`;
+  const wk=ui.sitesW&&ui.sitesW!==SD.week?ui.sitesW:SD.week,past=wk!==SD.week;
+  const sel=$('#sitesWeekSel'),weeks=[SD.week,...[...(SD.pastWeeks||[])].sort((a,b)=>b-a)];
+  if(sel.dataset.n!==weeks.join(',')){sel.innerHTML=weeks.map(w=>`<option value="${w}">Week ${w}${w===SD.week?' (this week)':''}</option>`).join('');sel.dataset.n=weeks.join(',');}
+  sel.value=String(wk);
+  if(past&&!(window.PASTWK&&PASTWK[wk])){$('#sitesBody').innerHTML='<tr><td colspan="12" class="muted">Loading…</td></tr>';loadPastWeek(wk,renderSites);return;}
+  $('#sitesWk').textContent=wk;
+  if(past){const P=PASTWK[wk];
+    $('#sitesNote').textContent=P.failed?'That week could not be loaded.':`Saved right before each kickoff · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring · Scored is what each player actually put up.${P.backfilled?' This week was rebuilt afterward from what was known at the time, so only Sleeper and this site\'s model are shown.':''}`;
+    $('#yahooNote').hidden=true;}
+  else $('#yahooNote').hidden=false;
+  if(!past)$('#sitesNote').textContent=`Updated ${SD.pulled||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring (use the toggle up top) · Games already played keep their pregame projection, and Model locks at kickoff. Scored fills in as games are played. Teams on bye aren't listed.`;
   $('#yahooNote').innerHTML=hasFP?'<b>FantasyPros</b> is the consensus of its experts\' rankings, converted to points. CBS and FantasyPros publish PPR numbers; for half-PPR and standard, the player\'s catches per game are subtracted.':'<b>FantasyPros\' consensus for this week usually posts by Wednesday.</b> Until then, the average uses ESPN, Sleeper and CBS.';
   chips($('#posSites'),ui.posS,'posS');
   const q=ui.q.trim().toLowerCase(),RP=new Map(realPlayers().map(p=>[p.key,p]));
-  let rows=SITES.filter(r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||r.opp.toLowerCase()===q))
-    .map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;return {r,v};}).filter(x=>x.v.max>=2||q);
+  const match=r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||oppText(r,wk).toLowerCase().endsWith(' '+q));
+  let rows=past?pastRows(wk).filter(x=>match(x.r)).filter(x=>Math.max(x.v.max,x.v.model||0)>=2||q)
+    :SITES.filter(match).map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;return {r,v};}).filter(x=>x.v.max>=2||q);
   const key=ui.sortS;
   rows.sort((a,b)=>key==='spread'?b.v.spread-a.v.spread:((b.v[key]??-1)-(a.v[key]??-1)));
   document.querySelectorAll('table.sites th.sortable').forEach(th=>th.dataset.sort===key?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
@@ -1008,15 +1047,16 @@ function renderSites(){
     const agree=v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
     return `<tr><td class="rank">${i+1}</td>
       <td style="white-space:nowrap"><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}${r.team?` <span class="muted" style="font-size:.85rem">${esc(r.team)}</span>`:''}</td>
-      <td class="num muted" style="white-space:nowrap">${oppText(r)}</td>
+      <td class="num muted" style="white-space:nowrap">${oppText(r,wk)}</td>
       ${cell(v,'espn',v)}${cell(v,'sleeper',v)}${cell(v,'cbs',v)}${cell(v,'fp',v)}
-      <td class="r big">${f1(v.avg)}</td>
+      <td class="r big">${v.avg!=null?f1(v.avg):'<span class="muted">—</span>'}</td>
       <td class="r big mcol">${v.model!=null?f1(v.model):'<span class="muted">—</span>'}</td>
       <td class="r num">${v.scored==null?'<span class="muted">—</span>':`<b style="color:${v.model==null?'var(--ink)':v.scored-v.model>=3?'var(--good)':v.model-v.scored>=3?'var(--bad)':'var(--ink)'}">${f1(v.scored)}</b>${v.live?'<span class="subn">in progress</span>':''}`}</td>
       <td><div class="srange"><div class="track"></div>${v.n>1?`<div class="span" style="left:${v.min/maxV*100}%;width:${(v.max-v.min)/maxV*100}%"></div>`:''}${dots}</div></td>
       <td>${agree}</td></tr>`}).join(''):'<tr><td colspan="12" class="muted">No players match. Try a different name or position.</td></tr>';
 }
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
+$('#sitesWeekSel').onchange=e=>{ui.sitesW=+e.target.value;if(ui.sitesW===SD.week&&ui.sortS==='scored')ui.sortS='avg';renderSites();};
 document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortS=th.dataset.sort;renderSites();};
 
 // ---- suggested lineup ----
@@ -1112,12 +1152,16 @@ function toolTable(){
 // Kickoff time as a timestamp; Eastern time, with daylight saving handled
 function nyOffset(day){try{const p=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',timeZoneName:'shortOffset'}).formatToParts(new Date(day+'T17:00:00Z')).find(x=>x.type==='timeZoneName').value;const h=parseInt(p.replace('GMT',''),10);return (h<0?'-':'+')+String(Math.abs(h)).padStart(2,'0')+':00';}catch(e){return '-04:00';}}
 function kickTime(g){if(!g||!g.day||!g.time)return null;const t=Date.parse(g.day+'T'+g.time+':00'+nyOffset(g.day));return Number.isFinite(t)?t:null;}
+// "Sun, Oct 18 · 4:05 PM ET"
+function kickText(g){const t=kickTime(g);if(t==null)return ((g&&g.day)||'')+' '+((g&&g.time)||'');
+  const d=new Date(t),o={timeZone:'America/New_York'};
+  return d.toLocaleDateString('en-US',{...o,weekday:'short',month:'short',day:'numeric'})+' · '+d.toLocaleTimeString('en-US',{...o,hour:'numeric',minute:'2-digit'})+' ET';}
 function kickedOff(p){const t=kickTime(gameOf(p));return t!=null&&Date.now()>t;}
 // Model projection (locked at kickoff) and actual points for this week's Site Projections table
 // "vs SF" at home, "at SF" on the road (from the schedule; the betting-line data as a backup)
-function oppText(r){const sc=(SCHED[r.team]||[])[SD.week-1];
+function oppText(r,wk=SD.week){const sc=(SCHED[r.team]||[])[wk-1];
   if(sc&&sc!=='BYE')return sc.startsWith('@')?'at '+esc(sc.slice(1)):'vs '+esc(sc);
-  const g=gameOf(r);if(g&&g.opp)return (g.home?'vs ':'at ')+esc(g.opp);
+  const g=wk===SD.week?gameOf(r):null;if(g&&g.opp)return (g.home?'vs ':'at ')+esc(g.opp);
   return r.opp?esc(r.opp):'—';}
 function modelScored(r,RP){const out={model:null,scored:null,live:false};if(S.week!==SD.week)return out;
   const t=kickTime(gameOf(r)),started=t!=null&&Date.now()>t,si=['ppr','half','std'].indexOf(S.scoring);
@@ -1350,7 +1394,9 @@ function mix(h1,h2,w){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));con
 let HEADS=null;
 function headshotOf(p){if(p.pos==='DST')return p.team?`https://sleepercdn.com/images/team_logos/nfl/${p.team.toLowerCase()}.png`:null;
   if(!HEADS){HEADS=new Map();(CX.ids||'').split('\n').forEach(l=>{const [n,ps,id]=l.split('|');if(id)HEADS.set(nkey(n,ps==='DEF'?'DST':ps),id);});}
-  const id=HEADS.get(p.key);return id?`https://sleepercdn.com/content/nfl/players/${id}.jpg`:null;}
+  const id=HEADS.get(p.key);return id?`https://sleepercdn.com/content/nfl/players/${id}.jpg`:teamLogo(p.team);}
+const teamLogo=t=>t?`https://sleepercdn.com/images/team_logos/nfl/${t.toLowerCase()}.png`:null;
+const isLogo=u=>!!u&&u.includes('/team_logos/');
 function renderPlayer(){
   const p=PL.get(ui.player);const el=$('#p-player');
   if(!p){el.innerHTML='<p class="muted">Player not found.</p>';return;}
@@ -1370,7 +1416,7 @@ function renderPlayer(){
   const site2=SITEBY.get(p.key),sv2=site2?siteVals(site2):null;
   const thisWeek=(g||e||prc||sv2)?`<div class="card"><h3 style="margin-bottom:12px">Week ${S.week}${g?`: ${g.home?'vs':'at'} ${esc(g.opp)}`:''}</h3><div class="kv">
      ${g&&g.implied!=null?`<div><span class="label">Vegas</span><b>${n1(g.implied)} implied pts</b><span class="note">${esc(p.team)} ${g.spread>0?'+':''}${g.spread} · total ${g.total}</span></div>`:''}
-     ${g?`<div><span class="label">Kickoff and conditions</span><b>${esc(g.day||'')} ${esc(g.time||'')} ET</b><span class="note">${g.weather?esc(weatherText(g.weather)):({dome:'Dome',closed:'Roof closed'})[g.roof]||'Forecast not available yet'}${g.stadium?' · '+esc(g.stadium):''}</span></div>`:''}
+     ${g?`<div><span class="label">Kickoff and conditions</span><b>${esc(kickText(g))}</b><span class="note">${g.weather?esc(weatherText(g.weather)):({dome:'Dome',closed:'Roof closed'})[g.roof]||'Forecast not available yet'}${g.stadium?' · '+esc(g.stadium):''}</span></div>`:''}
      ${prc?`<div><span class="label">Injury report</span><b>${esc(prc[1]||'No game status')}</b><span class="note">Practice: ${({DNP:'did not practice',LP:'limited',FP:'full'})[prc[0]]||'—'}${prc[2]?' · '+esc(prc[2]):''}</span></div>`:''}
      ${e?`<div><span class="label">FantasyPros experts</span><b>${p.pos}${e[1]??'—'} · grade ${esc(e[5]||'—')}</b><span class="note">Best ${e[3]}, worst ${e[4]} overall · spread ±${e[2]}</span></div>`:''}
      ${sv2?`<div><span class="label">Projections</span><b>${n1(wp.proj)} pts</b><span class="note">${[['espn','ESPN'],['sleeper','Sleeper'],['fp','FantasyPros']].filter(([k])=>sv2[k]!=null).map(([k,l])=>l+' '+n1(sv2[k])).join(' · ')}${wp.model?' · model '+n1(wp.model):''}</span></div>`:''}
@@ -1394,8 +1440,8 @@ function renderPlayer(){
     const cons=rk(peers.filter(q=>q.gp>=3&&ppg(q)>=startLine/2&&cvF(q)!=null),cvF);
     return {cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
-   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${p.pos==='DST'?' logo':''}" src="${headshotOf(p)}" alt="" onerror="this.parentNode.classList.remove(\'has-shot\');this.remove()">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${esc(TEAM_NAMES[p.team]||p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
-     ${sv?`<div class="meta">Week ${SD.week}: ${esc(site.team)} v ${esc(site.opp)}</div>`:''}</div>
+   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${esc(TEAM_NAMES[p.team]||p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
+     ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
      <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${tr.tot}</b> · `:''}${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]}</span></div>
@@ -1427,6 +1473,18 @@ $('#passTdIn').onchange=e=>{S.passTD=n(e.target.value);save();render();};
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);};
 // Browser history: every tab and player page gets its own address, so Back and Forward move around the site
 // (and a link like …/#player=puka-nacua opens straight to that page)
+// ---- header search: jump to any player's page ----
+(function(){const inp=$('#hSearch'),dl=$('#hSearchList');if(!inp)return;
+  const lab=p=>`${p.name} (${p.team}) · ${p.pos}`;
+  const list=()=>[...PL.values()].sort((a,b)=>(b.s.pts_ppr||0)-(a.s.pts_ppr||0));
+  let built=false;const build=()=>{if(built)return;built=true;dl.innerHTML=list().map(p=>`<option value="${esc(lab(p))}"></option>`).join('');};
+  inp.addEventListener('focus',build);
+  const open=exact=>{const v=inp.value.trim().toLowerCase();if(!v)return;const all=list();
+    const hit=all.find(p=>lab(p).toLowerCase()===v)||(exact?null:all.find(p=>p.name.toLowerCase().includes(v)));
+    if(!hit){if(!exact)toast('No player matches that name');return;}
+    inp.value='';inp.blur();if(ui.tab!=='player')ui.prev=ui.tab;go('player',hit.key);};
+  inp.addEventListener('input',()=>open(true));
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});})();
 // Features that are built but switched off. To bring one back, change false to true.
 const FEATURES={trade:false};
 const TABS=['stats','sites','ros','week','lineup','trade','acc','model'].filter(t=>FEATURES[t]!==false);

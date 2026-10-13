@@ -7,6 +7,10 @@ on:
     # Sundays, hourly from noon to midnight Eastern (16:00–04:00 UTC).
     - cron: '47 16-23 * * 0'
     - cron: '47 0-4 * * 1'
+    # Sunday late morning, after teams announce inactives (about 90 minutes before the 1 PM games):
+    # 11:45 AM and 12:15 PM Eastern in summer time; the 12:15 PM run also covers winter time (17:15 UTC).
+    - cron: '45 15 * * 0'
+    - cron: '15 16,17 * * 0'
     # Tuesday 3:30 AM Eastern, when the site moves to the next week (07:35 UTC in summer time, 08:35 in winter).
     - cron: '35 7,8 * * 2'
   workflow_dispatch: {}   # adds a "Run workflow" button for manual refreshes
