@@ -704,10 +704,10 @@ function nameCell(p,star){
   return `${st}<span class="pos ${p.pos}">${p.pos}</span> ${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}${p.team?` <span class="muted" style="font-size:.85rem">${esc(p.team)}</span>`:''}`;
 }
 // Opponent with home/away, the defense's rank against this position (links to Defense vs Position) and points it allows
-function matchPill(p){
+function matchPill(p,detail=false){   // detail: also show points allowed (head-to-head only)
   if(!p.opp&&!p.team)return '<span class="muted">—</span>';
   const sc=(SCHED[p.team]||[])[S.week-1],d=sc&&sc!=='BYE'?dvpData().by[sc.replace('@','')]:null,i=DPOS.indexOf(p.pos);
-  const sub=d&&i>=0?`<span class="subn">${n1(d.avg[i])} pts/g allowed to ${p.pos}s</span>`:'';
+  const sub=detail&&d&&i>=0?`<span class="subn">${n1(d.avg[i])} pts/g allowed to ${p.pos}s</span>`:'';
   return `<span class="mpill"><span style="white-space:nowrap">${oppText(p,S.week)}${oppRankTag(p,S.week)}</span>${sub}</span>`;
 }
 
@@ -768,7 +768,7 @@ function renderH2H(){
     <div class="proj">${f1(w.proj)}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}</div>
     ${g&&g.implied!=null?`<div class="note">Vegas: team implied ${n1(g.implied)} pts (${g.spread>0?'+':''}${g.spread}, O/U ${g.total})${wt?' · '+esc(wt):''}</div>`:''}
     ${e?`<div class="note">Experts: ${p.pos}${e[1]} (best ${e[3]}, worst ${e[4]})${e[5]?' · grade '+esc(e[5]):''}</div>`:''}
-    <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
+    <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p,true)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
   $('#sideA').className='side'+(wa.proj>=wb.proj?' win':'');$('#sideB').className='side'+(wb.proj>wa.proj?' win':'');
   $('#sideA').innerHTML=side('selA',A,wa,0,'Player 1');$('#sideB').innerHTML=side('selB',B,wb,0,'Player 2');
   const pick=(id,slot)=>{const el=$('#'+id);
