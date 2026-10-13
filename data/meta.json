@@ -1,13 +1,13 @@
 {
-  "hash": "83a005425623f669",
-  "updated": "2026-10-13T02:43:28.621Z",
+  "hash": "4ca865851eec7e4a",
+  "updated": "2026-10-13T10:41:24.689Z",
   "season": 2026,
   "week": 5,
-  "through": "Weeks 1–4 plus 14 of 15 week 5 games",
+  "through": "Weeks 1–5",
   "sources": {
     "nflverse stats": {
       "ok": true,
-      "detail": "5430 player-weeks"
+      "detail": "5506 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
@@ -23,11 +23,11 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "4907 targets, 4034 carries"
+      "detail": "4979 targets, 4094 carries"
     },
     "FTN charting": {
       "ok": true,
-      "detail": "10969 charted plays"
+      "detail": "13403 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
@@ -47,7 +47,7 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "409 projections, 192 expert rankings"
+      "detail": "413 projections, 0 expert rankings (this week's rankings not posted yet)"
     }
   }
 }
