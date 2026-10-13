@@ -233,6 +233,7 @@ td.none{color:var(--muted)}
 .tbars>div{display:grid;grid-template-columns:84px 1fr 48px;gap:10px;align-items:center}
 .tbars .bar{height:14px}
 .tbars .label{white-space:nowrap}
+th.mcol,td.mcol{background:color-mix(in srgb,var(--gold) 7%,transparent)}
 /* ===== Prime Time broadcast layer ===== */
 h1,h2{font-style:italic;font-weight:800;letter-spacing:.01em}
 h3{font-style:italic;font-weight:800;font-size:1.25rem}
@@ -376,7 +377,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <thead><tr>
         <th>#</th><th>Player</th><th>Game</th>
         <th class="r sortable" data-sort="espn">ESPN</th><th class="r sortable" data-sort="sleeper">Sleeper</th><th class="r sortable" data-sort="cbs">CBS</th><th class="r sortable" data-sort="fp">FantasyPros</th>
-        <th class="r sortable" data-sort="avg">Average</th><th>Range across sites</th><th class="sortable" data-sort="spread">Agreement</th>
+        <th class="r sortable" data-sort="avg">Average</th><th class="r sortable mcol" data-sort="model" title="This site's projection; locked at kickoff">Model</th><th class="r sortable" data-sort="scored" title="Actual fantasy points this week; fills in as games are played">Scored</th><th>Range across sites</th><th class="sortable" data-sort="spread">Agreement</th>
       </tr></thead>
       <tbody id="sitesBody"></tbody>
     </table></div>
@@ -988,12 +989,12 @@ function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]?r[s][S.
   const xs=Object.values(v).filter(x=>x!=null);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
 function renderSites(){
   $('#sitesWk').textContent=SD.week;
-  $('#sitesNote').textContent=`Updated ${SD.pulled||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring (use the toggle up top) · Games already played keep their pregame projection. Teams on bye aren't listed.`;
+  $('#sitesNote').textContent=`Updated ${SD.pulled||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring (use the toggle up top) · Games already played keep their pregame projection, and Model locks at kickoff. Scored fills in as games are played. Teams on bye aren't listed.`;
   $('#yahooNote').innerHTML=hasFP?'<b>FantasyPros</b> is the consensus of its experts\' rankings, converted to points. CBS and FantasyPros publish PPR numbers; for half-PPR and standard, the player\'s catches per game are subtracted.':'<b>FantasyPros\' consensus for this week usually posts by Wednesday.</b> Until then, the average uses ESPN, Sleeper and CBS.';
   chips($('#posSites'),ui.posS,'posS');
-  const q=ui.q.trim().toLowerCase();
+  const q=ui.q.trim().toLowerCase(),RP=new Map(realPlayers().map(p=>[p.key,p]));
   let rows=SITES.filter(r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||r.opp.toLowerCase()===q))
-    .map(r=>({r,v:siteVals(r)})).filter(x=>x.v.max>=2||q);
+    .map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;return {r,v};}).filter(x=>x.v.max>=2||q);
   const key=ui.sortS;
   rows.sort((a,b)=>key==='spread'?b.v.spread-a.v.spread:((b.v[key]??-1)-(a.v[key]??-1)));
   document.querySelectorAll('table.sites th.sortable').forEach(th=>th.dataset.sort===key?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
@@ -1003,12 +1004,14 @@ function renderSites(){
     const dots=['espn','sleeper','cbs','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('');
     const agree=v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
     return `<tr><td class="rank">${i+1}</td>
-      <td><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}</td>
+      <td style="white-space:nowrap"><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}</td>
       <td class="num muted" style="white-space:nowrap">${r.team?esc(r.team)+' v '+esc(r.opp):'—'}</td>
       ${cell(v,'espn',v)}${cell(v,'sleeper',v)}${cell(v,'cbs',v)}${cell(v,'fp',v)}
       <td class="r big">${f1(v.avg)}</td>
+      <td class="r big mcol">${v.model!=null?f1(v.model):'<span class="muted">—</span>'}</td>
+      <td class="r num">${v.scored==null?'<span class="muted">—</span>':`<b style="color:${v.model==null?'var(--ink)':v.scored-v.model>=3?'var(--good)':v.model-v.scored>=3?'var(--bad)':'var(--ink)'}">${f1(v.scored)}</b>${v.live?'<span class="subn">in progress</span>':''}`}</td>
       <td><div class="srange"><div class="track"></div>${v.n>1?`<div class="span" style="left:${v.min/maxV*100}%;width:${(v.max-v.min)/maxV*100}%"></div>`:''}${dots}</div></td>
-      <td>${agree}</td></tr>`}).join(''):'<tr><td colspan="10" class="muted">No players match. Try a different name or position.</td></tr>';
+      <td>${agree}</td></tr>`}).join(''):'<tr><td colspan="12" class="muted">No players match. Try a different name or position.</td></tr>';
 }
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
 document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortS=th.dataset.sort;renderSites();};
@@ -1103,7 +1106,18 @@ function toolTable(){
   const siteRank=src=>sameWk?rankBy(SITES.map(r=>[r.key,r.pos,siteVals(r)[src]])):{};
   _tools={model,espn:siteRank('espn'),sleeper:siteRank('sleeper'),cbsProj:siteRank('cbs')};_toolsKey=ck;return _tools;
 }
-function kickedOff(p){const g=gameOf(p);if(!g||!g.day||!g.time)return false;const t=Date.parse(g.day+'T'+g.time+':00-04:00');return Number.isFinite(t)&&Date.now()>t;}
+// Kickoff time as a timestamp; Eastern time, with daylight saving handled
+function nyOffset(day){try{const p=new Intl.DateTimeFormat('en-US',{timeZone:'America/New_York',timeZoneName:'shortOffset'}).formatToParts(new Date(day+'T17:00:00Z')).find(x=>x.type==='timeZoneName').value;const h=parseInt(p.replace('GMT',''),10);return (h<0?'-':'+')+String(Math.abs(h)).padStart(2,'0')+':00';}catch(e){return '-04:00';}}
+function kickTime(g){if(!g||!g.day||!g.time)return null;const t=Date.parse(g.day+'T'+g.time+':00'+nyOffset(g.day));return Number.isFinite(t)?t:null;}
+function kickedOff(p){const t=kickTime(gameOf(p));return t!=null&&Date.now()>t;}
+// Model projection (locked at kickoff) and actual points for this week's Site Projections table
+function modelScored(r,RP){const out={model:null,scored:null,live:false};if(S.week!==SD.week)return out;
+  const t=kickTime(gameOf(r)),started=t!=null&&Date.now()>t,si=['ppr','half','std'].indexOf(S.scoring);
+  const fz=SD.frozen&&SD.frozen[r.key];
+  if(started&&fz&&fz[si]!=null)out.model=fz[si];else{const p=RP.get(r.key);if(p&&!onBye(p))out.model=weekProj(p).proj;}
+  const pl=PL.get(r.key),w=pl&&pl.weeks[SD.week-1];
+  if(started&&w){out.scored=wpts(w);out.live=Date.now()<t+3.75*36e5;}
+  return out;}
 function toolsFor(p){
   if(!p.real)return [];
   const t=toolTable(),sameWk=S.week===SD.week,k=p.key,out=[];

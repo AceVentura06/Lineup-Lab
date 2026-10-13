@@ -79,6 +79,10 @@ try {
   const prev = await readJson('history/' + name);
   const snap = mergeSnapshot(prev, cur);
   await writeFile(new URL(name, HIST), JSON.stringify(snap));
+  // lock the site's projection at kickoff for the Site Projections table
+  const now = Date.now(), frozen = {};
+  for (const [k, p] of Object.entries(snap.players)) if (p.k && now >= p.k && p.src.lab) frozen[k] = p.src.lab;
+  await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...SITE_DATA, frozen }));
   const history = {};
   for (const f of await readdir(HIST)) {
     const m = f.match(/^(\d{4})-w(\d{2})\.json$/);
