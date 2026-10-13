@@ -118,7 +118,7 @@ td.r,th.r{text-align:right}
 .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 textarea{font-family:var(--f-mono);font-size:.8rem;min-height:110px;resize:vertical}
 
-.split{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.split{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
 @media (max-width:760px){.split{grid-template-columns:1fr}}
 .slider{display:flex;flex-direction:column;gap:6px}
 .slider .top{display:flex;justify-content:space-between;gap:8px}
@@ -236,6 +236,7 @@ td.none{color:var(--muted)}
 th.mcol,td.mcol{background:color-mix(in srgb,var(--gold) 7%,transparent)}
 table.sites th,table.sites td{padding:9px 8px}
 table.sites .srange{min-width:96px}
+.card.prose{max-width:none}
 /* ===== Prime Time broadcast layer ===== */
 h1,h2{font-style:italic;font-weight:800;letter-spacing:.01em}
 h3{font-style:italic;font-weight:800;font-size:1.25rem}
