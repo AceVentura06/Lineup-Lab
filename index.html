@@ -981,7 +981,7 @@ const rkCls=r=>r>=22?'good':r<=10?'bad':'mid';
 function oppRankTag(r,wk){const sc=(SCHED[r.team]||[])[wk-1];if(!sc||sc==='BYE')return '';const d=dvpData().by[sc.replace('@','')];const i=DPOS.indexOf(r.pos);
   if(!d||i<0)return '';const rk=d.rank[i];return ` <button class="ork olink ${rkCls(rk)}" data-dvp="${esc(d.t)}" title="${esc(TEAM_NAMES[d.t]||d.t)} allow ${n1(d.avg[i])} pts/game to ${r.pos}s (${ord(rk)} fewest of 32). Tap to see them week by week.">(${ord(rk)})</button>`;}
 function renderDvp(){const D=dvpData(),sc={ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring];
-  $('#dvpNote').textContent=`Fantasy points each defense has allowed per game to each position this season (${sc}, finished weeks only). Rank 1 = fewest allowed, the toughest matchup; 32nd = most allowed, the easiest. Tap a column to sort, or a team to see it week by week.`;
+  $('#dvpNote').textContent=`Fantasy points each defense has allowed per game to each position this season. Tap a column to sort, or a team to see it week by week.`;
   const k=ui.dvpSort??'team';
   const rows=[...D.list].sort((a,b)=>k==='team'?a.t.localeCompare(b.t):b.avg[+k]-a.avg[+k]);
   document.querySelectorAll('table.dvp th.sortable').forEach(th=>String(th.dataset.sort)===String(k)?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
