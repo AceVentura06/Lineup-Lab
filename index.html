@@ -355,6 +355,15 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .ticker .tk-a{border-bottom-color:rgba(255,255,255,.7)}
 .ticker .tk-i::after{background:#fff;opacity:.8}
 .ticker .tk-p .pos{box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+/* Defense vs Position: team-colored rows */
+tr.dvprow>td{background:transparent!important;color:inherit;border-bottom-color:rgba(0,0,0,.18)}
+tr.dvprow:hover,tr.dvprow:focus-visible{filter:brightness(1.12);outline:none}
+tr.dvprow.sel{box-shadow:inset 6px 0 0 var(--row-ink)}
+tr.dvprow td.scol{background:rgba(255,255,255,.14)!important}
+tr.dvprow .num{color:inherit}
+/* position ranks sit in a white box so the green/red stays readable on any background */
+.ork,.olink{background:#fff;border-radius:3px;padding:1px 6px;box-shadow:0 0 0 1px rgba(14,23,38,.14);line-height:1.5}
+.olink{border-bottom:0}
 </style>
 </head>
 <body>
@@ -416,7 +425,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     </div>
     <div class="sitebar">
       <div class="field" style="flex:1 1 220px"><label class="label" for="wkSearch">Find a player or team</label><input id="wkSearch" type="search" placeholder="e.g. Kittle, or SF"></div>
-      <label class="mine-toggle"><input type="checkbox" id="mineOnly"> <span>My team only <span class="muted mono" id="mineCount"></span></span></label>
+      <label class="mine-toggle"><input type="checkbox" id="mineOnly" class="mine-cb"> <span>My team only <span class="muted mono mine-n" id="mineCount"></span></span></label>
     </div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>#</th><th>Player</th><th class="r">Avg pts</th><th>Matchup</th><th class="r" title="Team implied points from the betting line">Vegas</th><th title="How each start/sit tool votes: green start, gold flex, gray sit">Tools</th><th class="r">Projection</th><th>Floor – ceiling</th><th>Call</th></tr></thead>
@@ -433,6 +442,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     </div>
     <div class="sitebar">
       <div class="field" style="flex:1 1 220px"><label class="label" for="siteSearch">Find a player or team</label><input id="siteSearch" type="search" placeholder="e.g. Nacua, or DAL"></div>
+      <label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineSites"> <span>My team only <span class="muted mono mine-n"></span></span></label>
       <div class="legend">
         <span><i class="sw espn"></i>ESPN</span><span><i class="sw sleeper"></i>Sleeper</span><span><i class="sw cbs"></i>CBS Sports</span><span><i class="sw fp"></i>FantasyPros experts</span>
       </div>
@@ -496,6 +506,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     </div>
     <div class="sitebar">
       <div class="field" style="flex:1 1 220px"><label class="label" for="statSearch">Find a player or team</label><input id="statSearch" type="search" placeholder="e.g. Bijan, or KC"></div>
+      <label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineStats"> <span>My team only <span class="muted mono mine-n"></span></span></label>
       <p class="note" style="max-width:40ch">Tap any player to open his page with game logs, usage, and efficiency stats.</p>
     </div>
     <div class="tbl-wrap"><table class="dir">
@@ -514,7 +525,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   <section class="panel" id="p-ros" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
       <div><h2>Rest-of-season rankings</h2><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
-      <div class="chips" id="posRos"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
     <div class="tbl-wrap"><table>
       <thead><tr><th>#</th><th>Player</th><th class="r">Pts / game</th><th class="r">Games left</th><th class="r">Total pts</th><th>Vs. top at position</th><th>Tier</th></tr></thead>
@@ -847,7 +858,7 @@ function renderRos(){
   chips($('#posRos'),ui.posR,'posR');
   const all=pool().map(p=>({p,...rosProj(p)}));
   const best={};all.forEach(r=>{best[r.p.pos]=Math.max(best[r.p.pos]||0,r.ppg)});
-  const rows=all.filter(r=>ui.posR==='All'||r.p.pos===ui.posR).sort((a,b)=>b.total-a.total).slice(0,250);
+  const rows=all.filter(r=>(ui.posR==='All'||r.p.pos===ui.posR)&&(!ui.mineOnly||isMine(r.p))).sort((a,b)=>b.total-a.total).slice(0,250);
   const tier=r=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;
     return f>=.9?'<span class="pill p-good">Tier 1 · every week</span>':f>=.75?'<span class="pill p-gold">Tier 2 · solid starter</span>':f>=.6?'<span class="pill p-warn">Tier 3 · flex / matchup</span>':'<span class="pill p-mute">Tier 4 · bench</span>';};
   $('#rosBody').innerHTML=rows.length?rows.map((r,i)=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;return `<tr>
@@ -1024,6 +1035,11 @@ function dvpData(){const si=['ppr','half','std'].indexOf(S.scoring);if(_dvp&&_dv
   DPOS.forEach((p,i)=>[...list].sort((a,b)=>a.avg[i]-b.avg[i]).forEach((d,j)=>d.rank[i]=j+1));
   _dvp={list,by:Object.fromEntries(list.map(d=>[d.t,d]))};_dvpK=si;return _dvp;}
 const rkCls=r=>r>=22?'good':r<=10?'bad':'mid';
+// team row: main color background, second color text (white or black when the second color is hard to read on the main)
+function teamRowStyle(t){const [a,b]=TEAM_COLORS[t]||['#E9EDF3','#0E1726'];const la=lum(a),lb=lum(b);
+  const cr=(x,y)=>(Math.max(x,y)+.05)/(Math.min(x,y)+.05);
+  const ink=cr(la,lb)>=4.5?b:(cr(la,1)>=cr(la,0)?'#ffffff':'#111111');
+  return `--row-bg:${a};--row-ink:${ink};background:${a};color:${ink}`;}
 // "(22nd)" after the opponent on the Projections tab
 function oppRankTag(r,wk){const sc=(SCHED[r.team]||[])[wk-1];if(!sc||sc==='BYE')return '';const d=dvpData().by[sc.replace('@','')];const i=DPOS.indexOf(r.pos);
   if(!d||i<0)return '';const rk=d.rank[i];return ` <button class="ork olink ${rkCls(rk)}" data-dvp="${esc(d.t)}" title="${esc(TEAM_NAMES[d.t]||d.t)} allow ${n1(d.avg[i])} pts/game to ${r.pos}s (${ord(rk)} fewest of 32). Tap to see them week by week.">(${ord(rk)})</button>`;}
@@ -1040,8 +1056,8 @@ function renderDvp(){const D=dvpData(),sc={ppr:'PPR',half:'Half-PPR',std:'Standa
     <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${t.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
     <tr><td colspan="2"><b>Rank</b></td>${t.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
     </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p></div></td></tr>`;
-  $('#dvpBody').innerHTML=rows.length?rows.map(d=>`<tr class="dvprow${ui.dvpTeam===d.t?' sel':''}" data-t="${esc(d.t)}" tabindex="0" aria-expanded="${ui.dvpTeam===d.t}">
-    <td style="white-space:nowrap"><b>${esc(d.t)}</b> <span class="muted" style="font-size:.85rem">${esc(TEAM_NAMES[d.t]||'')}</span></td><td class="r num">${d.g}</td>
+  $('#dvpBody').innerHTML=rows.length?rows.map(d=>`<tr class="dvprow${ui.dvpTeam===d.t?' sel':''}" data-t="${esc(d.t)}" tabindex="0" aria-expanded="${ui.dvpTeam===d.t}" style="${teamRowStyle(d.t)}">
+    <td style="white-space:nowrap"><b>${esc(d.t)}</b> <span style="font-size:.85rem;opacity:.85">${esc(TEAM_NAMES[d.t]||'')}</span></td><td class="r num">${d.g}</td>
     ${DPOS.map((p,i)=>`<td class="r${String(k)===String(i)?' scol':''}"><span class="num">${n1(d.avg[i])}</span> <span class="ork ${rkCls(d.rank[i])}">${ord(d.rank[i])}</span></td>`).join('')}</tr>${t&&t.t===d.t?detail(t):''}`).join('')
     :'<tr><td colspan="8" class="muted">No games played yet this season.</td></tr>';
   if(!t)return;
@@ -1065,7 +1081,14 @@ function renderTicker(){const el=$('#ticker'),tr=$('#tkTrack');if(!el||!tr)retur
   // constant reading speed regardless of how much is in it
   requestAnimationFrame(()=>{const w=tr.firstElementChild.scrollWidth;tr.style.setProperty('--tk-dur',Math.max(30,w/70)+'s');});}
 document.addEventListener('click',e=>{const b=e.target.closest('.tk-a');if(b){go(b.dataset.tab);}});
+// ---- my team: stars and the shared "My team only" filter ----
+function starBtn(k){const on=S.mine.includes(k);return `<button class="star${on?' on':''}" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on?'Remove from':'Add to'} my team" title="${on?'On my team':'Add to my team'}">${on?'★':'☆'}</button>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-star]');if(!b)return;const k=b.dataset.star;
+  const i=S.mine.indexOf(k);if(i>=0)S.mine.splice(i,1);else S.mine.push(k);save();render();});
+document.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('.mine-cb')){ui.mineOnly=e.target.checked;render();}});
+$('#wkSearch').oninput=e=>{ui.qW=e.target.value;renderWeek();};
 function render(){
+  document.querySelectorAll('.mine-cb').forEach(c=>c.checked=!!ui.mineOnly);document.querySelectorAll('.mine-n').forEach(n=>n.textContent=S.mine.length?`(${S.mine.length})`:'');
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
   $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));
@@ -1156,7 +1179,7 @@ function renderSites(){
   $('#yahooNote').innerHTML=hasFP?'<b>FantasyPros</b> is the consensus of its experts\' rankings, converted to points. CBS and FantasyPros publish PPR numbers; for half-PPR and standard, the player\'s catches per game are subtracted.':'<b>FantasyPros\' consensus for this week usually posts by Wednesday.</b> Until then, the average uses ESPN, Sleeper and CBS.';
   chips($('#posSites'),ui.posS,'posS');
   const q=ui.q.trim().toLowerCase(),RP=new Map(realPlayers().map(p=>[p.key,p]));
-  const match=r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||oppText(r,wk).toLowerCase().endsWith(' '+q));
+  const match=r=>(ui.posS==='All'||r.pos===ui.posS)&&(!ui.mineOnly||S.mine.includes(r.key))&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||oppText(r,wk).toLowerCase().endsWith(' '+q));
   let rows=past?pastRows(wk).filter(x=>match(x.r)).filter(x=>Math.max(x.v.max,x.v.model||0)>=2||q)
     :[...SITES.filter(match).map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;return {r,v};}).filter(x=>x.v.max>=2||q||RP.has(x.r.key)),
       // players with no site projection this week (on bye, out, or not projected) still get a row
@@ -1171,14 +1194,14 @@ function renderSites(){
     const dots=['espn','sleeper','cbs','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('');
     const agree=v.n===0?'<span class="muted">—</span>':v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
     return `<tr><td class="rank">${i+1}</td>
-      <td style="white-space:nowrap"><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}${r.team?` <span class="muted" style="font-size:.85rem">${esc(r.team)}</span>`:''}${!past&&RP.has(r.key)?' '+statusPill(RP.get(r.key)):''}</td>
+      <td style="white-space:nowrap">${starBtn(r.key)}<span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}${r.team?` <span class="muted" style="font-size:.85rem">${esc(r.team)}</span>`:''}${!past&&RP.has(r.key)?' '+statusPill(RP.get(r.key)):''}</td>
       <td class="num muted" style="white-space:nowrap">${oppText(r,wk)}${past?'':oppRankTag(r,wk)}</td>
       ${cell(v,'espn',v)}${cell(v,'sleeper',v)}${cell(v,'cbs',v)}${cell(v,'fp',v)}
       <td class="r big">${v.avg!=null?f1(v.avg):'<span class="muted">—</span>'}</td>
       <td class="r big mcol">${v.model!=null?f1(v.model):'<span class="muted">—</span>'}</td>
       <td class="r num">${v.scored==null?'<span class="muted">—</span>':`<b style="color:${v.model==null?'var(--ink)':v.scored-v.model>=3?'var(--good)':v.model-v.scored>=3?'var(--bad)':'var(--ink)'}">${f1(v.scored)}</b>${v.live?'<span class="subn">in progress</span>':''}`}</td>
       <td><div class="srange"><div class="track"></div>${v.n>1?`<div class="span" style="left:${v.min/maxV*100}%;width:${(v.max-v.min)/maxV*100}%"></div>`:''}${dots}</div></td>
-      <td>${agree}</td></tr>`}).join(''):'<tr><td colspan="12" class="muted">No players match. Try a different name or position.</td></tr>';
+      <td>${agree}</td></tr>`}).join(''):`<tr><td colspan="12" class="muted">${ui.mineOnly?'No starred players here yet. Turn off "My team only" and tap ☆ next to your players.':'No players match. Try a different name or position.'}</td></tr>`;
 }
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
 document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortS=th.dataset.sort;renderSites();};
@@ -1443,12 +1466,12 @@ function renderStats(){
   chips($('#posStats'),ui.posT,'posT');
   const q=ui.qT.trim().toLowerCase();
   const use=p=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);return m?m.f(p):null;};
-  let rows=[...PL.values()].filter(p=>(ui.posT==='All'||p.pos===ui.posT)&&(!q||p.name.toLowerCase().includes(q)||p.team.toLowerCase()===q));
+  let rows=[...PL.values()].filter(p=>(ui.posT==='All'||p.pos===ui.posT)&&(!ui.mineOnly||S.mine.includes(p.key))&&(!q||p.name.toLowerCase().includes(q)||p.team.toLowerCase()===q));
   const key={ppg:ppg,tot:tot,snap:p=>dv(p.s.off_snp,p.s.tm_off_snp),use:use,xfp:p=>xfpOf(p)?.pg??null}[ui.sortT];
   rows.sort((a,b)=>(key(b)??-1)-(key(a)??-1));
   document.querySelectorAll('table.dir th.sortable').forEach(th=>th.dataset.sort===ui.sortT?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
   $('#statsBody').innerHTML=rows.length?rows.slice(0,450).map((p,i)=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);const sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp);
-    return `<tr><td class="rank">${i+1}</td><td><span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button> <span class="muted" style="font-size:.85rem">${esc(p.team)}</span></td>
+    return `<tr><td class="rank">${i+1}</td><td style="white-space:nowrap">${starBtn(p.key)}<span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button> <span class="muted" style="font-size:.85rem">${esc(p.team)}</span></td>
     <td class="r num">${p.gp}</td><td class="r big">${n1(ppg(p))}</td><td class="r num">${n1(tot(p))}</td><td class="r num">${sn==null?'—':Math.round(sn*100)+'%'}</td>
     <td class="r num" title="${m?esc(m.l):''}">${m?m.fmt(m.f(p)):'—'} <span class="stub">${m?{rfp:'rush FP',rsh:'carries',tsh:'tgt share',fgp:'FG',to:'TO/g'}[m.k]:''}</span></td><td class="r num">${(()=>{const x=xfpOf(p);return x?n1(x.pg):'—'})()}</td><td>${spark(p)}</td></tr>`}).join(''):'<tr><td colspan="9" class="muted">No players match.</td></tr>';
 }
