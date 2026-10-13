@@ -1210,6 +1210,11 @@ function renderPlayer(){
    <div class="mgrid">${ms}</div></div>`;
   $('#backBtn').onclick=()=>{ui.tab=ui.prev||'stats';render();window.scrollTo(0,0);};
 }
+// start downloading a player's photo as soon as the pointer or finger lands on his name
+const PREF=new Set();
+function prefetchShot(e){const b=e.target.closest&&e.target.closest('.plink');if(!b)return;const k=b.dataset.k;if(!k||PREF.has(k))return;
+  const p=PL.get(k);const u=p&&headshotOf(p);if(!u)return;PREF.add(k);const im=new Image();im.decoding='async';im.src=u;}
+['pointerover','touchstart','focusin'].forEach(t=>document.addEventListener(t,prefetchShot,{passive:true}));
 document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;ui.player=b.dataset.k;ui.tab='player';render();window.scrollTo(0,0);});
 
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
