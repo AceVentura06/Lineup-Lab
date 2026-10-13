@@ -1048,18 +1048,30 @@ function weekChart(p){
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Fantasy points by week">${g}</svg>`;
 }
 function boxScore(p){
-  const s=p.s,g=p.gp||1;let cols;
-  if(p.pos==='QB')cols=[['Cmp / Att',`${s.pass_cmp}/${s.pass_att}`,null],['Pass yds',s.pass_yd],['Pass TD',s.pass_td],['INT',s.pass_int],['Sacks',s.pass_sack],['Rush att',s.rush_att],['Rush yds',s.rush_yd],['Rush TD',s.rush_td],['Fum lost',s.fum_lost]];
-  else if(p.pos==='RB')cols=[['Carries',s.rush_att],['Rush yds',s.rush_yd],['Rush TD',s.rush_td],['Targets',s.rec_tgt],['Rec',s.rec],['Rec yds',s.rec_yd],['Rec TD',s.rec_td],['Fum lost',s.fum_lost]];
-  else if(p.pos==='K')cols=[['FG made',s.fgm],['FG att',s.fga],['50+ made',s.fgm_50p],['XP made',s.xpm],['XP att',s.xpa]];
-  else if(p.pos==='DST'){const d=p.d||{};cols=[['Sacks',d.sack??0],['INT',d.int??0],['Fum rec',d.fr??0],['TDs',d.td??0],['Pts allowed',s.pts_allow],['Yds allowed',d.ya??0]];}
-  else cols=[['Targets',s.rec_tgt],['Rec',s.rec],['Rec yds',s.rec_yd],['Rec TD',s.rec_td],['Rush att',s.rush_att],['Rush yds',s.rush_yd],['Fum lost',s.fum_lost]];
-  const sc={ppr:'PPR',half:'Half',std:'Std'}[S.scoring];
-  cols.unshift([`Total pts <span class="subn" style="display:inline">${sc}</span>`,tot(p),'fp'],[`Pts / game <span class="subn" style="display:inline">${sc}</span>`,tot(p)/g,'fp']);
-  const sv=c=>c[2]==='fp'?`<b>${n1(c[1])}</b>`:c[1],pg=c=>c[2]===null||c[2]==='fp'?'—':n1(c[1]/g);
+  const g=p.gp||1,sc={ppr:'PPR',half:'Half',std:'Std'}[S.scoring];
+  // [label, value for any player, options] — low: fewer is better; pg: per-game value; noPg: no per-game cell; show: custom display
+  const d=q=>q.d||{};
+  const SPEC={
+    QB:[['Cmp / Att',q=>dv(q.s.pass_cmp,q.s.pass_att),{noPg:1,qual:1,show:q=>`${q.s.pass_cmp}/${q.s.pass_att}`}],['Pass yds',q=>q.s.pass_yd],['Pass TD',q=>q.s.pass_td],['INT',q=>q.s.pass_int,{low:1}],['Sacks',q=>q.s.pass_sack,{low:1}],['Rush att',q=>q.s.rush_att],['Rush yds',q=>q.s.rush_yd],['Rush TD',q=>q.s.rush_td],['Fum lost',q=>q.s.fum_lost,{low:1}]],
+    RB:[['Carries',q=>q.s.rush_att],['Rush yds',q=>q.s.rush_yd],['Rush TD',q=>q.s.rush_td],['Targets',q=>q.s.rec_tgt],['Rec',q=>q.s.rec],['Rec yds',q=>q.s.rec_yd],['Rec TD',q=>q.s.rec_td],['Fum lost',q=>q.s.fum_lost,{low:1}]],
+    WR:[['Targets',q=>q.s.rec_tgt],['Rec',q=>q.s.rec],['Rec yds',q=>q.s.rec_yd],['Rec TD',q=>q.s.rec_td],['Rush att',q=>q.s.rush_att],['Rush yds',q=>q.s.rush_yd],['Fum lost',q=>q.s.fum_lost,{low:1}]],
+    K:[['FG made',q=>q.s.fgm],['FG att',q=>q.s.fga],['50+ made',q=>q.s.fgm_50p],['XP made',q=>q.s.xpm],['XP att',q=>q.s.xpa]],
+    DST:[['Sacks',q=>d(q).sack??0],['INT',q=>d(q).int??0],['Fum rec',q=>d(q).fr??0],['TDs',q=>d(q).td??0],['Pts allowed',q=>q.s.pts_allow,{low:1}],['Yds allowed',q=>d(q).ya??0,{low:1}]]};
+  SPEC.TE=SPEC.WR;
+  const cols=[[`Total pts <span class="subn" style="display:inline">${sc}</span>`,q=>tot(q),{fp:1,noPg:1}],[`Pts / game <span class="subn" style="display:inline">${sc}</span>`,q=>ppg(q),{fp:1,noPg:1,minGp:2}],...SPEC[p.pos]];
+  const peers=[...PL.values()].filter(q=>q.pos===p.pos);
+  const rankOf=(fn,o={})=>{const pool=peers.filter(q=>q.gp>=(o.minGp||1)&&(!(o.low||o.qual)||QUAL[p.pos](q))),me=fn(p);
+    if(me==null||!Number.isFinite(me)||!pool.includes(p))return '—';
+    const better=pool.filter(q=>{const v=fn(q);return v!=null&&Number.isFinite(v)&&(o.low?v<me:v>me);}).length;return p.pos+(better+1);};
+  const cell=(c,kind)=>{const [,fn,o={}]=c;
+    if(kind==='season')return o.fp?`<b>${n1(fn(p))}</b>`:o.show?o.show(p):fn(p);
+    if(kind==='pg')return o.noPg?'—':n1(fn(p)/g);
+    return rankOf(fn,o);};
   return `<div class="tbl-wrap"><table style="min-width:600px"><thead><tr><th></th>${cols.map(c=>`<th class="r">${c[0]}</th>`).join('')}</tr></thead><tbody>
-   <tr><td class="label">Season</td>${cols.map(c=>`<td class="r num">${sv(c)}</td>`).join('')}</tr>
-   <tr><td class="label">Per game</td>${cols.map(c=>`<td class="r num muted">${pg(c)}</td>`).join('')}</tr></tbody></table></div>`;
+   <tr><td class="label">Season</td>${cols.map(c=>`<td class="r num">${cell(c,'season')}</td>`).join('')}</tr>
+   <tr><td class="label">Per game</td>${cols.map(c=>`<td class="r num muted">${cell(c,'pg')}</td>`).join('')}</tr>
+   <tr><td class="label">Rank</td>${cols.map(c=>`<td class="r num" style="color:var(--t-accent,var(--turf));font-weight:600">${cell(c,'rank')}</td>`).join('')}</tr></tbody></table></div>
+   <p class="note" style="margin-top:6px">Rank among all ${p.pos}s this season. For interceptions, sacks, fumbles and points or yards allowed, 1 means the fewest, among players with regular playing time.${p.pos==='QB'?' Cmp / Att ranks completion percentage.':''} Points per game ranks players with 2+ games.</p>`;
 }
 // Team colors: [main, secondary]. Teams whose main color is very light use their dark color as the main.
 const TEAM_COLORS={ARI:['#97233F','#FFB612'],ATL:['#A71930','#000000'],BAL:['#241773','#9E7C0C'],BUF:['#00338D','#C60C30'],CAR:['#0085CA','#101820'],
