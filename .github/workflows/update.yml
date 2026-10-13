@@ -7,6 +7,8 @@ on:
     # Sundays, hourly from noon to midnight Eastern (16:00–04:00 UTC).
     - cron: '47 16-23 * * 0'
     - cron: '47 0-4 * * 1'
+    # Tuesday 3:30 AM Eastern, when the site moves to the next week (07:35 UTC in summer time, 08:35 in winter).
+    - cron: '35 7,8 * * 2'
   workflow_dispatch: {}   # adds a "Run workflow" button for manual refreshes
   push:                   # also runs when the updater itself changes
     branches: [main]

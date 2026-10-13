@@ -11,6 +11,14 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
   let week = Number(state.display_week || state.week) || 1;
   if (state.season_type !== 'regular') week = state.season_type === 'pre' ? 1 : 18;
   week = Math.min(18, Math.max(1, week));
+
+  // Our own week change: move to the next week at 3:30 AM Eastern on the Tuesday
+  // after that week's last game, instead of waiting for Sleeper to switch.
+  const sch = await fetchJson(`https://api.sleeper.app/schedule/nfl/regular/${season}`);
+  if (state.season_type === 'regular') {
+    const w2 = weekByCalendar(sch, Date.now());
+    if (w2) { if (w2 !== week) log(`Sleeper says week ${week}; calendar says week ${w2}`); week = w2; }
+  }
   log(`Season ${season}, week ${week}`);
 
   // --- Sleeper projections for this week ---
@@ -62,7 +70,6 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
   }
 
   // --- schedule ---
-  const sch = await fetchJson(`https://api.sleeper.app/schedule/nfl/regular/${season}`);
   const teams = [...new Set(sch.flatMap(g => [g.home, g.away]))].sort();
   const opp = {};
   teams.forEach(t => opp[t] = Array(18).fill('BYE'));
@@ -152,4 +159,29 @@ export async function build(fetchJson, { prevEspn = null, log = () => {} } = {})
     },
     espnCache: { week, text: espn }
   };
+}
+
+// UTC time of 3:30 AM in New York on a given calendar date (handles daylight saving).
+function nyTime(y, m, d, hh, mm) {
+  const guess = Date.UTC(y, m - 1, d, hh + 5, mm);           // assume EST first
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hourCycle: 'h23',
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+    .formatToParts(new Date(guess)).map(x => [x.type, x.value]));
+  const shown = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  return guess - (shown - Date.UTC(y, m - 1, d, hh, mm));
+}
+// The current week: the first week whose switch-over (Tuesday 3:30 AM ET after its last game) hasn't happened yet.
+export function weekByCalendar(sch, now) {
+  const last = {};
+  for (const g of sch) { if (!g.date || !(g.week >= 1 && g.week <= 18)) continue; if (!last[g.week] || g.date > last[g.week]) last[g.week] = g.date; }
+  if (!Object.keys(last).length) return null;
+  for (let w = 1; w <= 18; w++) {
+    if (!last[w]) continue;
+    const [y, m, d] = last[w].split('-').map(Number);
+    const dow = new Date(Date.UTC(y, m - 1, d)).getUTCDay();   // 0 = Sunday
+    const add = ((2 - dow + 7) % 7) || 7;                      // the next Tuesday after the last game
+    const t = new Date(Date.UTC(y, m - 1, d + add));
+    if (now < nyTime(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate(), 3, 30)) return w;
+  }
+  return 18;
 }
