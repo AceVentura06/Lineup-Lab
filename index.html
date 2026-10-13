@@ -247,6 +247,22 @@ tr.dvpdetail>td{padding:4px 8px 14px;background:var(--surface-2)}
 tr.dvpdetail .card{margin:0}
 .mpill{display:inline-flex;flex-direction:column;vertical-align:middle}
 /* ===== Prime Time broadcast layer ===== */
+.ticker{display:flex;align-items:stretch;background:var(--surface);border-radius:4px;overflow:hidden;box-shadow:0 1px 3px rgba(14,23,38,.08);margin-top:-8px}
+.tk-tag{flex:none;display:flex;align-items:center;padding:0 16px 0 12px;background:var(--red);color:#fff;font-family:var(--f-display);font-weight:800;font-style:italic;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;clip-path:polygon(0 0,100% 0,88% 100%,0 100%)}
+.tk-view{flex:1;overflow:hidden;position:relative;mask-image:linear-gradient(90deg,transparent,#000 24px,#000 calc(100% - 24px),transparent)}
+.tk-track{display:flex;width:max-content;animation:tk var(--tk-dur,60s) linear infinite}
+.ticker:hover .tk-track,.ticker:focus-within .tk-track{animation-play-state:paused}
+.tk-run{display:flex;flex:none}
+.tk-i{display:inline-flex;align-items:center;gap:6px;padding:9px 22px 9px 0;white-space:nowrap;font-size:.92rem}
+.tk-i::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--gold);margin-left:22px}
+.tk-h{font-family:var(--f-display);font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);font-size:.9rem}
+.tk-i a{color:var(--ink);text-decoration:none;font-weight:600}.tk-i a:hover{text-decoration:underline}
+.tk-p{border-bottom:0!important;display:inline-flex;align-items:center;gap:5px}.tk-p b{font-family:var(--f-mono)}
+.tk-dot{color:var(--muted);margin:0 2px}
+.tk-a{all:unset;cursor:pointer;font-weight:600;border-bottom:1px dotted var(--muted)}
+@keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media (prefers-reduced-motion:reduce){.tk-track{animation:none}.tk-view{overflow-x:auto;mask-image:none}.tk-run[aria-hidden]{display:none}}
+
 .board .hsearch input{width:220px;border:0;background:var(--surface-2);color:var(--ink);border-radius:4px;padding:7px 10px;font:inherit}
 @media (max-width:600px){.board .hsearch{flex:1 1 100%}.board .hsearch input{width:100%}}
 
@@ -337,6 +353,11 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div class="ctl"><label class="label" for="passTdIn">Pass TD</label><select id="passTdIn"><option value="4">4 pts</option><option value="6">6 pts</option></select></div>
     </div>
   </header>
+
+  <div class="ticker" id="ticker" hidden aria-label="Latest headlines and standouts">
+    <span class="tk-tag">Latest</span>
+    <div class="tk-view"><div class="tk-track" id="tkTrack"></div></div>
+  </div>
 
   <nav class="tabs" role="tablist">
     <button role="tab" data-tab="sites" id="t-sites">Projections</button>
@@ -580,7 +601,7 @@ Total      = Pts/game × Games left</div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
-<script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
+<script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data","ticker-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
 <script>
 (function(){
 const KEY='lineuplab.v1';
@@ -1003,6 +1024,21 @@ document.addEventListener('click',e=>{const th=e.target.closest('table.dvp th.so
   const tr=e.target.closest('tr.dvprow');if(tr){lastDvp=tr.dataset.t;ui._dvpScroll=true;go('dvp',ui.dvpTeam===tr.dataset.t?null:tr.dataset.t);return;}
   const ol=e.target.closest('.olink');if(ol){if(ui.tab!=='dvp')ui.prev=ui.tab;go('dvp',ol.dataset.dvp);}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('tr.dvprow'))e.target.click();});
+// ---- ticker: last week's standouts, most accurate source, latest headlines ----
+function renderTicker(){const el=$('#ticker'),tr=$('#tkTrack');if(!el||!tr)return;
+  const T=(typeof TICKER_DATA!=='undefined'&&TICKER_DATA)||{},items=[],lw=SD.week-1;
+  if(lw>=1){const top={};for(const p of PL.values()){const w=p.weeks[lw-1];if(!w)continue;const v=wpts(w);if(!top[p.pos]||v>top[p.pos].v)top[p.pos]={p,v};}
+    const S1=['QB','RB','WR','TE','K','DST'].filter(x=>top[x]).map(x=>`<button class="plink tk-p" data-k="${esc(top[x].p.key)}"><span class="pos ${x}">${x}</span> ${esc(top[x].p.name)} <b>${n1(top[x].v)}</b></button>`);
+    if(S1.length)items.push(`<span class="tk-h">Week ${lw} top scorers</span> ${S1.join('<span class="tk-dot">·</span>')}`);}
+  if(T.best)items.push(`<span class="tk-h">Most accurate, Week ${T.best.week}</span> <button class="tk-a" data-tab="acc">${esc(T.best.name)}, ${n1(T.best.miss)} pts off per player</button>`);
+  for(const [t,src,url] of (T.latest||[]))items.push(`<span class="tk-h">${esc(src)}</span> <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)}</a>`);
+  if(!items.length){el.hidden=true;return;}
+  const one=items.map(x=>`<span class="tk-i">${x}</span>`).join('');
+  tr.innerHTML=`<div class="tk-run">${one}</div><div class="tk-run" aria-hidden="true">${one}</div>`;
+  el.hidden=false;
+  // constant reading speed regardless of how much is in it
+  requestAnimationFrame(()=>{const w=tr.firstElementChild.scrollWidth;tr.style.setProperty('--tk-dur',Math.max(30,w/70)+'s');});}
+document.addEventListener('click',e=>{const b=e.target.closest('.tk-a');if(b){go(b.dataset.tab);}});
 function render(){
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
   $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
@@ -1577,6 +1613,7 @@ window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Mat
 $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
 
 render();
+renderTicker();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
 })();
 </script>

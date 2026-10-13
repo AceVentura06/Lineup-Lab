@@ -40,12 +40,12 @@ try { adv = await buildAdv({ fetchText, fetchGz, season: d.season, week: d.week,
 catch (e) { console.log('Advanced data failed entirely:', e.message); }
 
 // Recent news for each player
-let news = null;
+let news = null, latest = [];
 try {
   const F = d.stats.fields, iN = F.indexOf('name'), iP = F.indexOf('pos');
   const players = d.stats.rows.split('\n').filter(Boolean).map(l => { const c = l.split('|'); return { name: c[iN], pos: c[iP] }; });
   const r = await buildNews({ fetchJson, fetchText, players, log: m => console.log(m) });
-  news = r.news;
+  news = r.news; latest = r.latest || [];
   if (adv) adv.sources['Player news'] = { ok: true, detail: r.detail };
   console.log('Player news:', r.detail);
 } catch (e) { console.log('Player news failed:', e.message); if (adv) adv.sources['Player news'] = { ok: false, detail: e.message }; }
@@ -102,5 +102,11 @@ try {
   }
   await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...SITE_DATA, season: d.season, frozen, pastWeeks: pastWeeks.sort((a, b) => a - b) }));
   await writeFile(new URL('accuracy-data.js', DIR), js('ACC_DATA', { ...acc, pulled }));
+  // ticker: latest headlines and last week's most accurate source
+  const lw = Math.max(0, ...Object.keys(acc.weeks).map(Number));
+  let best = null;
+  if (lw) { const m = acc.weeks[lw].m.ppr; const s = Object.keys(m).sort((a, b) => m[a].ae / m[a].n - m[b].ae / m[b].n)[0];
+    if (s) best = { week: lw, name: acc.sources[s], miss: +(m[s].ae / m[s].n).toFixed(2) }; }
+  await writeFile(new URL('ticker-data.js', DIR), js('TICKER_DATA', { latest, best }));
   console.log(`Saved ${Object.keys(snap.players).length} pregame projections for week ${cur.week}; graded weeks: ${Object.keys(acc.weeks).join(', ') || 'none yet'}.`);
 } catch (e) { console.log('Accuracy scoreboard failed:', e.message); }

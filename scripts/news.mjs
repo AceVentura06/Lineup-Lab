@@ -74,5 +74,13 @@ export async function buildNews({ fetchJson, fetchText, players, log = () => {} 
     res[k] = [...uniq.values()].slice(0, PER_PLAYER).map(a => [a.title, a.source, a.url, new Date(a.date).toISOString(), a.text]);
   }
   const detail = `${Object.keys(res).length} players with news (ESPN ${espnN} articles scanned; ${Object.entries(stats).map(([s, n]) => `${s} ${n}`).join(', ') || 'no matches'})`;
-  return { news: res, detail };
+  // newest player-related headlines overall, for the site's ticker
+  const seenUrl = new Set(), latest = [];
+  for (const a of Object.values(out).flat().sort((x, y) => y.date - x.date)) {
+    if (seenUrl.has(a.url) || seenUrl.has(a.title.toLowerCase())) continue;
+    seenUrl.add(a.url); seenUrl.add(a.title.toLowerCase());
+    latest.push([a.title, a.source, a.url, new Date(a.date).toISOString()]);
+    if (latest.length >= 12) break;
+  }
+  return { news: res, latest, detail };
 }
