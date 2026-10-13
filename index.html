@@ -225,6 +225,14 @@ td.none{color:var(--muted)}
 .news a{color:var(--ink);font-weight:700;font-size:1.02rem;text-decoration:none;line-height:1.3}
 .news a:hover{color:var(--t-accent,var(--gold));text-decoration:underline}
 .news p{font-size:.88rem;color:var(--muted);line-height:1.4}
+.tlist{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column}
+.tlist li{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+.tlist li:last-child{border-bottom:0}
+.tlist .r{text-align:right}
+.tbars{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.tbars>div{display:grid;grid-template-columns:84px 1fr 48px;gap:10px;align-items:center}
+.tbars .bar{height:14px}
+.tbars .label{white-space:nowrap}
 /* ===== Prime Time broadcast layer ===== */
 h1,h2{font-style:italic;font-weight:800;letter-spacing:.01em}
 h3{font-style:italic;font-weight:800;font-size:1.25rem}
@@ -319,6 +327,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
     <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
     <button role="tab" data-tab="lineup" id="t-lineup">Suggested Lineup</button>
+    <button role="tab" data-tab="trade" id="t-trade">Trade Analyzer</button>
     <button role="tab" data-tab="acc" id="t-acc">Accuracy</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
   </nav>
@@ -450,6 +459,19 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   </section>
 
   <!-- PLAYERS -->
+
+  <!-- TRADE -->
+  <section class="panel" id="p-trade" role="tabpanel" hidden>
+    <div>
+      <h2>Trade analyzer</h2>
+      <p class="note" style="margin-top:4px;max-width:78ch">Add the players on each side. Each one is valued on his rest-of-season scoring above what you could pick up off waivers at his position, so a star is worth more than two bench players with the same total points. Uses your scoring format above and the lineup slots from Suggested Lineup, in a 12-team league.</p>
+    </div>
+    <div class="split">
+      <div class="card tside" id="tGive"></div>
+      <div class="card tside" id="tGet"></div>
+    </div>
+    <div id="tVerdict"></div>
+  </section>
 
   <!-- ACCURACY -->
   <section class="panel" id="p-acc" role="tabpanel" hidden>
@@ -854,12 +876,59 @@ function fillNews(p){loadNews(()=>{const el=$('#pNews');if(!el||ui.tab!=='player
     <div class="nmeta"><b>${esc(src)}</b> · ${esc(ago(iso))}</div>
     <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)} <span aria-hidden="true">↗</span></a>
     ${txt?`<p>${esc(txt)}</p>`:''}</li>`).join('')}</ul></div>`;});}
+// ---- trade analyzer ----
+// Replacement level: the best player at each position still on waivers in a 12-team league with these lineup slots
+function replacementPpg(){const sl=Object.assign({},DEF_SLOTS,S.slots||{}),T=12;
+  const start={QB:sl.QB+sl.SFLEX*.8,RB:sl.RB+sl.FLEX*.4+sl.SFLEX*.08,WR:sl.WR+sl.FLEX*.5+sl.SFLEX*.1,TE:sl.TE+sl.FLEX*.1+sl.SFLEX*.02,K:sl.K,DST:sl.DST};
+  const by={};for(const p of realPlayers()){(by[p.pos]=by[p.pos]||[]).push(rosProj(p).ppg);}
+  const out={};for(const pos in start){const v=(by[pos]||[]).sort((a,b)=>b-a);const i=Math.round(T*start[pos]);out[pos]=v.length?v[Math.min(v.length-1,i)]:0;}return out;}
+function tradeVal(p,rep){const r=rosProj(p);return {...r,val:Math.max(0,(r.ppg-(rep[p.pos]||0))*r.games)};}
+function tradeSide(id,title,keys,rep){
+  const ps=keys.map(k=>realPlayers().find(x=>x.key===k)).filter(Boolean);
+  const list=ps.length?`<ul class="tlist">${ps.map(p=>{const v=tradeVal(p,rep);return `<li><div>${nameCell(p,false)}<div class="note">${f1(v.ppg)} pts/game · ${v.games} games left · ${esc(p.sched)} schedule${p.bye&&n(p.bye)>S.week?' · bye wk '+p.bye:''}</div></div>
+     <div class="r"><b class="mono">${Math.round(v.val)}</b><div class="note">value</div></div><button class="btn sm" data-rm="${esc(p.key)}" aria-label="Remove ${esc(p.name)}">✕</button></li>`;}).join('')}</ul>`:'<p class="muted" style="margin:6px 0">No players yet.</p>';
+  return `<h3>${title}</h3><div class="sitebar" style="align-items:end;margin-top:10px"><div class="field" style="flex:1 1 200px"><label class="label" for="${id}In">Add a player</label>
+    <input id="${id}In" class="pick" type="search" list="tradeList" placeholder="Type a name" autocomplete="off" spellcheck="false"></div><button class="btn primary" data-add="${id}" type="button">Add</button></div>${list}`;}
+function renderTrade(){
+  S.trade=S.trade||{give:[],get:[]};const rep=replacementPpg(),all=realPlayers();
+  if(!$('#tradeList')){const dl=document.createElement('datalist');dl.id='tradeList';document.body.appendChild(dl);}
+  if(+($('#tradeList').dataset.n||0)!==all.length){$('#tradeList').innerHTML=all.map(p=>({p,v:rosProj(p).total})).sort((a,b)=>b.v-a.v).map(({p})=>`<option value="${esc(p.name)} (${esc(p.team)}) · ${p.pos}"></option>`).join('');$('#tradeList').dataset.n=all.length;}
+  $('#tGive').innerHTML=tradeSide('tGive','You give',S.trade.give,rep);$('#tGet').innerHTML=tradeSide('tGet','You get',S.trade.get,rep);
+  const sum=keys=>keys.map(k=>all.find(x=>x.key===k)).filter(Boolean).reduce((a,p)=>{const v=tradeVal(p,rep);a.val+=v.val;a.pts+=v.total;a.n++;return a;},{val:0,pts:0,n:0});
+  const G=sum(S.trade.give),R=sum(S.trade.get),el=$('#tVerdict');
+  if(!G.n||!R.n){el.innerHTML=`<div class="card"><p class="muted">Add at least one player to each side to see who wins the trade.</p></div>`;return;}
+  const d=R.val-G.val,big=Math.max(G.val,R.val,1),pct=Math.abs(d)/big;
+  const head=pct<.08?'Fair trade':d>0?(pct>=.3?'Big win for you':'You win this trade'):(pct>=.3?'Big loss for you':'You lose this trade');
+  const cls=pct<.08?'p-gold':d>0?'p-good':'p-bad';
+  const spots=R.n<G.n?`You get ${G.n-R.n} fewer player${G.n-R.n>1?'s':''}, which frees roster spots for waiver pickups.`:R.n>G.n?`You get ${R.n-G.n} more player${R.n-G.n>1?'s':''}, so you'll need to drop someone to make room.`:'';
+  const W=Math.max(G.val,R.val,1);
+  el.innerHTML=`<div class="card"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between"><h3>Verdict</h3><span class="pill ${cls}" style="font-size:.95rem;padding:3px 12px">${head}</span></div>
+    <div class="tbars">
+      <div><span class="label">You give</span><div class="bar"><i style="width:${100*G.val/W}%;background:var(--bad)"></i></div><b class="mono">${Math.round(G.val)}</b></div>
+      <div><span class="label">You get</span><div class="bar"><i style="width:${100*R.val/W}%;background:var(--good)"></i></div><b class="mono">${Math.round(R.val)}</b></div>
+    </div>
+    <p style="margin-top:10px">${pct<.08?`The two sides are within ${Math.round(pct*100)}% of each other in value.`:`You ${d>0?'gain':'give up'} about <b>${Math.round(Math.abs(d))}</b> points of value above waiver level over the rest of the season (${Math.round(pct*100)}% of the bigger side).`}
+      Raw rest-of-season points: ${Math.round(G.pts)} given, ${Math.round(R.pts)} received.</p>
+    ${spots?`<p class="note" style="margin-top:6px">${spots}</p>`:''}</div>`;
+}
+document.addEventListener('click',e=>{const a=e.target.closest('#p-trade [data-add]'),r=e.target.closest('#p-trade [data-rm]');
+  if(r){S.trade.give=S.trade.give.filter(k=>k!==r.dataset.rm);S.trade.get=S.trade.get.filter(k=>k!==r.dataset.rm);save();renderTrade();return;}
+  if(a)tradeAdd(a.dataset.add);});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('#tGiveIn,#tGetIn')){e.preventDefault();tradeAdd(e.target.id.slice(0,-2));}});
+document.addEventListener('input',e=>{if(!e.target.matches||!e.target.matches('#tGiveIn,#tGetIn'))return;const v=e.target.value.trim().toLowerCase();
+  if(realPlayers().some(p=>`${p.name} (${p.team}) · ${p.pos}`.toLowerCase()===v))tradeAdd(e.target.id.slice(0,-2));});
+function tradeAdd(id){const inp=$('#'+id+'In');const v=(inp.value||'').trim().toLowerCase();if(!v)return;const all=realPlayers();
+  const hit=all.find(p=>`${p.name} (${p.team}) · ${p.pos}`.toLowerCase()===v)||all.filter(p=>p.name.toLowerCase().includes(v)).sort((a,b)=>rosProj(b).total-rosProj(a).total)[0];
+  if(!hit){toast('No player matches that name');return;}
+  const side=id==='tGive'?'give':'get',other=side==='give'?'get':'give';
+  S.trade[other]=S.trade[other].filter(k=>k!==hit.key);if(!S.trade[side].includes(hit.key))S.trade[side].push(hit.key);save();renderTrade();
+  const ni=$('#'+id+'In');if(ni)ni.focus();}
 function render(){
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
   $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));
-  ['week','sites','stats','player','ros','lineup','acc','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
-  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();if(ui.tab==='acc')renderAcc();renderModel();
+  ['week','sites','stats','player','ros','lineup','trade','acc','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();if(ui.tab==='acc')renderAcc();if(ui.tab==='trade')renderTrade();renderModel();
 }
 
 // ---- site projections ----
@@ -1334,7 +1403,7 @@ $('#passTdIn').onchange=e=>{S.passTD=n(e.target.value);save();render();};
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);};
 // Browser history: every tab and player page gets its own address, so Back and Forward move around the site
 // (and a link like …/#player=puka-nacua opens straight to that page)
-const TABS=['stats','sites','ros','week','lineup','acc','model'];
+const TABS=['stats','sites','ros','week','lineup','trade','acc','model'];
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
 const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):'#'+t;
