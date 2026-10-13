@@ -241,6 +241,8 @@ table.sites .srange{min-width:96px}
 .ork.good{color:var(--good)}.ork.bad{color:var(--bad)}.ork.mid{color:var(--muted)}
 tr.dvprow{cursor:pointer}tr.dvprow:hover td{background:var(--surface-2)}tr.dvprow.sel td{background:color-mix(in srgb,var(--gold) 10%,transparent)}
 td.scol{background:color-mix(in srgb,var(--gold) 6%,transparent)}
+.olink{all:unset;cursor:pointer;font-family:var(--f-mono);font-size:.8rem;font-weight:700;border-bottom:1px dotted currentColor}
+.olink:hover{text-decoration:none;filter:brightness(.8)}.olink:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 /* ===== Prime Time broadcast layer ===== */
 .board .hsearch input{width:220px;border:0;background:var(--surface-2);color:var(--ink);border-radius:4px;padding:7px 10px;font:inherit}
 @media (max-width:600px){.board .hsearch{flex:1 1 100%}.board .hsearch input{width:100%}}
@@ -975,7 +977,7 @@ function dvpData(){const si=['ppr','half','std'].indexOf(S.scoring);if(_dvp&&_dv
 const rkCls=r=>r>=22?'good':r<=10?'bad':'mid';
 // "(22nd)" after the opponent on the Projections tab
 function oppRankTag(r,wk){const sc=(SCHED[r.team]||[])[wk-1];if(!sc||sc==='BYE')return '';const d=dvpData().by[sc.replace('@','')];const i=DPOS.indexOf(r.pos);
-  if(!d||i<0)return '';const rk=d.rank[i];return ` <span class="ork ${rkCls(rk)}" title="${esc(TEAM_NAMES[d.t]||d.t)} allow ${n1(d.avg[i])} pts/game to ${r.pos}s: ${ord(rk)} fewest of 32">(${ord(rk)})</span>`;}
+  if(!d||i<0)return '';const rk=d.rank[i];return ` <button class="ork olink ${rkCls(rk)}" data-dvp="${esc(d.t)}" title="${esc(TEAM_NAMES[d.t]||d.t)} allow ${n1(d.avg[i])} pts/game to ${r.pos}s (${ord(rk)} fewest of 32). Tap to see them week by week.">(${ord(rk)})</button>`;}
 function renderDvp(){const D=dvpData(),sc={ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring];
   $('#dvpNote').textContent=`Fantasy points each defense has allowed per game to each position this season (${sc}, finished weeks only). Rank 1 = fewest allowed, the toughest matchup; 32nd = most allowed, the easiest. Tap a column to sort, or a team to see it week by week.`;
   const k=ui.dvpSort??'team';
@@ -994,9 +996,10 @@ function renderDvp(){const D=dvpData(),sc={ppr:'PPR',half:'Half-PPR',std:'Standa
     <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${t.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
     <tr><td colspan="2"><b>Rank</b> <span class="note">(32nd = easiest)</span></td>${t.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
     </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p></div>`;
-  $('#dvpClose').onclick=()=>{ui.dvpTeam=null;renderDvp();};}
+  $('#dvpClose').onclick=()=>go('dvp',null);}
 document.addEventListener('click',e=>{const th=e.target.closest('table.dvp th.sortable');if(th){ui.dvpSort=th.dataset.sort;renderDvp();return;}
-  const tr=e.target.closest('tr.dvprow');if(tr){ui.dvpTeam=ui.dvpTeam===tr.dataset.t?null:tr.dataset.t;renderDvp();if(ui.dvpTeam)$('#dvpDetail').scrollIntoView({behavior:'smooth',block:'start'});}});
+  const tr=e.target.closest('tr.dvprow');if(tr){go('dvp',ui.dvpTeam===tr.dataset.t?null:tr.dataset.t);return;}
+  const ol=e.target.closest('.olink');if(ol){if(ui.tab!=='dvp')ui.prev=ui.tab;go('dvp',ol.dataset.dvp);}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('tr.dvprow'))e.target.click();});
 function render(){
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
@@ -1545,19 +1548,24 @@ const TABS=['stats','sites','ros','week','lineup','dvp','trade','acc','model'].f
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
-const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):'#'+t;
+const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):t==='dvp'&&k?'#dvp='+k:'#'+t;
 function readHash(){const h=decodeURIComponent(location.hash.slice(1));
   if(h.startsWith('player=')){const raw=h.slice(7);const k=[raw,raw.replace(/-/g,' ')].find(x=>PL.has(x));if(k)return {tab:'player',player:k};}
+  if(h.startsWith('dvp=')){const t=h.slice(4).toUpperCase();return {tab:'dvp',player:TEAM_NAMES[t]?t:null};}
   return TABS.includes(h)?{tab:h}:{tab:'sites'};}
-function go(tab,player,push=true){
-  if(tab===ui.tab&&(tab!=='player'||player===ui.player))push=false;   // same page: no extra Back step
-  ui.tab=tab;if(player)ui.player=player;
-  if(push){try{history.pushState({tab,player:player||null},'',hashFor(tab,player));navDepth++;}catch(_){}}
-  render();window.scrollTo(0,0);}
+// go to a tab; "sub" is the player on a player page, or the team on Defense vs Position
+function cur(){return ui.tab==='player'?ui.player:ui.tab==='dvp'?ui.dvpTeam||null:null;}
+function apply(tab,sub){ui.tab=tab;if(tab==='player'&&sub)ui.player=sub;if(tab==='dvp')ui.dvpTeam=sub||null;}
+function go(tab,sub,push=true){
+  if(tab===ui.tab&&(sub||null)===cur())push=false;   // same page: no extra Back step
+  apply(tab,sub);
+  if(push){try{history.pushState({tab,player:sub||null},'',hashFor(tab,sub));navDepth++;}catch(_){}}
+  render();window.scrollTo(0,0);
+  if(tab==='dvp'&&sub){const d=$('#dvpDetail');if(d&&d.scrollIntoView)d.scrollIntoView({block:'start'});}}
 window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Math.max(0,navDepth-1);
-  if(st.tab==='player'&&!PL.has(st.player))st.tab='sites';ui.tab=st.tab;if(st.player)ui.player=st.player;render();window.scrollTo(0,0);});
-(function(){const st=readHash();if(location.hash&&(st.tab!=='sites'||location.hash==='#sites')){ui.tab=st.tab;if(st.player)ui.player=st.player;render();}
-  try{history.replaceState({tab:ui.tab,player:ui.tab==='player'?ui.player:null},'',hashFor(ui.tab,ui.player));}catch(_){}})();
+  if(st.tab==='player'&&!PL.has(st.player))st.tab='sites';apply(st.tab,st.player);render();window.scrollTo(0,0);});
+(function(){const st=readHash();if(location.hash&&(st.tab!=='sites'||location.hash==='#sites')){apply(st.tab,st.player);render();}
+  try{history.replaceState({tab:ui.tab,player:cur()},'',hashFor(ui.tab,cur()));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);save();renderModel();renderWeek();renderRos();});
 $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
 
