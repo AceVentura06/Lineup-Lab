@@ -375,7 +375,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <div class="yahoo-note" id="yahooNote"></div>
     <div class="tbl-wrap"><table class="sites">
       <thead><tr>
-        <th>#</th><th>Player</th><th>Game</th>
+        <th>#</th><th>Player</th><th>Opponent</th>
         <th class="r sortable" data-sort="espn">ESPN</th><th class="r sortable" data-sort="sleeper">Sleeper</th><th class="r sortable" data-sort="cbs">CBS</th><th class="r sortable" data-sort="fp">FantasyPros</th>
         <th class="r sortable" data-sort="avg">Average</th><th class="r sortable mcol" data-sort="model" title="This site's projection; locked at kickoff">Model</th><th class="r sortable" data-sort="scored" title="Actual fantasy points this week; fills in as games are played">Scored</th><th>Range across sites</th><th class="sortable" data-sort="spread">Agreement</th>
       </tr></thead>
@@ -1004,8 +1004,8 @@ function renderSites(){
     const dots=['espn','sleeper','cbs','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('');
     const agree=v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
     return `<tr><td class="rank">${i+1}</td>
-      <td style="white-space:nowrap"><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}</td>
-      <td class="num muted" style="white-space:nowrap">${r.team?esc(r.team)+' v '+esc(r.opp):'—'}</td>
+      <td style="white-space:nowrap"><span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}${r.team?` <span class="muted" style="font-size:.85rem">${esc(r.team)}</span>`:''}</td>
+      <td class="num muted" style="white-space:nowrap">${oppText(r)}</td>
       ${cell(v,'espn',v)}${cell(v,'sleeper',v)}${cell(v,'cbs',v)}${cell(v,'fp',v)}
       <td class="r big">${f1(v.avg)}</td>
       <td class="r big mcol">${v.model!=null?f1(v.model):'<span class="muted">—</span>'}</td>
@@ -1111,6 +1111,11 @@ function nyOffset(day){try{const p=new Intl.DateTimeFormat('en-US',{timeZone:'Am
 function kickTime(g){if(!g||!g.day||!g.time)return null;const t=Date.parse(g.day+'T'+g.time+':00'+nyOffset(g.day));return Number.isFinite(t)?t:null;}
 function kickedOff(p){const t=kickTime(gameOf(p));return t!=null&&Date.now()>t;}
 // Model projection (locked at kickoff) and actual points for this week's Site Projections table
+// "vs SF" at home, "at SF" on the road (from the schedule; the betting-line data as a backup)
+function oppText(r){const sc=(SCHED[r.team]||[])[SD.week-1];
+  if(sc&&sc!=='BYE')return sc.startsWith('@')?'at '+esc(sc.slice(1)):'vs '+esc(sc);
+  const g=gameOf(r);if(g&&g.opp)return (g.home?'vs ':'at ')+esc(g.opp);
+  return r.opp?esc(r.opp):'—';}
 function modelScored(r,RP){const out={model:null,scored:null,live:false};if(S.week!==SD.week)return out;
   const t=kickTime(gameOf(r)),started=t!=null&&Date.now()>t,si=['ppr','half','std'].indexOf(S.scoring);
   const fz=SD.frozen&&SD.frozen[r.key];
