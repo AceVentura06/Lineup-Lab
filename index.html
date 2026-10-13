@@ -213,6 +213,10 @@ td.none{color:var(--muted)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.9rem}
 @media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:all .25s ease}}
 
+.mlist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
+.mlist li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.mlist li:last-child{border-bottom:0}
+.mlist .mv{margin-left:auto;font-family:var(--f-mono);font-size:.85rem;white-space:nowrap}
 /* ===== Prime Time broadcast layer ===== */
 h1,h2{font-style:italic;font-weight:800;letter-spacing:.01em}
 h3{font-style:italic;font-weight:800;font-size:1.25rem}
@@ -232,6 +236,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .tabs{gap:6px;border-bottom:0;padding-bottom:2px}
 .tabs button{padding:9px 20px;margin:0;border:0;background:var(--surface);color:#3A475C;font-size:1.05rem;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .tabs button[aria-selected="true"]{background:var(--gold);color:var(--accent-ink)}
+@media (min-width:760px){.tabs{flex-wrap:wrap;overflow:visible}}
 .tabs button:hover:not([aria-selected="true"]){background:#DCE3EC;color:var(--ink)}
 .card{border:0;border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08)}
 .tbl-wrap{border:0;border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08)}
@@ -306,6 +311,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
     <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
     <button role="tab" data-tab="lineup" id="t-lineup">Suggested Lineup</button>
+    <button role="tab" data-tab="acc" id="t-acc">Accuracy</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
   </nav>
 
@@ -436,6 +442,16 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   </section>
 
   <!-- PLAYERS -->
+
+  <!-- ACCURACY -->
+  <section class="panel" id="p-acc" role="tabpanel" hidden>
+    <div>
+      <h2>Who projects best?</h2>
+      <p class="note" style="margin-top:4px;max-width:78ch">Every week the site saves each source's projections right before kickoff, then compares them with what players actually scored. Graded on fantasy-relevant players every source projected, in the scoring format chosen above. Weeks 2–5 were rebuilt afterward from what was known at the time, for this site's model and Sleeper only; ESPN, CBS and FantasyPros are graded from Week 6 on.</p>
+    </div>
+    <div class="chips" id="accWeeks"></div>
+    <div id="accBody"><p class="muted">Loading…</p></div>
+  </section>
 
   <!-- MODEL -->
   <section class="panel" id="p-model" role="tabpanel" hidden>
@@ -751,12 +767,78 @@ Fumble lost −2`;
     $('#w-'+k).value=S.w[k];$('#w-'+k+'-v').textContent=fmt(S.w[k]);});
 }
 
+// ---- accuracy scoreboard ----
+let ACC=null,accLoading=false;
+const SRC_COLOR={lab:'var(--gold)',mod:'#8A94A6',espn:'var(--s-espn)',sleeper:'var(--s-sleeper)',cbs:'var(--s-cbs)',fp:'var(--s-yahoo)'};
+function loadAcc(){if(ACC||accLoading)return;accLoading=true;
+  if(typeof ACC_DATA!=='undefined'){ACC=ACC_DATA;return;}
+  const sc=document.createElement('script');sc.src='data/accuracy-data.js?v='+Math.floor(Date.now()/300000);
+  sc.onload=()=>{ACC=typeof ACC_DATA!=='undefined'?ACC_DATA:{weeks:{}};if(ui.tab==='acc')renderAcc();};
+  sc.onerror=()=>{ACC={weeks:{}};if(ui.tab==='acc')renderAcc();};document.head.appendChild(sc);}
+// season totals for each source across the chosen weeks
+function accAgg(ws){const sc=S.scoring,t={};
+  for(const w of ws){const W=ACC.weeks[w];for(const s of W.srcs){const m=W.m[sc][s];const a=t[s]=t[s]||{ae:0,n:0,hit:0,tot:0,rs:0,rn:0,weeks:0,pos:{}};
+    a.ae+=m.ae;a.n+=m.n;a.hit+=m.hit;a.tot+=m.tot;if(m.rho!=null){a.rs+=m.rho*m.n;a.rn+=m.n;}a.weeks++;
+    for(const [p,[e,c]] of Object.entries(m.pos)){const q=a.pos[p]=a.pos[p]||[0,0];q[0]+=e;q[1]+=c;}}}
+  return Object.entries(t).map(([s,a])=>({s,...a,mae:a.n?a.ae/a.n:null,hitP:a.tot?a.hit/a.tot:null,rho:a.rn?a.rs/a.rn:null}));}
+function accChart(ws){const sc=S.scoring,srcs=Object.keys(ACC.sources).filter(s=>ws.some(w=>ACC.weeks[w].srcs.includes(s)));
+  const pts=srcs.map(s=>ws.map(w=>{const m=ACC.weeks[w].m[sc][s];return m?m.ae/m.n:null;}));
+  const all=pts.flat().filter(v=>v!=null);if(!all.length)return '';
+  const W=760,H=250,pl=34,pr=120,pt=14,pb=26;const lo=Math.floor(Math.min(...all))-0.5,hi=Math.ceil(Math.max(...all))+0.5;
+  const x=i=>ws.length===1?(pl+W-pr)/2:pl+(W-pl-pr)*i/(ws.length-1),y=v=>pt+(H-pt-pb)*(1-(v-lo)/(hi-lo));
+  let g='';for(let v=Math.ceil(lo);v<=hi;v++)g+=`<line class="grid" x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}"/><text x="${pl-6}" y="${y(v)+4}" text-anchor="end">${v}</text>`;
+  ws.forEach((w,i)=>g+=`<text x="${x(i)}" y="${H-6}" text-anchor="middle">Wk ${w}</text>`);
+  const ends=[];
+  srcs.forEach((s,j)=>{const p=pts[j];let d='';p.forEach((v,i)=>{if(v==null)return;d+=(d?'L':'M')+x(i)+' '+y(v);});
+    g+=`<path d="${d}" fill="none" stroke="${SRC_COLOR[s]}" stroke-width="${s==='lab'?3.5:2}" ${s==='mod'?'stroke-dasharray="5 4"':''} stroke-linejoin="round" stroke-linecap="round"/>`;
+    p.forEach((v,i)=>{if(v!=null)g+=`<circle cx="${x(i)}" cy="${y(v)}" r="${s==='lab'?4:3}" fill="${SRC_COLOR[s]}"><title>${esc(ACC.sources[s])}, week ${ws[i]}: ${v.toFixed(2)} pts</title></circle>`;});
+    const li=p.map((v,i)=>v!=null?i:-1).filter(i=>i>=0).pop();if(li!=null)ends.push([y(p[li]),s]);});
+  ends.sort((a,b)=>a[0]-b[0]);for(let i=1;i<ends.length;i++)if(ends[i][0]-ends[i-1][0]<13)ends[i][0]=ends[i-1][0]+13;
+  ends.forEach(([yy,s])=>g+=`<text x="${W-pr+8}" y="${yy+4}" style="fill:${SRC_COLOR[s]};font-weight:700;font-family:var(--f-body)">${esc(ACC.sources[s])}</text>`);
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Average miss per player by week for each source; lower is better">${g}</svg>`;}
+function renderAcc(){
+  loadAcc();const body=$('#accBody'),wk=$('#accWeeks');
+  if(!ACC){body.innerHTML='<p class="muted">Loading…</p>';wk.innerHTML='';return;}
+  const ws=Object.keys(ACC.weeks||{}).map(Number).sort((a,b)=>a-b);
+  if(!ws.length){wk.innerHTML='';body.innerHTML=`<div class="card"><h3>No grades yet</h3><p class="muted" style="margin-top:6px">The first grades show up once Week ${S.week}'s games are final. Projections are being saved before each kickoff.</p></div>`;return;}
+  if(ui.accW==null||(ui.accW!=='season'&&!ws.includes(ui.accW)))ui.accW='season';
+  wk.innerHTML=[['season','Season'],...ws.map(w=>[w,'Wk '+w])].map(([v,l])=>`<button class="chip" aria-pressed="${ui.accW===v}" data-w="${v}">${l}</button>`).join('');
+  wk.onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.accW=b.dataset.w==='season'?'season':+b.dataset.w;renderAcc();};
+  const sel=ui.accW==='season'?ws:[ui.accW];
+  const rows=accAgg(sel).sort((a,b)=>a.mae-b.mae);const best=rows[0];
+  const maxM=Math.max(...rows.map(r=>r.mae));
+  const label=s=>`<span class="sw" style="background:${SRC_COLOR[s]}"></span> <b>${esc(ACC.sources[s])}</b>`;
+  const back=sel.some(w=>ACC.weeks[w].backfilled);
+  const lead=`<div class="card"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline"><h3>${ui.accW==='season'?'Season leaderboard':'Week '+ui.accW+' leaderboard'}</h3>
+     <span class="note">${sel.length===1?ACC.weeks[sel[0]].n+' players graded':sel.length+' weeks graded'}${back?' · includes rebuilt weeks':''}</span></div>
+    ${best?`<p style="margin:8px 0 12px"><b>${esc(ACC.sources[best.s])}</b> has been the most accurate${ui.accW==='season'?' so far':''}, missing by ${best.mae.toFixed(2)} points per player on average.</p>`:''}
+    <div class="tbl-wrap"><table style="min-width:560px"><thead><tr><th>#</th><th>Source</th><th class="r">Avg miss</th><th></th><th class="r" title="Of the players a source ranked as starters, how many finished as starters">Right starters</th><th class="r" title="How well the source ordered players at each position (100 = perfect order)">Ranking order</th>${ui.accW==='season'?'<th class="r">Weeks</th>':''}</tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td>${label(r.s)}</td><td class="r big">${r.mae.toFixed(2)}</td>
+      <td style="width:28%"><div class="bar" aria-hidden="true"><i style="width:${Math.max(4,100*r.mae/maxM)}%;background:${SRC_COLOR[r.s]}"></i></div></td>
+      <td class="r num">${r.hitP!=null?Math.round(100*r.hitP)+'%':'—'}</td><td class="r num">${r.rho!=null?Math.round(100*r.rho):'—'}</td>${ui.accW==='season'?`<td class="r num">${r.weeks}</td>`:''}</tr>`).join('')}
+    </tbody></table></div><p class="note" style="margin-top:8px">Avg miss is points per player (lower is better). Right starters: of the players each source ranked as starters in a 12-team league, the share that finished as starters.</p></div>`;
+  const chart=ui.accW==='season'&&ws.length>1?`<div class="card"><h3>Average miss by week</h3><p class="note" style="margin:4px 0 8px">Lower is better.</p>${accChart(ws)}</div>`:'';
+  const P=['QB','RB','WR','TE','K','DST'];
+  const posBest={};P.forEach(p=>{let b=null;rows.forEach(r=>{const q=r.pos[p];if(q&&q[1]){const v=q[0]/q[1];if(b==null||v<b)b=v;}});posBest[p]=b;});
+  const pos=`<div class="card"><h3>Average miss by position</h3><p class="note" style="margin:4px 0 10px">Points per player. The best source at each position is highlighted.</p><div class="tbl-wrap"><table style="min-width:520px"><thead><tr><th>Source</th>${P.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
+    ${rows.map(r=>`<tr><td>${label(r.s)}</td>${P.map(p=>{const q=r.pos[p];if(!q||!q[1])return '<td class="r none">—</td>';const v=q[0]/q[1];return `<td class="r num${Math.abs(v-posBest[p])<1e-9?' top':''}">${v.toFixed(1)}</td>`;}).join('')}</tr>`).join('')}
+    </tbody></table></div></div>`;
+  // hits and misses for one week and one source
+  const mw=ui.accW==='season'?ws[ws.length-1]:ui.accW,W=ACC.weeks[mw];
+  if(!ui.accS||!W.srcs.includes(ui.accS))ui.accS=W.srcs.includes('lab')?'lab':W.srcs[0];
+  const li=(arr,kind)=>arr&&arr.length?`<ol class="mlist">${arr.map(([nm,ps,tm,pr,ac])=>{const d=ac-pr;return `<li><span class="pos ${ps}">${ps}</span> <b>${esc(nm)}</b> <span class="muted">${esc(tm||'')}</span><span class="mv">Proj ${pr.toFixed(1)} · scored ${ac.toFixed(1)} <b style="color:${kind==='miss'?(d>0?'var(--good)':'var(--bad)'):'var(--good)'}">${d>0?'+':''}${d.toFixed(1)}</b></span></li>`;}).join('')}</ol>`:'<p class="muted">None this week.</p>';
+  const hm=`<div class="card"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center"><h3>Week ${mw} hits and misses</h3>
+     <div class="chips" id="accSrc">${W.srcs.map(s=>`<button class="chip" aria-pressed="${ui.accS===s}" data-s="${s}">${esc(ACC.sources[s])}</button>`).join('')}</div></div>
+    <div class="split" style="margin-top:12px"><div><span class="label">Biggest misses</span>${li(W.miss[S.scoring][ui.accS],'miss')}</div><div><span class="label">Best calls (15+ point games)</span>${li(W.best[S.scoring][ui.accS],'best')}</div></div></div>`;
+  body.innerHTML=`<div style="display:flex;flex-direction:column;gap:18px">${lead}${chart}${pos}${hm}</div>`;
+  const as=$('#accSrc');if(as)as.onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.accS=b.dataset.s;renderAcc();};
+}
 function render(){
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
   $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));
-  ['week','sites','stats','player','ros','lineup','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
-  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();renderModel();
+  ['week','sites','stats','player','ros','lineup','acc','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();if(ui.tab==='acc')renderAcc();renderModel();
 }
 
 // ---- site projections ----

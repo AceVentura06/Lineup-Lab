@@ -54,7 +54,7 @@ function spearman(a, b) {
 
 // Grade one week. snap: saved projections; act: actuals map; w: week number.
 export function gradeWeek(snap, act, w) {
-  const players = Object.entries(snap.players).map(([k, p]) => ({ k, ...p, a: act[k]?.[w] })).filter(p => p.a);
+  const players = Object.entries(snap.players).map(([id, p]) => ({ ...p, id, a: act[id]?.[w] })).filter(p => p.a);
   if (!players.length) return null;
   // sources present for most players that week (a source that only covers a handful would skew the pool)
   const cover = {};
@@ -72,7 +72,7 @@ export function gradeWeek(snap, act, w) {
       for (const P of Object.keys(STARTERS)) {
         const g = pool.filter(p => p.pos === P); if (g.length < 6) continue;
         const N = Math.min(STARTERS[P], Math.floor(g.length / 2));
-        const top = (f) => new Set([...g].sort((x, y) => f(y) - f(x)).slice(0, N).map(p => p.k));
+        const top = (f) => new Set([...g].sort((x, y) => f(y) - f(x)).slice(0, N).map(p => p.id));
         const ps = top(p => p.src[s][i]), as = top(p => p.a[i]);
         for (const k of ps) if (as.has(k)) hit++;
         tot += N;
