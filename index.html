@@ -247,11 +247,12 @@ tr.dvpdetail>td{padding:4px 8px 14px;background:var(--surface-2)}
 tr.dvpdetail .card{margin:0}
 .mpill{display:inline-flex;flex-direction:column;vertical-align:middle}
 /* ===== Prime Time broadcast layer ===== */
-/* sticky, joined top area: header + ticker + tabs */
-.topbar{position:sticky;top:0;z-index:50;margin:-20px -16px 0;padding:12px 16px 0;background:var(--bg);display:flex;flex-direction:column}
-.topbar>.board{border-radius:6px 6px 0 0;box-shadow:none;transition:padding .2s}
-.topbar>.ticker{border-radius:0;border-bottom:1px solid var(--line)}
-.topbar>.tabs{background:var(--surface);padding:6px 8px;border-radius:0 0 6px 6px;box-shadow:0 2px 6px rgba(14,23,38,.08)}
+/* sticky, joined top area: header + ticker + tabs, edge to edge; contents line up with the page */
+html{overflow-x:clip}body{overflow-x:clip}
+.topbar{--gut:max(16px,calc((100vw - 1408px) / 2));position:sticky;top:0;z-index:50;margin:-20px calc(50% - 50vw) 0;padding:0;background:var(--surface);display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(14,23,38,.10)}
+.topbar>.board{border-radius:0;box-shadow:none;padding:16px var(--gut);background:var(--surface);transition:padding .2s}
+.topbar>.ticker{border-radius:0;border-bottom:1px solid var(--line);padding-left:var(--gut);padding-right:var(--gut);box-shadow:none;background:var(--surface)}
+.topbar>.tabs{background:var(--surface);padding:6px var(--gut);border-radius:0;box-shadow:none}
 .topbar>.tabs button{background:var(--surface-2);padding:8px 11px}
 @media (min-width:760px) and (max-width:1439px){.topbar>.tabs button{font-size:.88rem;padding:7px 8px}}
 .topbar>.tabs button[aria-selected="true"]{background:var(--gold)}
