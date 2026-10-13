@@ -327,7 +327,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
     <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
     <button role="tab" data-tab="lineup" id="t-lineup">Suggested Lineup</button>
-    <button role="tab" data-tab="trade" id="t-trade">Trade Analyzer</button>
+    <button role="tab" data-tab="trade" id="t-trade" hidden>Trade Analyzer</button>
     <button role="tab" data-tab="acc" id="t-acc">Accuracy</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
   </nav>
@@ -1405,7 +1405,10 @@ $('#passTdIn').onchange=e=>{S.passTD=n(e.target.value);save();render();};
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);};
 // Browser history: every tab and player page gets its own address, so Back and Forward move around the site
 // (and a link like …/#player=puka-nacua opens straight to that page)
-const TABS=['stats','sites','ros','week','lineup','trade','acc','model'];
+// Features that are built but switched off. To bring one back, change false to true.
+const FEATURES={trade:false};
+const TABS=['stats','sites','ros','week','lineup','trade','acc','model'].filter(t=>FEATURES[t]!==false);
+if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
 const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):'#'+t;
