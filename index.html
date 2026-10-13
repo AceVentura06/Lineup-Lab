@@ -245,6 +245,7 @@ td.scol{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 .olink:hover{text-decoration:none;filter:brightness(.8)}.olink:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 tr.dvpdetail>td{padding:4px 8px 14px;background:var(--surface-2)}
 tr.dvpdetail .card{margin:0}
+.mpill{display:inline-flex;flex-direction:column;vertical-align:middle}
 /* ===== Prime Time broadcast layer ===== */
 .board .hsearch input{width:220px;border:0;background:var(--surface-2);color:var(--ink);border-radius:4px;padding:7px 10px;font:inherit}
 @media (max-width:600px){.board .hsearch{flex:1 1 100%}.board .hsearch input{width:100%}}
@@ -702,12 +703,12 @@ function nameCell(p,star){
   const nm=p.real&&PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:`<span class="pname">${esc(p.name)}</span>`;
   return `${st}<span class="pos ${p.pos}">${p.pos}</span> ${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}${p.team?` <span class="muted" style="font-size:.85rem">${esc(p.team)}</span>`:''}`;
 }
+// Opponent with home/away, the defense's rank against this position (links to Defense vs Position) and points it allows
 function matchPill(p){
-  const r=n(p.oppRank)||16;
-  const cls=r>=22?'p-good':r<=10?'p-bad':'p-mute';
-  const word=r>=22?'Soft':r<=10?'Tough':'Neutral';
-  const tip=p.oppAllowed!=null?`${p.opp} allows ${p.oppAllowed} ${p.pos} pts/game (PPR), ${r===32?'most':r===1?'fewest':'rank '+r+' of 32'}`:'';
-  return `<span class="pill ${cls}" title="${esc(tip)}">${word} · ${r}</span>${p.opp?` <span class="muted" style="font-size:.82rem">${esc(p.opp)}</span>`:''}`;
+  if(!p.opp&&!p.team)return '<span class="muted">—</span>';
+  const sc=(SCHED[p.team]||[])[S.week-1],d=sc&&sc!=='BYE'?dvpData().by[sc.replace('@','')]:null,i=DPOS.indexOf(p.pos);
+  const sub=d&&i>=0?`<span class="subn">${n1(d.avg[i])} pts/g allowed to ${p.pos}s</span>`:'';
+  return `<span class="mpill"><span style="white-space:nowrap">${oppText(p,S.week)}${oppRankTag(p,S.week)}</span>${sub}</span>`;
 }
 
 function chips(el,cur,key){
