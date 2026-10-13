@@ -243,6 +243,8 @@ tr.dvprow{cursor:pointer}tr.dvprow:hover td{background:var(--surface-2)}tr.dvpro
 td.scol{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 .olink{all:unset;cursor:pointer;font-family:var(--f-mono);font-size:.8rem;font-weight:700;border-bottom:1px dotted currentColor}
 .olink:hover{text-decoration:none;filter:brightness(.8)}.olink:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+tr.dvpdetail>td{padding:4px 8px 14px;background:var(--surface-2)}
+tr.dvpdetail .card{margin:0}
 /* ===== Prime Time broadcast layer ===== */
 .board .hsearch input{width:220px;border:0;background:var(--surface-2);color:var(--ink);border-radius:4px;padding:7px 10px;font:inherit}
 @media (max-width:600px){.board .hsearch{flex:1 1 100%}.board .hsearch input{width:100%}}
@@ -481,7 +483,6 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <h2>Defense vs position</h2>
       <p class="note" id="dvpNote" style="margin-top:4px"></p>
     </div>
-    <div id="dvpDetail"></div>
     <div class="tbl-wrap"><table class="dvp" style="min-width:760px">
       <thead><tr><th class="sortable" data-sort="team">Team</th><th class="r">Games</th>
         <th class="r sortable" data-sort="0">vs QB</th><th class="r sortable" data-sort="1">vs RB</th><th class="r sortable" data-sort="2">vs WR</th><th class="r sortable" data-sort="3">vs TE</th><th class="r sortable" data-sort="4">vs K</th><th class="r sortable" data-sort="5">vs DST</th></tr></thead>
@@ -983,22 +984,22 @@ function renderDvp(){const D=dvpData(),sc={ppr:'PPR',half:'Half-PPR',std:'Standa
   const k=ui.dvpSort??'team';
   const rows=[...D.list].sort((a,b)=>k==='team'?a.t.localeCompare(b.t):b.avg[+k]-a.avg[+k]);
   document.querySelectorAll('table.dvp th.sortable').forEach(th=>String(th.dataset.sort)===String(k)?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
-  $('#dvpBody').innerHTML=rows.length?rows.map(d=>`<tr class="dvprow${ui.dvpTeam===d.t?' sel':''}" data-t="${esc(d.t)}" tabindex="0">
-    <td style="white-space:nowrap"><b>${esc(d.t)}</b> <span class="muted" style="font-size:.85rem">${esc(TEAM_NAMES[d.t]||'')}</span></td><td class="r num">${d.g}</td>
-    ${DPOS.map((p,i)=>`<td class="r${String(k)===String(i)?' scol':''}"><span class="num">${n1(d.avg[i])}</span> <span class="ork ${rkCls(d.rank[i])}">${ord(d.rank[i])}</span></td>`).join('')}</tr>`).join('')
-    :'<tr><td colspan="8" class="muted">No games played yet this season.</td></tr>';
-  const t=ui.dvpTeam&&D.by[ui.dvpTeam],el=$('#dvpDetail');
-  if(!t){el.innerHTML='';return;}
-  el.innerHTML=`<div class="card teamed" style="${teamVars(t.t)}"><div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center">
+  const t=ui.dvpTeam&&D.by[ui.dvpTeam];
+  const detail=t=>`<tr class="dvpdetail"><td colspan="8"><div class="card teamed" style="${teamVars(t.t)}"><div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center">
       <h3>${esc(TEAM_NAMES[t.t]||t.t)}: points allowed by week</h3><button class="btn sm" id="dvpClose" type="button">Close</button></div>
     <div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl" style="min-width:640px"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
     ${t.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${esc(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=t.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=t.avg[i]*.75?'color:var(--bad)':''}">${n1(x)}</td>`).join('')}</tr>`).join('')}
     <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${t.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
     <tr><td colspan="2"><b>Rank</b> <span class="note">(32nd = easiest)</span></td>${t.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
-    </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p></div>`;
-  $('#dvpClose').onclick=()=>go('dvp',null);}
+    </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p></div></td></tr>`;
+  $('#dvpBody').innerHTML=rows.length?rows.map(d=>`<tr class="dvprow${ui.dvpTeam===d.t?' sel':''}" data-t="${esc(d.t)}" tabindex="0" aria-expanded="${ui.dvpTeam===d.t}">
+    <td style="white-space:nowrap"><b>${esc(d.t)}</b> <span class="muted" style="font-size:.85rem">${esc(TEAM_NAMES[d.t]||'')}</span></td><td class="r num">${d.g}</td>
+    ${DPOS.map((p,i)=>`<td class="r${String(k)===String(i)?' scol':''}"><span class="num">${n1(d.avg[i])}</span> <span class="ork ${rkCls(d.rank[i])}">${ord(d.rank[i])}</span></td>`).join('')}</tr>${t&&t.t===d.t?detail(t):''}`).join('')
+    :'<tr><td colspan="8" class="muted">No games played yet this season.</td></tr>';
+  if(!t)return;
+  $('#dvpClose').onclick=()=>{ui._dvpScroll=true;go('dvp',null);};}
 document.addEventListener('click',e=>{const th=e.target.closest('table.dvp th.sortable');if(th){ui.dvpSort=th.dataset.sort;renderDvp();return;}
-  const tr=e.target.closest('tr.dvprow');if(tr){go('dvp',ui.dvpTeam===tr.dataset.t?null:tr.dataset.t);return;}
+  const tr=e.target.closest('tr.dvprow');if(tr){lastDvp=tr.dataset.t;ui._dvpScroll=true;go('dvp',ui.dvpTeam===tr.dataset.t?null:tr.dataset.t);return;}
   const ol=e.target.closest('.olink');if(ol){if(ui.tab!=='dvp')ui.prev=ui.tab;go('dvp',ol.dataset.dvp);}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('tr.dvprow'))e.target.click();});
 function render(){
@@ -1560,10 +1561,15 @@ function go(tab,sub,push=true){
   if(tab===ui.tab&&(sub||null)===cur())push=false;   // same page: no extra Back step
   apply(tab,sub);
   if(push){try{history.pushState({tab,player:sub||null},'',hashFor(tab,sub));navDepth++;}catch(_){}}
-  render();window.scrollTo(0,0);
-  if(tab==='dvp'&&sub){const d=$('#dvpDetail');if(d&&d.scrollIntoView)d.scrollIntoView({block:'start'});}}
+  const keep=tab==='dvp'&&ui._dvpScroll;ui._dvpScroll=false;
+  render();
+  const row=tab==='dvp'&&document.querySelector(`tr.dvprow[data-t="${sub||lastDvp}"]`);
+  if(row&&row.scrollIntoView)row.scrollIntoView({block:keep?'nearest':'start'});else window.scrollTo(0,0);
+  if(tab==='dvp'&&sub)lastDvp=sub;}
+let lastDvp=null;
 window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Math.max(0,navDepth-1);
-  if(st.tab==='player'&&!PL.has(st.player))st.tab='sites';apply(st.tab,st.player);render();window.scrollTo(0,0);});
+  if(st.tab==='player'&&!PL.has(st.player))st.tab='sites';apply(st.tab,st.player);render();
+  const row=st.tab==='dvp'&&st.player&&document.querySelector(`tr.dvprow[data-t="${st.player}"]`);if(row)row.scrollIntoView({block:'start'});else window.scrollTo(0,0);});
 (function(){const st=readHash();if(location.hash&&(st.tab!=='sites'||location.hash==='#sites')){apply(st.tab,st.player);render();}
   try{history.replaceState({tab:ui.tab,player:cur()},'',hashFor(ui.tab,cur()));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);save();renderModel();renderWeek();renderRos();});
