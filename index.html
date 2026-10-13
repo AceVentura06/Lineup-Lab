@@ -323,7 +323,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
           <button data-v="ppr"><span>PPR</span></button><button data-v="half"><span>Half</span></button><button data-v="std"><span>Standard</span></button>
         </div>
       </div>
-      <div class="ctl"><label class="label" for="weekIn">Week</label><input id="weekIn" type="number" min="1" max="17" style="width:64px"></div>
+      <div class="ctl"><label class="label" for="weekIn">Week</label><input id="weekIn" type="number" min="1" max="18" style="width:64px"></div>
       <div class="ctl"><label class="label" for="passTdIn">Pass TD</label><select id="passTdIn"><option value="4">4 pts</option><option value="6">6 pts</option></select></div>
     </div>
   </header>
@@ -371,10 +371,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
       <div><h2>Week <span id="sitesWk"></span> projections by site</h2>
         <p class="note" id="sitesNote"></p></div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:end">
-        <div class="field" style="min-width:150px"><label class="label" for="sitesWeekSel">Week</label><select id="sitesWeekSel"></select></div>
-        <div class="chips" id="posSites"></div>
-      </div>
+      <div class="chips" id="posSites"></div>
     </div>
     <div class="sitebar">
       <div class="field" style="flex:1 1 220px"><label class="label" for="siteSearch">Find a player or team</label><input id="siteSearch" type="search" placeholder="e.g. Nacua, or DAL"></div>
@@ -1020,10 +1017,12 @@ function pastRows(w){const P=PASTWK[w],si=['ppr','half','std'].indexOf(S.scoring
     out.push({r:{key:k,name,pos,team:team||'',opp:''},v});}
   return out;}
 function renderSites(){
-  const wk=ui.sitesW&&ui.sitesW!==SD.week?ui.sitesW:SD.week,past=wk!==SD.week;
-  const sel=$('#sitesWeekSel'),weeks=[SD.week,...[...(SD.pastWeeks||[])].sort((a,b)=>b-a)];
-  if(sel.dataset.n!==weeks.join(',')){sel.innerHTML=weeks.map(w=>`<option value="${w}">Week ${w}${w===SD.week?' (this week)':''}</option>`).join('');sel.dataset.n=weeks.join(',');}
-  sel.value=String(wk);
+  // follows the Week box in the header: this week, a past week (saved pregame projections), or a future week (not out yet)
+  const wk=S.week,past=wk<SD.week;
+  if(wk>SD.week||(past&&!(SD.pastWeeks||[]).includes(wk))){
+    $('#sitesWk').textContent=wk;$('#yahooNote').hidden=true;chips($('#posSites'),ui.posS,'posS');
+    $('#sitesNote').textContent=wk>SD.week?`The sites haven't posted Week ${wk} projections yet. They usually come out early that week.`:`Projections weren't saved for Week ${wk}. Saved weeks: ${(SD.pastWeeks||[]).join(', ')||'none yet'}.`;
+    $('#sitesBody').innerHTML=`<tr><td colspan="12" class="muted">Nothing to show for Week ${wk}. Change the Week box at the top to ${SD.week} for this week.</td></tr>`;return;}
   if(past&&!(window.PASTWK&&PASTWK[wk])){$('#sitesBody').innerHTML='<tr><td colspan="12" class="muted">Loading…</td></tr>';loadPastWeek(wk,renderSites);return;}
   $('#sitesWk').textContent=wk;
   if(past){const P=PASTWK[wk];
@@ -1037,7 +1036,7 @@ function renderSites(){
   const match=r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||oppText(r,wk).toLowerCase().endsWith(' '+q));
   let rows=past?pastRows(wk).filter(x=>match(x.r)).filter(x=>Math.max(x.v.max,x.v.model||0)>=2||q)
     :SITES.filter(match).map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;return {r,v};}).filter(x=>x.v.max>=2||q);
-  const key=ui.sortS;
+  const key=ui.sortS==='scored'&&!rows.some(x=>x.v.scored!=null)?'avg':ui.sortS;
   rows.sort((a,b)=>key==='spread'?b.v.spread-a.v.spread:((b.v[key]??-1)-(a.v[key]??-1)));
   document.querySelectorAll('table.sites th.sortable').forEach(th=>th.dataset.sort===key?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
   const maxV=Math.max(1,...rows.slice(0,400).map(x=>x.v.max));
@@ -1056,7 +1055,6 @@ function renderSites(){
       <td>${agree}</td></tr>`}).join(''):'<tr><td colspan="12" class="muted">No players match. Try a different name or position.</td></tr>';
 }
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
-$('#sitesWeekSel').onchange=e=>{ui.sitesW=+e.target.value;if(ui.sitesW===SD.week&&ui.sortS==='scored')ui.sortS='avg';renderSites();};
 document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortS=th.dataset.sort;renderSites();};
 
 // ---- suggested lineup ----
@@ -1468,7 +1466,7 @@ function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeou
 
 // events
 $('#scoringSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.scoring=b.dataset.v;save();render();};
-$('#weekIn').oninput=e=>{const v=Math.round(n(e.target.value));if(v>=1&&v<=17){S.week=v;save();renderWeek();renderRos();}};
+$('#weekIn').oninput=e=>{const v=Math.round(n(e.target.value));if(v>=1&&v<=18){S.week=v;save();render();}};
 $('#passTdIn').onchange=e=>{S.passTD=n(e.target.value);save();render();};
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);};
 // Browser history: every tab and player page gets its own address, so Back and Forward move around the site
