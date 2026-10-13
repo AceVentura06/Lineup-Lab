@@ -1070,9 +1070,7 @@ function boxScore(p){
     return rankOf(fn,o);};
   return `<div class="tbl-wrap"><table style="min-width:600px"><thead><tr><th></th>${cols.map(c=>`<th class="r">${c[0]}</th>`).join('')}</tr></thead><tbody>
    <tr><td class="label">Season</td>${cols.map(c=>`<td class="r num">${cell(c,'season')}</td>`).join('')}</tr>
-   <tr><td class="label">Per game</td>${cols.map(c=>`<td class="r num muted">${cell(c,'pg')}</td>`).join('')}</tr>
-   <tr><td class="label">Rank</td>${cols.map(c=>`<td class="r num" style="color:var(--t-accent,var(--turf));font-weight:600">${cell(c,'rank')}</td>`).join('')}</tr></tbody></table></div>
-   <p class="note" style="margin-top:6px">Rank among all ${p.pos}s this season. For interceptions, sacks, fumbles and points or yards allowed, 1 means the fewest, among players with regular playing time.${p.pos==='QB'?' Cmp / Att ranks completion percentage.':''} Points per game ranks players with 2+ games.</p>`;
+   <tr><td class="label">Per game</td>${cols.map(c=>`<td class="r num muted">${cell(c,'pg')}</td>`).join('')}</tr></tbody></table></div>`;
 }
 // Team colors: [main, secondary]. Teams whose main color is very light use their dark color as the main.
 const TEAM_COLORS={ARI:['#97233F','#FFB612'],ATL:['#A71930','#000000'],BAL:['#241773','#9E7C0C'],BUF:['#00338D','#C60C30'],CAR:['#0085CA','#101820'],
