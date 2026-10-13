@@ -266,7 +266,7 @@ td.none{color:var(--muted)}
     </div>
     <div class="hash"></div>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h2>Week <span id="wkLabel"></span> board</h2><p class="note" id="wkNote">Every NFL player with real stats this season. Star your roster to filter to it.</p></div>
+      <div><h2>Week <span id="wkLabel"></span> board</h2><p class="note" id="wkNote">Every NFL player with stats this season. Star your roster to filter to it.</p></div>
       <div class="chips" id="posWeek"></div>
     </div>
     <div class="sitebar">
@@ -395,14 +395,14 @@ Weather    = wind 15+ mph: passing −5%, kickers −10% (20+ mph: −10% / −1
 Health     = injury status, adjusted by Wed–Fri practice (DNP / limited / full)
 Projection = (1 − w) × Model + w × average(ESPN, Sleeper, CBS, FantasyPros)
 On bye, Out, or IR → 0</div>
-        <p class="note">For real players: Base is season points per game from Sleeper. Matchup rank is how many fantasy points the opponent has allowed to that position per game (weeks 1–4; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls assume a 12-team league.</p>
+        <p class="note">Base is season points per game. Matchup rank is how many fantasy points the opponent has allowed to that position per game (this season; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls assume a 12-team league.</p>
         <p><b>Start/sit tools.</b> Each player is also run through up to seven tools: this model, the FantasyPros expert consensus, ESPN's analysts, CBS's three experts, and the ESPN, Sleeper and CBS projections. Each tool's rank at the position becomes a vote (12-team league: QB/TE top 12 start, RB top 24, WR top 30; the next tier is flex). The Start / Sit call uses the average rank across tools.</p>
         <p><b>3. Floor and ceiling.</b> Half from the position's typical swing (QB ±22%, RB ±30%, WR ±35%, TE ±38%, K ±35%, DST ±45%) and half from the player's own week-to-week swings once he has 3+ games. Two players with close projections? The narrower range is the safer start.</p>
         <p><b>4. Rest of season.</b></p>
         <div class="formula">Pts/game  = Base × Schedule × Trend × Health
 Games left = 18 − week (minus bye if still ahead)
 Total      = Pts/game × Games left</div>
-        <p class="note">Kickers and defenses use the average fantasy points you enter, since PPR doesn't change them.</p>
+        <p class="note">Kickers and defenses use fantasy points per game, which PPR scoring doesn't change.</p>
       </div>
       <div class="card" style="display:flex;flex-direction:column;gap:18px">
         <div><h2>Tune the model</h2><p class="muted">Decide how much each factor should matter. Every table updates live.</p></div>
@@ -424,26 +424,21 @@ Total      = Pts/game × Games left</div>
       <h2>Stats that predict fantasy points</h2>
       <p>Research on fantasy scoring keeps finding the same thing: <b>opportunity predicts points better than efficiency</b>. Volume stats are stable from week to week, while yards per carry and TD rates swing a lot in small samples. Player pages rank every stat below against the rest of the position.</p>
       <div class="split" style="gap:24px">
-        <div><h3>On every player page</h3><ul>
+        <div><h3>Usage</h3><ul>
           <li><b>Snap share</b> – playing time, the base of everything else.</li>
-          <li><b>Target share</b> – the strongest single predictor for WRs and TEs.</li>
-          <li><b>Yards per team pass attempt</b> and <b>yards per snap</b> – free stand-ins for yards per route run.</li>
-          <li><b>Air yards share</b> (completed) – downfield role.</li>
-          <li><b>Red-zone share</b> (carries and targets) – touchdown opportunity, steadier than TD totals.</li>
+          <li><b>Target share</b> and <b>WOPR</b> – the strongest predictors for WRs and TEs.</li>
+          <li><b>Air yards share</b> and <b>average depth of target</b> – downfield role.</li>
           <li><b>Carry share</b> and <b>opportunities per game</b> for RBs.</li>
-          <li><b>Share of fantasy points from rushing</b> and <b>team carry share</b> for QBs.</li>
-          <li><b>First downs per target</b>, yards after contact, broken tackles, yards after catch, drop rate.</li>
+          <li><b>Red-zone, end-zone and goal-line shares</b> – touchdown opportunity, steadier than TD totals.</li>
+          <li><b>First-read targets</b> – how often the QB looks to him first.</li>
+          <li><b>Expected fantasy points</b> – what a player's usage is worth, and whether he's scoring above or below it.</li>
         </ul></div>
-        <div><h3>Added from more sources</h3><ul>
-          <li><b>Expected fantasy points</b> and points over expected – what usage is worth, from play-by-play.</li>
-          <li><b>WOPR</b>, full <b>air yards share</b>, <b>aDOT</b>, RACR and EPA – nflverse.</li>
-          <li><b>Separation</b>, <b>YAC over expected</b>, <b>rush yards over expected</b>, stacked boxes, time to throw – NFL Next Gen Stats.</li>
-          <li><b>First-read targets</b>, catchable and contested targets, interception-worthy throws, play action – FTN charting.</li>
-          <li><b>End-zone, deep and goal-line shares</b> – play-by-play.</li>
-          <li><b>Vegas implied totals</b>, <b>weather</b>, <b>practice reports</b> and <b>expert consensus</b> – used in this week's projections.</li>
-        </ul>
-        <h3 style="margin-top:12px">Still behind paywalls</h3><ul>
-          <li><b>Yards and targets per route run</b> and <b>route participation</b> need route counts from PFF or Fantasy Points Data.</li>
+        <div><h3>Efficiency and context</h3><ul>
+          <li><b>Yards per team pass attempt</b>, <b>yards per snap</b> and <b>EPA</b> – production per opportunity.</li>
+          <li><b>Separation</b>, <b>YAC over expected</b> and <b>catchable target rate</b> for receivers.</li>
+          <li><b>Rush yards over expected</b>, stacked boxes, yards after contact and broken tackles for RBs.</li>
+          <li><b>Completion % over expected</b>, time to throw and interception-worthy throws for QBs.</li>
+          <li><b>Vegas implied totals</b>, <b>weather</b>, <b>practice reports</b> and <b>expert consensus</b> – used in each week's projections.</li>
         </ul></div>
       </div>
     </div>
@@ -598,7 +593,7 @@ function renderWeek(){
   let rows=all.filter(r=>(ui.posW==='All'||r.p.pos===ui.posW)&&(!ui.mineOnly||isMine(r.p))&&(!q||r.p.name.toLowerCase().includes(q)||(r.p.team||'').toLowerCase()===q)).sort((a,b)=>b.proj-a.proj);
   const total=rows.length;rows=rows.slice(0,200);
   const maxHi=Math.max(1,...rows.map(r=>r.hi));
-  $('#wkNote').textContent=ui.mineOnly?`Your starred players, ranked by this week's projection.`:`${total} players with real stats this season${total>200?' (showing the top 200; search or filter to see more)':''}. Tap ☆ to add someone to your team.`;
+  $('#wkNote').textContent=ui.mineOnly?`Your starred players, ranked by this week's projection.`:`${total} players with stats this season${total>200?' (showing the top 200; search or filter to see more)':''}. Tap ☆ to add someone to your team.`;
   $('#weekBody').innerHTML=rows.length?rows.map((r,i)=>{return `<tr>
     <td class="rank">${i+1}</td><td style="white-space:nowrap">${nameCell(r.p,true)}</td>
     <td class="r num muted">${f1(r.b)}</td><td style="white-space:nowrap">${onBye(r.p)?'<span class="muted">—</span>':matchPill(r.p)}</td>
@@ -685,12 +680,8 @@ const SRC_INFO=[
  ['ESPN analysts','ESPN analysts','Weekly positional rankings from ESPN\'s fantasy analysts'],
  ['CBS Sports','CBS Sports','Weekly rankings from Jamey Eisenberg, Dave Richard and Heath Cummings, plus CBS projections']];
 function renderSources(){
-  const st=AD.sources||{};
-  $('#srcNote').textContent=`Last updated ${SD.pulled||'—'}. Each update pulls all ${SRC_INFO.length} sources; if one fails, the site keeps the rest.`;
-  $('#srcList').innerHTML=SRC_INFO.map(([k,name,what])=>{
-    const x=k==='Sleeper'?{ok:!!SD.sleeper}:k==='ESPN'?{ok:!!SD.espn}:k==='ESPN analysts'?{ok:!!SD.espnRanks,detail:SD.espnRanks?SD.espnRanks.split('\n').length+' players ranked':'not posted yet'}:st[k];
-    const pill=!x?'<span class="pill p-mute">Not loaded</span>':x.ok?'<span class="pill p-good">Working</span>':'<span class="pill p-warn">Failed last update</span>';
-    return `<div class="srcrow"><b>${esc(name)}</b><span class="note">${esc(what)}${x&&x.detail?' · '+esc(x.detail):''}</span>${pill}</div>`;}).join('');
+  $('#srcNote').textContent=`Last updated ${SD.pulled||'—'}. Data refreshes automatically every few hours, and every hour on Sunday afternoons.`;
+  $('#srcList').innerHTML=SRC_INFO.map(([k,name,what])=>`<div class="srcrow" style="grid-template-columns:auto 1fr"><b>${esc(name)}</b><span class="note">${esc(what)}</span></div>`).join('');
 }
 function renderModel(){
   renderSources();
@@ -768,7 +759,7 @@ function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]?r[s][S.
 function renderSites(){
   $('#sitesWk').textContent=SD.week;
   $('#sitesNote').textContent=`Updated ${SD.pulled||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring (use the toggle up top) · Games already played keep their pregame projection. Teams on bye aren't listed.`;
-  $('#yahooNote').innerHTML=hasFP?'<b>FantasyPros</b> is the consensus of its experts\' rankings, converted to points. CBS and FantasyPros publish PPR numbers; for half-PPR and standard, the site subtracts the player\'s catches per game. Yahoo isn\'t included because it only shows projections to signed-in league members.':'<b>FantasyPros consensus for this week isn\'t posted yet.</b> It usually appears by Wednesday. Yahoo isn\'t included because it only shows projections to signed-in league members.';
+  $('#yahooNote').innerHTML=hasFP?'<b>FantasyPros</b> is the consensus of its experts\' rankings, converted to points. CBS and FantasyPros publish PPR numbers; for half-PPR and standard, the player\'s catches per game are subtracted.':'<b>FantasyPros\' consensus for this week usually posts by Wednesday.</b> Until then, the average uses ESPN, Sleeper and CBS.';
   chips($('#posSites'),ui.posS,'posS');
   const q=ui.q.trim().toLowerCase();
   let rows=SITES.filter(r=>(ui.posS==='All'||r.pos===ui.posS)&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||r.opp.toLowerCase()===q))
@@ -842,7 +833,7 @@ function renderLineup(){
   $('#luOwn').value=ui.luOwn;$('#luOwnV').textContent=ui.luOwn+'% of leagues';
   const rs=new Set(roster);
   const avail=[...pool.values()].filter(x=>!rs.has(x.key)&&x.proj>0).map(x=>({x,own:ownOf(x.key)})).filter(o=>o.own&&o.own.pct<=ui.luOwn).sort((a,b)=>b.x.proj-a.x.proj);
-  $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of leagues, using FantasyPros' average across fantasy sites (ESPN's rate for players FantasyPros doesn't list). Sleeper doesn't publish roster rates. Check your own league before you count on one.`;
+  $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of leagues, using FantasyPros' average across fantasy sites (ESPN's rate for players FantasyPros doesn't list). Availability varies by league, so check your own waiver wire.`;
   if(roster.length){
     const sugg=[];for(const o of avail.slice(0,150)){const L2=optimize([...roster,o.x.key]);const gain=L2.total-L.total;if(gain>0.3){const slot=L2.start.find(r=>r.x&&r.x.key===o.x.key);
       const now=new Set(L2.start.filter(r=>r.x).map(r=>r.x.key));const out=L.start.find(r=>r.x&&!now.has(r.x.key));sugg.push({...o,gain,slot:slot.slot,out:out&&out.x});}}
@@ -967,8 +958,8 @@ const METRICS={
 METRICS.WR=[snapM,
   {k:'tsh',l:'Target share',f:p=>dv(p.s.rec_tgt,p.s.tm_tgt),fmt:pct,why:'The single best stat for predicting receiver scoring. 25%+ is elite.'},
   {k:'tpg',l:'Targets per game',f:p=>dv(p.s.rec_tgt,p.gp),fmt:n1,why:'Raw volume.'},
-  {k:'yptpa',l:'Yards per team pass attempt',f:p=>dv(p.s.rec_yd,p.s.tm_pass_att),fmt:n2,why:'The closest free stand-in for yards per route run. Above 2.0 is elite.'},
-  {k:'yps',l:'Receiving yards per snap',f:p=>dv(p.s.rec_yd,p.s.off_snp),fmt:n2,why:'Another route-run stand-in: how productive he is when he\'s on the field.'},
+  {k:'yptpa',l:'Yards per team pass attempt',f:p=>dv(p.s.rec_yd,p.s.tm_pass_att),fmt:n2,why:'Receiving yards relative to how often his team throws. Above 2.0 is elite.'},
+  {k:'yps',l:'Receiving yards per snap',f:p=>dv(p.s.rec_yd,p.s.off_snp),fmt:n2,why:'How productive he is when he\'s on the field.'},
   {k:'cay',l:'Share of team completed air yards',f:p=>dv(p.s.rec_air_yd,p.s.tm_air),fmt:pct,why:'Downfield role. Air yards predict future yards, even when they aren\'t caught yet.'},
   {k:'rzs',l:'Red-zone target share',f:p=>dv(p.s.rec_rz_tgt,p.s.tm_rz_tgt),fmt:pct,why:'Where receiving TDs come from. More stable than TD totals.'},
   {k:'ypt',l:'Yards per target',f:p=>dv(p.s.rec_yd,p.s.rec_tgt),fmt:n1,why:'Efficiency per look.'},
