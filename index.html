@@ -464,7 +464,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   <section class="panel" id="p-trade" role="tabpanel" hidden>
     <div>
       <h2>Trade analyzer</h2>
-      <p class="note" style="margin-top:4px;max-width:78ch">Add the players on each side. Each one is valued on his rest-of-season scoring above what you could pick up off waivers at his position, so a star is worth more than two bench players with the same total points. Uses your scoring format above and the lineup slots from Suggested Lineup, in a 12-team league.</p>
+      <p class="note" style="margin-top:4px;max-width:78ch">Add the players on each side. Each one is valued on his rest-of-season scoring above the best player you could realistically pick up off waivers at his position, so a star is worth more than two bench players with the same total points. Uses your scoring format above and the lineup slots from Suggested Lineup, in a 12-team league.</p>
     </div>
     <div class="split">
       <div class="card tside" id="tGive"></div>
@@ -877,11 +877,13 @@ function fillNews(p){loadNews(()=>{const el=$('#pNews');if(!el||ui.tab!=='player
     <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)} <span aria-hidden="true">↗</span></a>
     ${txt?`<p>${esc(txt)}</p>`:''}</li>`).join('')}</ul></div>`;});}
 // ---- trade analyzer ----
-// Replacement level: the best player at each position still on waivers in a 12-team league with these lineup slots
+// Replacement level: the best player at each position still on waivers in a 12-team league with these lineup slots.
+// Teams roster backups too, so rostered players = starters × a bench factor (e.g. about 19 QBs in a 1-QB league).
 function replacementPpg(){const sl=Object.assign({},DEF_SLOTS,S.slots||{}),T=12;
   const start={QB:sl.QB+sl.SFLEX*.8,RB:sl.RB+sl.FLEX*.4+sl.SFLEX*.08,WR:sl.WR+sl.FLEX*.5+sl.SFLEX*.1,TE:sl.TE+sl.FLEX*.1+sl.SFLEX*.02,K:sl.K,DST:sl.DST};
+  const BENCH={QB:1.5,RB:1.6,WR:1.8,TE:1.5,K:1,DST:1.1};
   const by={};for(const p of realPlayers()){(by[p.pos]=by[p.pos]||[]).push(rosProj(p).ppg);}
-  const out={};for(const pos in start){const v=(by[pos]||[]).sort((a,b)=>b-a);const i=Math.round(T*start[pos]);out[pos]=v.length?v[Math.min(v.length-1,i)]:0;}return out;}
+  const out={};for(const pos in start){const v=(by[pos]||[]).sort((a,b)=>b-a);const i=Math.round(T*start[pos]*BENCH[pos]);out[pos]=v.length?v[Math.min(v.length-1,i)]:0;}return out;}
 function tradeVal(p,rep){const r=rosProj(p);return {...r,val:Math.max(0,(r.ppg-(rep[p.pos]||0))*r.games)};}
 function tradeSide(id,title,keys,rep){
   const ps=keys.map(k=>realPlayers().find(x=>x.key===k)).filter(Boolean);

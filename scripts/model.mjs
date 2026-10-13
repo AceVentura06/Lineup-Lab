@@ -24,11 +24,11 @@ function stub() {
 }
 
 // data: { SITE_DATA, STATS_DATA, CTX_DATA, ADV_DATA } as plain objects
-export function loadModel(data) {
+export function loadModel(data, extra = []) {
   const html = readFileSync(PAGE, 'utf8');
   const main = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m => m[1]).find(x => x.includes('const KEY'));
   if (!main) throw new Error('model script not found in index.html');
-  const exposed = main.replace(/\}\)\(\);\s*$/, 'globalThis.__LL={S,realPlayers,weekProj,PL,SITEBY,siteVals,gameOf,onBye};})();');
+  const exposed = main.replace(/\}\)\(\);\s*$/, `globalThis.__LL={S,realPlayers,weekProj,PL,SITEBY,siteVals,gameOf,onBye${extra.map(x => ',' + x).join('')}};})();`);
   if (exposed === main) throw new Error('could not hook the model script');
   const doc = stub();
   doc.querySelectorAll = () => [];
@@ -40,6 +40,7 @@ export function loadModel(data) {
     scrollTo() {}, setTimeout: () => 0, clearTimeout() {}, requestAnimationFrame: () => 0,
     matchMedia: () => ({ matches: false, addEventListener() {} }),
     Image: function () {},
+    addEventListener() {}, removeEventListener() {},
     ...data,
   };
   ctx.window = ctx;
