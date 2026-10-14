@@ -362,6 +362,30 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .ticker .tk-a{border-bottom-color:rgba(255,255,255,.7)}
 .ticker .tk-i::after{background:#fff;opacity:.8}
 .ticker .tk-p .pos{box-shadow:0 0 0 1px rgba(255,255,255,.6)}
+/* big tables: headers stay visible while scrolling; on phones the player column stays put while swiping */
+@media (min-width:761px){
+  .bigtbl{overflow:visible}
+  .bigtbl>table>thead th{position:sticky;top:var(--tbh,0px);z-index:3;box-shadow:0 1px 0 var(--line)}
+  .bigtbl>table>thead th.mcol{background:color-mix(in srgb,var(--gold) 7%,var(--surface-2))}
+}
+@media (max-width:760px){
+  .bigtbl{max-height:72vh;overflow:auto;overscroll-behavior:contain}
+  .bigtbl>table>thead th{position:sticky;top:0;z-index:3}
+  .bigtbl>table>thead th.mcol{background:color-mix(in srgb,var(--gold) 7%,var(--surface-2))}
+  .bigtbl table{font-size:.9rem}
+  .bigtbl th,.bigtbl td{padding:8px 8px}
+  /* pinned columns: rank + player (pin2) or team (pin1) */
+  .pin2 tr>:nth-child(1){position:sticky;left:0;z-index:2;background:var(--surface);min-width:34px;width:34px;max-width:34px;padding-left:6px;padding-right:4px}
+  .pin2 tr>:nth-child(2){position:sticky;left:34px;z-index:2;background:var(--surface);box-shadow:1px 0 0 var(--line),4px 0 6px -4px rgba(14,23,38,.25);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pin2 td:nth-child(2) .star{margin-right:2px}
+  .pin1 tr>:nth-child(1){position:sticky;left:0;z-index:2;background:var(--surface);box-shadow:1px 0 0 var(--line),4px 0 6px -4px rgba(14,23,38,.25)}
+  .pin2 thead tr>:nth-child(1),.pin2 thead tr>:nth-child(2),.pin1 thead tr>:nth-child(1){z-index:4;background:var(--surface-2)}
+  .pin1 tr.dvpdetail>td{position:static;box-shadow:none}
+  .pin2 tr>:nth-child(2){width:168px;min-width:168px;max-width:168px}
+  .pin2 td:nth-child(2) .plink,.pin2 td:nth-child(2) .pname{display:inline-block;max-width:82px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+  .pin1 td:nth-child(1) .muted{display:none}
+  .pin2 td:nth-child(2)>.muted,.pin2 td:nth-child(2)>.pill,.pin2 td:nth-child(2) .ex{display:none}
+}
 </style>
 </head>
 <body>
@@ -425,7 +449,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div class="field" style="flex:1 1 220px"><label class="label" for="wkSearch">Find a player or team</label><input id="wkSearch" type="search" placeholder="e.g. Kittle, or SF"></div>
       <label class="mine-toggle"><input type="checkbox" id="mineOnly" class="mine-cb"> <span>My team only <span class="muted mono mine-n" id="mineCount"></span></span></label>
     </div>
-    <div class="tbl-wrap"><table class="wk">
+    <div class="tbl-wrap bigtbl"><table class="wk pin2">
       <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="avg">Avg pts</th><th class="sortable" data-sort="match" title="Sort by easiest matchup">Matchup</th><th class="r sortable" data-sort="vegas" title="Team implied points from the betting line">Vegas</th><th class="sortable" data-sort="tools" title="How each start/sit tool votes: green start, gold flex, gray sit">Tools</th><th class="r sortable" data-sort="proj">Projection</th><th class="sortable" data-sort="ceil" title="Sort by ceiling">Floor – ceiling</th><th>Call</th></tr></thead>
       <tbody id="weekBody"></tbody>
     </table></div>
@@ -446,7 +470,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       </div>
     </div>
     <div class="yahoo-note" id="yahooNote"></div>
-    <div class="tbl-wrap"><table class="sites">
+    <div class="tbl-wrap bigtbl"><table class="sites pin2">
       <thead><tr>
         <th>#</th><th>Player</th><th>Opponent</th>
         <th class="r sortable" data-sort="espn">ESPN</th><th class="r sortable" data-sort="sleeper">Sleeper</th><th class="r sortable" data-sort="cbs">CBS</th><th class="r sortable" data-sort="fp">FantasyPros</th>
@@ -507,7 +531,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineStats"> <span>My team only <span class="muted mono mine-n"></span></span></label>
       <p class="note" style="max-width:40ch">Tap any player to open his page with game logs, usage, and efficiency stats.</p>
     </div>
-    <div class="tbl-wrap"><table class="dir">
+    <div class="tbl-wrap bigtbl"><table class="dir pin2">
       <thead><tr><th>#</th><th>Player</th><th class="r">GP</th>
         <th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="tot">Total</th>
         <th class="r sortable" data-sort="snap">Snap %</th><th class="r sortable" data-sort="use">Key usage</th><th class="r sortable" data-sort="xfp" title="Expected fantasy points per game, from play-by-play">xFP / g</th><th>Last 4 weeks</th></tr></thead>
@@ -525,7 +549,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div><h2>Rest-of-season rankings</h2><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
-    <div class="tbl-wrap"><table class="rostbl">
+    <div class="tbl-wrap bigtbl"><table class="rostbl pin2">
       <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="games">Games left</th><th class="r sortable" data-sort="total">Total pts</th><th class="sortable" data-sort="pct">Vs. top at position</th><th>Tier</th></tr></thead>
       <tbody id="rosBody"></tbody>
     </table></div>
@@ -540,7 +564,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <h2>Defense vs position</h2>
       <p class="note" id="dvpNote" style="margin-top:4px"></p>
     </div>
-    <div class="tbl-wrap"><table class="dvp" style="min-width:760px">
+    <div class="tbl-wrap bigtbl"><table class="dvp pin1" style="min-width:760px">
       <thead><tr><th class="sortable" data-sort="team">Team</th><th class="r">Games</th>
         <th class="r sortable" data-sort="0">vs QB</th><th class="r sortable" data-sort="1">vs RB</th><th class="r sortable" data-sort="2">vs WR</th><th class="r sortable" data-sort="3">vs TE</th><th class="r sortable" data-sort="4">vs K</th><th class="r sortable" data-sort="5">vs DST</th></tr></thead>
       <tbody id="dvpBody"></tbody>
@@ -1680,8 +1704,8 @@ render();
 renderTicker();
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
-  const pad=()=>document.documentElement.style.scrollPaddingTop=(tb.offsetHeight+8)+'px';
-  const chk=()=>{const s=window.scrollY>40;if(s!==on){on=s;tb.classList.toggle('scrolled',s);pad();}};
+  const pad=()=>{document.documentElement.style.scrollPaddingTop=(tb.offsetHeight+8)+'px';document.documentElement.style.setProperty('--tbh',tb.offsetHeight+'px');};
+  const chk=()=>{const s=window.scrollY>40;if(s!==on){on=s;tb.classList.toggle('scrolled',s);pad();setTimeout(pad,250);}};
   window.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',pad);chk();pad();})();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
 })();
