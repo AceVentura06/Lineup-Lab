@@ -2178,8 +2178,8 @@ function teamVars(t){const [a,b]=TEAM_COLORS[t]||['#1f6b3a','#a87a0c'];const la=
   let lo=la<.3?a:lb<.3?b:mix(a,'#000000',.45);
   const loInk=lum(lo)>.3?'#0E1726':'#ffffff';
   const stripe=lb>.04?b:hi;const stripeInk=lum(stripe)>.3?'#0A1224':'#ffffff';
-  // a black primary (Raiders, Saints, Steelers) tints with the secondary color instead
-  const rgb=[1,3,5].map(i=>parseInt(a.slice(i,i+2),16)),blk=Math.max(...rgb)<=0x30&&Math.max(...rgb)-Math.min(...rgb)<=0x18;
+  // a black primary (Raiders, Saints, Steelers) tints with the secondary color instead; so do the Titans (light blue) and Browns (orange)
+  const rgb=[1,3,5].map(i=>parseInt(a.slice(i,i+2),16)),blk=['TEN','CLE'].includes(t)||(Math.max(...rgb)<=0x30&&Math.max(...rgb)-Math.min(...rgb)<=0x18);
   return `--team-tint:${blk?b:a};--team-stripe-ink:${stripeInk};--team:${a};--team2:${b};--team-ink:${ink};--team-lo:${lo};--team-lo-ink:${loInk};--team-hi:${hi};--team-hi-ink:${hiInk};--team-stripe:${stripe}`;}
 function mix(h1,h2,w){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(h1),y=p(h2);return '#'+x.map((v,i)=>Math.round(v*(1-w)+y[i]*w).toString(16).padStart(2,'0')).join('');}
 let HEADS=null;
