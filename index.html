@@ -472,6 +472,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .sc-card{display:flex;flex-direction:column;gap:14px}
 .sc-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
 .sc-grid input{width:100%;box-sizing:border-box}
+.sc-h{font-size:1.02rem;margin:4px 0 -4px;color:var(--muted)}
+.sc-chg input{box-shadow:inset 3px 0 0 var(--gold)}
 .btn[disabled]{opacity:.45;cursor:default}
 /* League connect */
 .lc{display:flex;flex-direction:column;gap:12px}
@@ -847,7 +849,7 @@ On bye, Out, or IR → 0</div>
         <div class="formula">Pts/game  = Base × Schedule × Trend × Health
 Games left = 18 − week (minus bye if still ahead)
 Total      = Pts/game × Games left</div>
-        <p class="note">Kickers and defenses use fantasy points per game, which PPR scoring doesn't change.</p>
+        <p class="note">Kickers and defenses use fantasy points per game under your kicker and D/ST rules.</p>
       </div>
     </div>
     <div class="card" style="display:flex;flex-direction:column;gap:6px">
@@ -900,18 +902,26 @@ const $=s=>document.querySelector(s);
 const n=v=>{v=parseFloat(v);return isFinite(v)?v:0};
 const f1=v=>(Math.round(v*10)/10).toFixed(1);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-// ---- scoring rules. Defaults are Sleeper's standard PPR scoring, which is what the stats and official points use;
-// any change is applied to each stat line as a difference from those defaults. Kickers and defenses keep standard scoring.
-const DEF_SC={rec:1,te:0,py:25,ptd:4,int:-1,yd:10,td:6,fl:-2};
+// ---- scoring rules. Defaults are ESPN's standard scoring (PPR). The stats arrive as Sleeper's standard PPR points, so
+// for offense each rule is applied as a difference from Sleeper's values (its only offensive difference: INT −1);
+// kickers and defenses are scored from scratch from their stat lines.
+const DEF_SC={rec:1,te:0,py:25,ptd:4,int:-2,yd:10,td:6,fl:-2,
+  k39:3,k40:4,k50:5,k60:6,kmiss:-1,xp:1,xpmiss:0,
+  dsack:1,dint:2,dfr:2,dtd:6,dsafe:2,dblk:2,pa0:5,pa1:4,pa7:3,pa14:1,pa18:0,pa28:-1,pa35:-3,pa46:-5};
+const OFF_KEYS=['rec','te','py','ptd','int','yd','td','fl'];
+// the 2026-10-13 version saved Sleeper's −1 interception as a choice; ESPN's −2 is the default now
+if(S.sc&&S.sc.int===-1&&!S.scInt)delete S.sc.int;S.scInt=1;
 if(!S.sc||typeof S.sc!=='object')S.sc={rec:{ppr:1,half:.5,std:0}[S.scoring]??1,ptd:S.passTD||4};
 function SC(){const s=Object.assign({},DEF_SC,S.sc);if(!(s.py>0))s.py=25;if(!(s.yd>0))s.yd=10;return s;}
 const scKey=()=>JSON.stringify(SC());
 // S.scoring (ppr / half / std) is kept as the nearest preset, for data published only in those three formats
 function syncFmt(){const c=SC();S.scoring=c.rec>=.75?'ppr':c.rec>=.25?'half':'std';S.passTD=c.ptd;}
 syncFmt();
-const PRESETS={ppr:{...DEF_SC},half:{...DEF_SC,rec:.5},std:{...DEF_SC,rec:0}};
-function scPreset(){const c=SC();return Object.keys(PRESETS).find(k=>Object.keys(DEF_SC).every(f=>PRESETS[k][f]===c[f]))||null;}
-const scName=(short)=>({ppr:'PPR',half:short?'Half':'Half-PPR',std:short?'Std':'Standard'}[scPreset()]||'Custom');
+const PRESETS={ppr:{rec:1},half:{rec:.5},std:{rec:0}};
+// which preset the offensive rules match (kicker and defense rules don't affect this)
+function scPreset(){const c=SC();return Object.keys(PRESETS).find(k=>OFF_KEYS.every(f=>(PRESETS[k][f]??DEF_SC[f])===c[f]))||null;}
+const scAllDefaultBut=()=>Object.keys(DEF_SC).filter(f=>!OFF_KEYS.includes(f)).every(f=>SC()[f]===DEF_SC[f]);
+const scName=(short)=>(scAllDefaultBut()&&{ppr:'PPR',half:short?'Half':'Half-PPR',std:short?'Std':'Standard'}[scPreset()])||'Custom';
 const recPts=()=>SC().rec;
 // points to add to a Sleeper-standard PPR total for a stat line c {rec,py,ptd,pint,ry,rtd,recy,rectd,fl}
 function scDelta(c,pos,skipRec){if(!c||pos==='K'||pos==='DST'||pos==='DEF')return 0;const s=SC(),v=k=>+c[k]||0;
@@ -1165,6 +1175,9 @@ function renderModel(){
   $('#scoreFormula').textContent=`Pass yd: 1 pt per ${c.py}   Pass TD ${sg(c.ptd)}   INT ${sg(c.int)}
 Rush/Rec yd: 1 pt per ${c.yd}   Rush/Rec TD ${sg(c.td)}
 Reception ${sg(c.rec)}${c.te?`  (TE ${sg(c.rec+c.te)})`:''}   Fumble lost ${sg(c.fl)}
+K: FG 0–39 ${sg(c.k39)}  40–49 ${sg(c.k40)}  50–59 ${sg(c.k50)}  60+ ${sg(c.k60)}  miss ${sg(c.kmiss)}  XP ${sg(c.xp)}
+D/ST: sack ${sg(c.dsack)}  INT ${sg(c.dint)}  FR ${sg(c.dfr)}  TD ${sg(c.dtd)}  safety ${sg(c.dsafe)}  block ${sg(c.dblk)}
+      points allowed 0: ${sg(c.pa0)}  1–6: ${sg(c.pa1)}  7–13: ${sg(c.pa7)}  14–17: ${sg(c.pa14)}  18–27: ${sg(c.pa18)}  28–34: ${sg(c.pa28)}  35–45: ${sg(c.pa35)}  46+: ${sg(c.pa46)}
 (${scName()} scoring · change it in Settings)`;
   [['match',v=>'±'+Math.round(v*100)+'%'],['trend',v=>'±'+Math.round(v*100)+'%'],['sched',v=>'±'+Math.round(v*100)+'%'],['q',v=>'−'+Math.round(v*100)+'%'],['vegas',v=>'×'+v.toFixed(2)],['blend',v=>Math.round(v*100)+'%']].forEach(([k,fmt])=>{
     $('#w-'+k).value=S.w[k];$('#w-'+k+'-v').textContent=fmt(S.w[k]);});
@@ -1476,7 +1489,10 @@ function autoSync(){const L=S.league;if(!L||LC.busy||Date.now()-L.synced<15*6e4)
 const LIVE={games:new Map(),stats:new Map(),dst:new Map(),done:new Set(),slp:null,any:false,at:0,timer:null};
 async function liveSleeper(){const d=await getJ(`https://api.sleeper.app/stats/nfl/${lseason()}/${SD.week}?season_type=regular&${['QB','RB','WR','TE','K','DEF'].map(p=>'position[]='+p).join('&')}`);
   const m=new Map();for(const e of d||[]){const pl=e.player,st=e.stats||{};if(!pl)continue;
-    const k=nkey(((pl.first_name||'')+' '+(pl.last_name||'')).trim(),pl.position);m.set(k,{ppr:st.pts_ppr||0,rec:st.rec||0,ptd:st.pass_td||0,py:st.pass_yd||0,pint:st.pass_int||0,ry:st.rush_yd||0,rtd:st.rush_td||0,recy:st.rec_yd||0,rectd:st.rec_td||0,fl:st.fum_lost||0,pos:pl.position==='DEF'?'DST':pl.position,team:e.team});}
+    const k=nkey(((pl.first_name||'')+' '+(pl.last_name||'')).trim(),pl.position);m.set(k,{ppr:st.pts_ppr||0,rec:st.rec||0,ptd:st.pass_td||0,py:st.pass_yd||0,pint:st.pass_int||0,ry:st.rush_yd||0,rtd:st.rush_td||0,recy:st.rec_yd||0,rectd:st.rec_td||0,fl:st.fum_lost||0,pos:pl.position==='DEF'?'DST':pl.position,team:e.team,
+      k:pl.position==='K'?{k39:(st.fgm_0_19||0)+(st.fgm_20_29||0)+(st.fgm_30_39||0),k40:st.fgm_40_49||0,k50:st.fgm_50_59!=null?st.fgm_50_59:Math.max(0,(st.fgm_50p||0)-(st.fgm_60p||0)),k60:st.fgm_60p||0,
+        kmiss:st.fgmiss!=null?st.fgmiss:Math.max(0,(st.fga||0)-(st.fgm||0)),xp:st.xpm||0,xpmiss:st.xpmiss!=null?st.xpmiss:Math.max(0,(st.xpa||0)-(st.xpm||0))}:null,
+      d:pl.position==='DEF'?{sack:st.sack||0,int:st.int||0,fr:st.fum_rec||0,td:(st.def_td||0)+(st.st_td||0),safe:st.safe||0,blk:st.blk_kick||0,pa:st.pts_allow??null}:null});}
   if(!m.size)throw new Error('empty');LIVE.slp=m;}
 const ESB='https://site.api.espn.com/apis/site/v2/sports/football/nfl';
 const espnAb=a=>({WSH:'WAS'}[a]||a);
@@ -1487,7 +1503,6 @@ async function liveScoreboard(){const d=await getJ(`${ESB}/scoreboard?seasontype
     const tm=(c.competitors||[]).map(x=>({ab:espnAb(x.team&&x.team.abbreviation),score:+x.score||0,home:x.homeAway==='home'}));
     const g={id:ev.id,state:ty.state,short:ty.shortDetail||ty.detail||'',period:st.period,clock:st.clock,teams:tm,date:Date.parse(ev.date||c.date)};
     tm.forEach(t=>LIVE.games.set(t.ab,g));}}
-const paPts=pa=>pa===0?10:pa<=6?7:pa<=13?4:pa<=20?1:pa<=27?0:pa<=34?-1:-4;
 function parseBox(sum,g){const fresh=new Map(),T={};
   for(const tb of (sum.boxscore&&sum.boxscore.players)||[]){const ab=espnAb(tb.team&&tb.team.abbreviation);const t=T[ab]={sacks:0,int:0,fl:0,td:0};
     for(const cat of tb.statistics||[]){const keys=cat.keys||[];
@@ -1499,7 +1514,7 @@ function parseBox(sum,g){const fresh=new Map(),T={};
           case 'receiving':x.rec=v('receptions');x.recy=v('receivingYards');x.rectd=v('receivingTouchdowns');break;
           case 'fumbles':x.fl=v('fumblesLost');t.fl+=x.fl;break;
           case 'kicking':{const fg=raw('fieldGoalsMade/fieldGoalAttempts').split('/').map(Number),xp=raw('extraPointsMade/extraPointAttempts').split('/').map(Number);
-            x.kp=3*(fg[0]||0)+(xp[0]||0)-((fg[1]||0)-(fg[0]||0))-((xp[1]||0)-(xp[0]||0));break;}
+            x.kp=kPts({k39:fg[0]||0,k40:0,k50:0,k60:0,kmiss:(fg[1]||0)-(fg[0]||0),xp:xp[0]||0,xpmiss:(xp[1]||0)-(xp[0]||0)});break;}
           case 'kickReturns':x.ret+=v('kickReturnTouchdowns');t.td+=v('kickReturnTouchdowns');break;
           case 'puntReturns':x.ret+=v('puntReturnTouchdowns');t.td+=v('puntReturnTouchdowns');break;
           case 'defensive':t.td+=v('defensiveTouchdowns');break;}
@@ -1512,7 +1527,7 @@ function parseBox(sum,g){const fresh=new Map(),T={};
 function liveOf(p){if(!p||!p.team||!LIVE.games.size)return null;const g=LIVE.games.get(p.team);if(!g||(g.state!=='in'&&g.state!=='post'))return null;
   let pts=0;
   if(LIVE.slp){const x=LIVE.slp.get(p.key);return {pts:x?Math.round(wpts(x)*10)/10:0,g,src:'sleeper'};}
-  if(p.pos==='DST'){const d=LIVE.dst.get(p.team);if(!d)return null;pts=d.sack+2*d.int+2*d.fr+6*d.td+paPts(d.pa);}
+  if(p.pos==='DST'){const d=LIVE.dst.get(p.team);if(!d)return null;pts=dPts({sack:d.sack,int:d.int,fr:d.fr,td:d.td,safe:0,blk:0,pa:d.pa});}
   else{const x=LIVE.stats.get(p.key);if(x&&x.team!==p.team)return null;
     if(x){const c=SC();pts=p.pos==='K'?x.kp:x.py/c.py+x.ptd*c.ptd+c.int*x.int+(x.ry+x.recy)/c.yd+c.td*(x.rtd+x.rectd)+6*x.ret+(c.rec+(p.pos==='TE'?c.te:0))*x.rec+c.fl*x.fl;}
     else if(!LIVE.done.has(g.id)&&g.state==='post')return null;}
@@ -1920,7 +1935,11 @@ const PL=new Map();
     const a=l.split('|'),s={};
     F.forEach((f,i)=>{if(i>3&&f!=='weeks')s[f]=a[i]===''?0:+a[i];});
     const wpos=a[1]==='DEF'?'DST':a[1];
-    const weeks=a[a.length-1].split(';').map(w=>{if(w==='-')return null;const [p,r,t,sn,py,pi,ry,rt,cy,ct,fl]=w.split(':');return {ppr:+p,rec:+r,ptd:+t,snap:sn===''?null:+sn,py:+py||0,pint:+pi||0,ry:+ry||0,rtd:+rt||0,recy:+cy||0,rectd:+ct||0,fl:+fl||0,pos:wpos};});
+    const weeks=a[a.length-1].split(';').map(w=>{if(w==='-')return null;const f=w.split(':'),[p,r,t,sn,py,pi,ry,rt,cy,ct,fl]=f,x=f.slice(11).map(v=>v===''?null:+v);
+      const o={ppr:+p,rec:+r,ptd:+t,snap:sn===''?null:+sn,py:+py||0,pint:+pi||0,ry:+ry||0,rtd:+rt||0,recy:+cy||0,rectd:+ct||0,fl:+fl||0,pos:wpos};
+      if(wpos==='K'&&x.length>=7)o.k={k39:x[0],k40:x[1],k50:x[2],k60:x[3],kmiss:x[4],xp:x[5],xpmiss:x[6]};
+      if(wpos==='DST'&&x.length>=7)o.d={sack:x[0],int:x[1],fr:x[2],td:x[3],safe:x[4],blk:x[5],pa:x[6]};
+      return o;});
     const pos=a[1]==='DEF'?'DST':a[1];
     const p={key:nkey(a[0],a[1]),name:a[0],pos,team:a[2],gp:+a[3],s,weeks,d:a[1]==='DEF'?dst[a[2]]||null:null};
     PL.set(p.key,p);
@@ -1929,9 +1948,13 @@ const PL=new Map();
 const SITEBY=new Map(SITES.map(r=>[r.key,r]));
 const adj=()=>({ppr:0,half:.5,std:1}[S.scoring]);
 const compS=s=>({rec:s.rec,py:s.pass_yd,ptd:s.pass_td,pint:s.pass_int,ry:s.rush_yd,rtd:s.rush_td,recy:s.rec_yd,rectd:s.rec_td,fl:s.fum_lost});
-const tot=p=>p.s.pts_ppr+scDelta(compS(p.s),p.pos);
+const tot=p=>(p.pos==='K'||p.pos==='DST')&&p.weeks.some(w=>w&&(w.k||w.d))?p.weeks.reduce((a,w)=>a+(w?wpts(w):0),0):p.s.pts_ppr+scDelta(compS(p.s),p.pos);
 const ppg=p=>p.gp?tot(p)/p.gp:0;
-const wpts=w=>w?w.ppr+scDelta(w,w.pos):null;
+function paPts(pa){const c=SC();return pa==null||pa===''?0:pa<=0?c.pa0:pa<=6?c.pa1:pa<=13?c.pa7:pa<=17?c.pa14:pa<=27?c.pa18:pa<=34?c.pa28:pa<=45?c.pa35:c.pa46;}
+const kPts=k=>{const c=SC();return k.k39*c.k39+k.k40*c.k40+k.k50*c.k50+k.k60*c.k60+k.kmiss*c.kmiss+k.xp*c.xp+k.xpmiss*c.xpmiss;};
+const dPts=d=>{const c=SC();return d.sack*c.dsack+d.int*c.dint+d.fr*c.dfr+d.td*c.dtd+d.safe*c.dsafe+d.blk*c.dblk+paPts(d.pa);};
+// a week's points: offense from Sleeper's points plus the rule differences; kickers and defenses from their stat lines
+const wpts=w=>!w?null:w.k?kPts(w.k):w.d?dPts(w.d):w.ppr+scDelta(w,w.pos);
 const dv=(a,b)=>b?a/b:null;
 const pct=v=>v==null?'—':(v*100).toFixed(1)+'%';
 const n1=v=>v==null?'—':(Math.round(v*10)/10).toFixed(1);
@@ -2253,8 +2276,12 @@ renderTicker();
 autoSync();
 liveTick();
 // ---- settings: scoring rules ----
-function scFields(){return [['rec','Per catch','',.5],['te','TE catch bonus','TE premium',.25],['ptd','Passing TD','',1],['int','Interception','',1],
-  ['py','Pass yds per pt','25 = 0.04 a yard',1],['td','Rush / rec TD','',1],['yd','Rush / rec yds per pt','10 = 0.1 a yard',1],['fl','Fumble lost','',1]];}
+function scFields(){return [
+  ['Offense',[['rec','Per catch','',.5],['te','TE catch bonus','TE premium',.25],['ptd','Passing TD','',1],['int','Interception','',1],
+    ['py','Pass yds / pt','25 = 0.04 a yard',1],['td','Rush/rec TD','',1],['yd','Rush/rec yds / pt','10 = 0.1 a yard',1],['fl','Fumble lost','',1]]],
+  ['Kicker',[['k39','FG 0–39 yds','',1],['k40','FG 40–49 yds','',1],['k50','FG 50–59 yds','',1],['k60','FG 60+ yds','',1],['kmiss','Missed FG','',1],['xp','Extra point (XP)','',1],['xpmiss','Missed XP','',1]]],
+  ['Defense / special teams',[['dsack','Sack','',1],['dint','Interception','',1],['dfr','Fumble rec.','',1],['dtd','Touchdown','Return or defensive',1],['dsafe','Safety','',1],['dblk','Blocked kick','',1]]],
+  ['Points allowed (D/ST)',[['pa0','0 points','',1],['pa1','1–6','',1],['pa7','7–13','',1],['pa14','14–17','',1],['pa18','18–27','',1],['pa28','28–34','',1],['pa35','35–45','',1],['pa46','46+','',1]]]];}
 function renderSettings(){const el=$('#setScoring');if(!el)return;const c=SC(),pre=scPreset(),dflt=JSON.stringify(c)===JSON.stringify(DEF_SC);
   if(el.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'){   // typing: refresh only the labels
     el.querySelector('.sc-name').textContent=scName()+' scoring';el.querySelectorAll('[data-pre]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===pre));
@@ -2262,13 +2289,14 @@ function renderSettings(){const el=$('#setScoring');if(!el)return;const c=SC(),p
   el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline"><h2>Scoring rules</h2><b class="sc-name mono">${scName()} scoring</b></div>
     <p class="muted">Match your league. Projections, stats, the lineup tools and live points all use these.</p>
     <div class="chips" role="group" aria-label="Presets">${[['ppr','PPR'],['half','Half-PPR'],['std','Standard']].map(([k,l])=>`<button class="chip" data-pre="${k}" aria-pressed="${pre===k}">${l}</button>`).join('')}</div>
-    <div class="form-grid sc-grid">${scFields().map(([k,l,h,st])=>`<div class="field"><label class="label" for="sc-${k}">${l}</label><input id="sc-${k}" type="number" inputmode="decimal" step="${st}" value="${c[k]}" data-sc="${k}"><small class="note">${h?h+' · ':''}default ${DEF_SC[k]}</small></div>`).join('')}</div>
+    ${scFields().map(([g,fs])=>`<h3 class="sc-h">${g}</h3><div class="form-grid sc-grid">${fs.map(([k,l,h,st])=>`<div class="field${c[k]!==DEF_SC[k]?' sc-chg':''}"><label class="label" for="sc-${k}">${l}</label><input id="sc-${k}" type="number" inputmode="decimal" step="${st}" value="${c[k]}" data-sc="${k}"><small class="note">${h?h+' · ':''}default ${DEF_SC[k]}</small></div>`).join('')}</div>`).join('')}
     <div class="btns"><button class="btn sm" data-screset ${dflt?'disabled':''}>Reset to default</button></div>
-    <p class="note">Default is standard PPR. Kickers and defenses always use standard scoring. ESPN, CBS and FantasyPros only publish point totals, so for their numbers the site applies your rules using each player's per-game stats this season.${S.league?` Connecting or syncing your ${SRC_NAME[S.league.src]} league copies its scoring here.`:''}</p>`;}
+    <p class="note">Defaults are ESPN's standard scoring, with PPR. ESPN, CBS and FantasyPros only publish point totals, so for their offensive numbers the site applies your rules using each player's per-game stats this season; their kicker and defense projections are shown as published.${S.league?` Connecting or syncing your ${SRC_NAME[S.league.src]} league copies its scoring here.`:''}</p>`;}
 document.addEventListener('input',e=>{const t=e.target;if(!t.matches||!t.matches('[data-sc]'))return;const v=parseFloat(t.value);if(!Number.isFinite(v))return;
   if((t.dataset.sc==='py'||t.dataset.sc==='yd')&&v<=0)return;S.sc={...SC(),[t.dataset.sc]:v};syncFmt();save();render();});
-document.addEventListener('click',e=>{const p=e.target.closest('[data-pre]');if(p&&p.closest('#setScoring')){S.sc={...PRESETS[p.dataset.pre]};syncFmt();save();render();return;}
-  if(e.target.closest('[data-screset]')){S.sc={...DEF_SC};syncFmt();save();render();toast('Scoring reset to standard PPR');}});
+document.addEventListener('click',e=>{const p=e.target.closest('[data-pre]');if(p&&p.closest('#setScoring')){const o={};OFF_KEYS.forEach(f=>o[f]=PRESETS[p.dataset.pre][f]??DEF_SC[f]);S.sc={...SC(),...o};syncFmt();save();render();return;}
+  if(e.target.closest('[data-screset]')){S.sc={...DEF_SC};syncFmt();save();render();toast('Scoring reset to ESPN standard (PPR)');}});
+
 // ---- theme ----
 (function(){const k=KEY+'.theme',mq=matchMedia('(prefers-color-scheme: dark)');
   const pref=()=>{try{return localStorage.getItem(k)||'auto';}catch(_){return 'auto';}};

@@ -92,9 +92,6 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     const k = w + e.team; team[k] = team[k] || {};
     for (const f of TF) team[k][f] = (team[k][f] || 0) + (s[f] || 0);
   }
-  { const last = wk[weeks[weeks.length - 1]] || [];
-    for (const pos of ['K', 'DEF']) { const e = last.find(x => x.player && x.player.position === pos && x.stats && Object.keys(x.stats).length > 5);
-      if (e) log(`Sleeper ${pos} stat fields: ${Object.keys(e.stats).filter(k => /^(fg|xp|sack|int|fum_rec|def_td|st_td|safe|blk|pts_allow|yds_allow)/.test(k)).sort().join(',')}`); } }
   const P = {}, dst = {};
   for (const w of weeks) for (const e of wk[w]) {
     const s = e.stats || {}, pl = e.player;
