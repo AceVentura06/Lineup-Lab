@@ -92,6 +92,9 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     const k = w + e.team; team[k] = team[k] || {};
     for (const f of TF) team[k][f] = (team[k][f] || 0) + (s[f] || 0);
   }
+  { const last = wk[weeks[weeks.length - 1]] || [];
+    for (const pos of ['K', 'DEF']) { const e = last.find(x => x.player && x.player.position === pos && x.stats && Object.keys(x.stats).length > 5);
+      if (e) log(`Sleeper ${pos} stat fields: ${Object.keys(e.stats).filter(k => /^(fg|xp|sack|int|fum_rec|def_td|st_td|safe|blk|pts_allow|yds_allow)/.test(k)).sort().join(',')}`); } }
   const P = {}, dst = {};
   for (const w of weeks) for (const e of wk[w]) {
     const s = e.stats || {}, pl = e.player;
@@ -111,6 +114,16 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     // points, catches, pass TDs, snap %, then the rest of the stat line so the site can apply custom scoring
     p.w[w] = [+(s.pts_ppr || 0).toFixed(1), s.rec || 0, s.pass_td || 0, s.tm_off_snp ? Math.round(100 * (s.off_snp || 0) / s.tm_off_snp) : '',
       s.pass_yd || 0, s.pass_int || 0, s.rush_yd || 0, s.rush_td || 0, s.rec_yd || 0, s.rec_td || 0, s.fum_lost || 0];
+    // kickers and defenses: what custom kicker / D/ST scoring needs
+    if (pl.position === 'K') {
+      const fg39 = (s.fgm_0_19 || 0) + (s.fgm_20_29 || 0) + (s.fgm_30_39 || 0), fg60 = s.fgm_60p || 0;
+      const fg50 = s.fgm_50_59 != null ? s.fgm_50_59 : Math.max(0, (s.fgm_50p || 0) - fg60);
+      const miss = s.fgmiss != null ? s.fgmiss : Math.max(0, (s.fga || 0) - (s.fgm || 0));
+      const xpMiss = s.xpmiss != null ? s.xpmiss : Math.max(0, (s.xpa || 0) - (s.xpm || 0));
+      p.w[w].push(fg39, s.fgm_40_49 || 0, fg50, fg60, miss, s.xpm || 0, xpMiss);
+    } else if (pl.position === 'DEF') {
+      p.w[w].push(s.sack || 0, s.int || 0, s.fum_rec || 0, (s.def_td || 0) + (s.st_td || 0), s.safe || 0, s.blk_kick || 0, s.pts_allow ?? '', s.yds_allow ?? '');
+    }
   }
   const rows = Object.values(P).filter(p => p.t.pts_ppr >= 3 || p.pos === 'K' || p.pos === 'DEF')
     .map(p => [p.name, p.pos, p.team, p.gp, ...F.map(f => r1(p.t[f])), ...TF.map(f => r1(p.tm[f])),
