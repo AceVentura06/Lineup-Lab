@@ -1437,9 +1437,14 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-lc]');if(!
 // refresh a connected league quietly when the page opens (trades, waivers, lineup changes)
 function autoSync(){const L=S.league;if(!L||LC.busy||Date.now()-L.synced<15*6e4)return;LC.busy=true;
   syncLeague({src:L.src,leagueId:L.leagueId,userId:L.userId,userName:L.userName,teamId:L.teamId},true).catch(()=>{}).finally(()=>{LC.busy=false;if(ui.tab==='lineup')renderConnect();});}
-// ---- live scores: ESPN's public scoreboard and box scores, checked every minute while games are on.
-// Points are worked out here with the site's scoring, so they're unofficial until the regular data update.
-const LIVE={games:new Map(),stats:new Map(),dst:new Map(),done:new Set(),any:false,at:0,timer:null};
+// ---- live scores, checked every minute while games are on. Points come from Sleeper's live stats, the same
+// source (and scoring) as the site's official numbers; ESPN supplies scores and the game clock. If Sleeper
+// doesn't answer, points are worked out from ESPN's box scores instead (close, but unofficial).
+const LIVE={games:new Map(),stats:new Map(),dst:new Map(),done:new Set(),slp:null,any:false,at:0,timer:null};
+async function liveSleeper(){const d=await getJ(`https://api.sleeper.app/stats/nfl/${lseason()}/${SD.week}?season_type=regular&${['QB','RB','WR','TE','K','DEF'].map(p=>'position[]='+p).join('&')}`);
+  const m=new Map();for(const e of d||[]){const pl=e.player,st=e.stats||{};if(!pl)continue;
+    const k=nkey(((pl.first_name||'')+' '+(pl.last_name||'')).trim(),pl.position);m.set(k,{ppr:st.pts_ppr||0,rec:st.rec||0,ptd:st.pass_td||0,team:e.team});}
+  if(!m.size)throw new Error('empty');LIVE.slp=m;}
 const ESB='https://site.api.espn.com/apis/site/v2/sports/football/nfl';
 const espnAb=a=>({WSH:'WAS'}[a]||a);
 // share of the game still to play (for "on pace for")
@@ -1473,6 +1478,7 @@ function parseBox(sum,g){const fresh=new Map(),T={};
 // live points for a player whose game has started, or null
 function liveOf(p){if(!p||!p.team||!LIVE.games.size)return null;const g=LIVE.games.get(p.team);if(!g||(g.state!=='in'&&g.state!=='post'))return null;
   let pts=0;
+  if(LIVE.slp){const x=LIVE.slp.get(p.key);return {pts:x?Math.round(wpts(x)*10)/10:0,g,src:'sleeper'};}
   if(p.pos==='DST'){const d=LIVE.dst.get(p.team);if(!d)return null;pts=d.sack+2*d.int+2*d.fr+6*d.td+paPts(d.pa);}
   else{const x=LIVE.stats.get(p.key);if(x&&x.team!==p.team)return null;
     if(x)pts=p.pos==='K'?x.kp:x.py*.04+x.ptd*S.passTD-2*x.int+.1*(x.ry+x.recy)+6*(x.rtd+x.rectd+x.ret)+recPts()*x.rec-2*x.fl;
@@ -1486,7 +1492,9 @@ function liveDue(){const now=Date.now();return kickTimes().some(t=>now>=t-10*6e4
 async function liveTick(){clearTimeout(LIVE.timer);
   if(!document.hidden&&liveDue()){
     try{await liveScoreboard();const gs=[...new Set(LIVE.games.values())],now=Date.now();
-      for(const g of gs){if(g.state==='in'||(g.state==='post'&&!LIVE.done.has(g.id)&&now-g.date<9*36e5)){
+      const started=gs.some(g=>g.state==='in'||(g.state==='post'&&now-g.date<9*36e5));
+      let slpOk=false;if(started){try{await liveSleeper();slpOk=true;}catch(_){LIVE.slp=null;}}
+      if(!slpOk)for(const g of gs){if(g.state==='in'||(g.state==='post'&&!LIVE.done.has(g.id)&&now-g.date<9*36e5)){
         try{parseBox(await getJ(`${ESB}/summary?event=${g.id}`),g);if(g.state==='post')LIVE.done.add(g.id);}catch(_){}}}
       LIVE.any=gs.some(g=>g.state==='in');LIVE.at=now;liveRefresh();}catch(_){}}
   // next check: every minute during games, otherwise at the next kickoff
@@ -1533,7 +1541,7 @@ function renderHome(){
   {const el=$('#hmGames'),now=Date.now(),gs=[...new Set(LIVE.games.values())].filter(g=>g.state==='in'||Math.abs(now-g.date)<12*36e5).sort((a,b)=>({in:0,pre:1,post:2}[a.state]-{in:0,pre:1,post:2}[b.state])||a.date-b.date);
     if(!live||!gs.length)el.hidden=true;
     else{el.hidden=false;const tm=(g,home)=>g.teams.find(t=>t.home===home)||{ab:'',score:0};
-      el.innerHTML=`<div class="hm-head"><h3>${gs.some(g=>g.state==='in')?'<span class="livedot"></span>Live games':'Games'}</h3><span class="hm-sm">Live points are unofficial until the next data update</span></div>
+      el.innerHTML=`<div class="hm-head"><h3>${gs.some(g=>g.state==='in')?'<span class="livedot"></span>Live games':'Games'}</h3><span class="hm-sm">${LIVE.slp?'Live points from Sleeper; stat corrections can still move them a little':'Live points are estimates until the next data update'}</span></div>
         <div class="hm-games">${gs.map(g=>{const a=tm(g,false),h=tm(g,true),st=g.state;
           const ln=(t,o)=>`<div class="row${st!=='pre'&&t.score>o.score?' lead':''}"><span>${esc(t.ab)} <span class="hm-sm">${esc(TEAM_NAMES[t.ab]||'')}</span></span><b>${st==='pre'?'':t.score}</b></div>`;
           return `<div class="hm-g ${st}">${ln(a,h)}${ln(h,a)}<span class="st">${st==='in'?'<span class="livedot"></span>':''}${esc(g.short)}</span></div>`;}).join('')}</div>`;}}
