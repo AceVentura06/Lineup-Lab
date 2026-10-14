@@ -404,7 +404,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .team-hero.stuck .shot.logo{height:44px}
 }
 /* Points by week: broadcast bars */
-.wkcard{display:flex;flex-direction:column;gap:14px}
+.wkcard{display:flex;flex-direction:column;gap:14px;--wkbg:var(--surface)}
+.teamed .wkcard{--wkbg:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
 .wkavg{font-family:var(--f-display);font-weight:700;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .wkavg b{color:var(--ink);font-size:1.25rem}
 .wkscroll{overflow-x:auto}
@@ -415,10 +416,11 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .wkb b{font-weight:800;font-size:1.5rem}
 .wkb i{font-style:normal}.wkb span{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
 .wkb.played{background:var(--t-accent,var(--gold));color:var(--team-lo-ink,#fff)}
-.wkb.proj{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--t-accent,var(--gold)) 30%,transparent) 0 6px,color-mix(in srgb,var(--t-accent,var(--gold)) 12%,transparent) 6px 12px);color:var(--t-accent,var(--gold))}
+.wkb.proj{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--t-accent,var(--gold)) 30%,transparent) 0 6px,color-mix(in srgb,var(--t-accent,var(--gold)) 12%,transparent) 6px 12px),var(--wkbg);color:var(--t-accent,var(--gold))}
 .wkb.empty{height:44px;clip-path:none;border:2px dashed var(--line);border-bottom:0;justify-content:center;padding:0;color:var(--muted);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
-.wkv{text-align:center;font-family:var(--f-display);font-weight:800;font-size:1.2rem}
-.wkline{position:absolute;left:0;right:0;border-top:2px dashed var(--team-stripe,var(--gold));z-index:2;pointer-events:none}
+.wkv{align-self:center;padding:0 5px;background:var(--wkbg);text-align:center;font-family:var(--f-display);font-weight:800;font-size:1.2rem}
+.wkline{position:absolute;left:0;right:0;border-top:2px dashed var(--team-stripe,var(--gold));z-index:0;pointer-events:none}
+.wkseg{position:absolute;left:0;right:0;border-top:2px dashed var(--team-stripe,var(--gold));z-index:2;pointer-events:none}
 .wklabs{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px;margin-top:8px;text-align:center;font-family:var(--f-display);text-transform:uppercase}
 .wkl b{display:block;font-size:1rem}
 .wkl span{display:block;font-size:.85rem;color:var(--muted);white-space:nowrap}
@@ -1565,8 +1567,9 @@ function weekCard(p,projV){
   const max=Math.max(8,...vals)*1.08,H=220,h=v=>Math.max(4,Math.round(H*Math.max(0,v)/max));
   const snaps=p.pos!=='K'&&p.pos!=='DST';
   const col=x=>{
-    if(x.kind==='played'||x.kind==='proj'){const hh=h(x.v),inside=hh>=40;
-      return `<div class="wkb ${x.kind}" style="height:${hh}px" title="Week ${x.w}${x.o?' '+x.o:''}: ${n1(x.v)} pts${x.kind==='proj'?' projected':''}">${inside?`<b>${n1(x.v)}</b>${x.kind==='proj'?'<span>Proj<i class="wkx">ected</i></span>':''}`:''}</div>${inside?'':`<b class="wkv">${n1(x.v)}</b>`}`;}
+    if(x.kind==='played'||x.kind==='proj'){const hh=h(x.v),inside=hh>=40,la=avg!=null?h(avg):-1,zone=x.kind==='proj'?62:44;
+      const seg=la>0&&la<hh&&!(inside&&la>hh-zone)?`<i class="wkseg" style="bottom:${la}px"></i>`:'';
+      return `<div class="wkb ${x.kind}" style="height:${hh}px" title="Week ${x.w}${x.o?' '+x.o:''}: ${n1(x.v)} pts${x.kind==='proj'?' projected':''}">${inside?`<b>${n1(x.v)}</b>${x.kind==='proj'?'<span>Proj<i class="wkx">ected</i></span>':''}`:''}</div>${inside?'':`<b class="wkv">${n1(x.v)}</b>`}${seg}`;}
     return `<div class="wkb empty">${x.kind==='bye'?'Bye':x.kind==='upcoming'?'Next':'Out'}</div>`;};
   const lab=x=>`<div class="wkl${x.kind==='proj'||x.kind==='upcoming'?' now':''}"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}${x.kind==='played'&&snaps&&x.snap!=null?' · '+x.snap+'%':''}${x.kind==='proj'?' · next':''}</span></div>`;
   return `<div class="card wkcard"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h3>Points by week</h3>${avg!=null?`<span class="wkavg">Season avg <b>${n1(avg)}</b></span>`:''}</div>
