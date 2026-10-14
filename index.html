@@ -467,6 +467,12 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 :root[data-theme="dark"] .teamed{--t-accent:color-mix(in srgb,var(--team-hi) 78%,#fff)}
 :root[data-theme="dark"] .wkb.played{background:var(--team-hi,var(--gold));color:var(--team-hi-ink,#fff)}
 :root:not([data-theme="dark"]) .theme-dark-only{display:none}
+/* Settings */
+.topbar>.tabs .t-set{margin-left:auto}
+.sc-card{display:flex;flex-direction:column;gap:14px}
+.sc-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+.sc-grid input{width:100%;box-sizing:border-box}
+.btn[disabled]{opacity:.45;cursor:default}
 /* League connect */
 .lc{display:flex;flex-direction:column;gap:12px}
 .lc-src{display:flex;gap:6px}
@@ -592,7 +598,6 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
           <button data-v="auto" title="Match this device"><span>Auto</span></button><button data-v="light"><span>Light</span></button><button data-v="dark"><span>Dark</span></button>
         </div>
       </div>
-      <div class="ctl"><label class="label" for="passTdIn">Pass TD</label><select id="passTdIn"><option value="4">4 pts</option><option value="6">6 pts</option></select></div>
     </div>
   </header>
 
@@ -612,6 +617,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <button role="tab" data-tab="trade" id="t-trade" hidden>Trade Analyzer</button>
     <button role="tab" data-tab="acc" id="t-acc">Accuracy</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
+    <button role="tab" data-tab="settings" id="t-settings" class="t-set"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
   </nav>
   </div>
 
@@ -801,9 +807,27 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <div id="accBody"><p class="muted">Loading…</p></div>
   </section>
 
+  <!-- SETTINGS -->
+  <section class="panel" id="p-settings" role="tabpanel" hidden>
+    <div><h2>Settings</h2><p class="note">Saved on this device. Everything on the site updates as you change these.</p></div>
+    <div class="split">
+      <div class="card sc-card" id="setScoring"></div>
+      <div class="card" style="display:flex;flex-direction:column;gap:18px">
+        <div><h2>Tune the model</h2><p class="muted">Decide how much each factor should matter. Every table updates live.</p></div>
+        <div class="slider"><div class="top"><label class="label" for="w-match">Matchup impact</label><span class="mono" id="w-match-v"></span></div><input type="range" id="w-match" min="0" max="0.35" step="0.01"><small class="note">How far the best/worst matchup moves a projection.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-trend">Usage trend impact</label><span class="mono" id="w-trend-v"></span></div><input type="range" id="w-trend" min="0" max="0.25" step="0.01"><small class="note">Boost for rising roles, cut for shrinking ones.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-sched">ROS schedule impact</label><span class="mono" id="w-sched-v"></span></div><input type="range" id="w-sched" min="0" max="0.2" step="0.01"><small class="note">Easy or hard remaining schedule.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-q">Questionable discount</label><span class="mono" id="w-q-v"></span></div><input type="range" id="w-q" min="0" max="0.4" step="0.01"><small class="note">Risk that a questionable player sits or gets limited snaps.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-vegas">Vegas impact</label><span class="mono" id="w-vegas-v"></span></div><input type="range" id="w-vegas" min="0" max="1.2" step="0.05"><small class="note">How much the team's implied point total from the betting line moves a projection.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-blend">Weight on site projections</label><span class="mono" id="w-blend-v"></span></div><input type="range" id="w-blend" min="0" max="1" step="0.05"><small class="note">0% uses only this model. 100% uses only the ESPN, Sleeper and FantasyPros average.</small></div>
+        <div class="btns"><button class="btn sm" id="resetW">Reset to defaults</button></div>
+      </div>
+    </div>
+  </section>
+
   <!-- MODEL -->
   <section class="panel" id="p-model" role="tabpanel" hidden>
-    <div class="split">
+    <div>
       <div class="card prose">
         <h2>How a player is graded</h2>
         <p><b>1. Base points.</b> Per-game stats are converted with your scoring:</p>
@@ -824,16 +848,6 @@ On bye, Out, or IR → 0</div>
 Games left = 18 − week (minus bye if still ahead)
 Total      = Pts/game × Games left</div>
         <p class="note">Kickers and defenses use fantasy points per game, which PPR scoring doesn't change.</p>
-      </div>
-      <div class="card" style="display:flex;flex-direction:column;gap:18px">
-        <div><h2>Tune the model</h2><p class="muted">Decide how much each factor should matter. Every table updates live.</p></div>
-        <div class="slider"><div class="top"><label class="label" for="w-match">Matchup impact</label><span class="mono" id="w-match-v"></span></div><input type="range" id="w-match" min="0" max="0.35" step="0.01"><small class="note">How far the best/worst matchup moves a projection.</small></div>
-        <div class="slider"><div class="top"><label class="label" for="w-trend">Usage trend impact</label><span class="mono" id="w-trend-v"></span></div><input type="range" id="w-trend" min="0" max="0.25" step="0.01"><small class="note">Boost for rising roles, cut for shrinking ones.</small></div>
-        <div class="slider"><div class="top"><label class="label" for="w-sched">ROS schedule impact</label><span class="mono" id="w-sched-v"></span></div><input type="range" id="w-sched" min="0" max="0.2" step="0.01"><small class="note">Easy or hard remaining schedule.</small></div>
-        <div class="slider"><div class="top"><label class="label" for="w-q">Questionable discount</label><span class="mono" id="w-q-v"></span></div><input type="range" id="w-q" min="0" max="0.4" step="0.01"><small class="note">Risk that a questionable player sits or gets limited snaps.</small></div>
-        <div class="slider"><div class="top"><label class="label" for="w-vegas">Vegas impact</label><span class="mono" id="w-vegas-v"></span></div><input type="range" id="w-vegas" min="0" max="1.2" step="0.05"><small class="note">How much the team's implied point total from the betting line moves a projection.</small></div>
-        <div class="slider"><div class="top"><label class="label" for="w-blend">Weight on site projections</label><span class="mono" id="w-blend-v"></span></div><input type="range" id="w-blend" min="0" max="1" step="0.05"><small class="note">0% uses only this model. 100% uses only the ESPN, Sleeper and FantasyPros average.</small></div>
-        <div class="btns"><button class="btn sm" id="resetW">Reset to defaults</button></div>
       </div>
     </div>
     <div class="card" style="display:flex;flex-direction:column;gap:6px">
@@ -886,7 +900,23 @@ const $=s=>document.querySelector(s);
 const n=v=>{v=parseFloat(v);return isFinite(v)?v:0};
 const f1=v=>(Math.round(v*10)/10).toFixed(1);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const recPts=()=>({ppr:1,half:.5,std:0}[S.scoring]);
+// ---- scoring rules. Defaults are Sleeper's standard PPR scoring, which is what the stats and official points use;
+// any change is applied to each stat line as a difference from those defaults. Kickers and defenses keep standard scoring.
+const DEF_SC={rec:1,te:0,py:25,ptd:4,int:-1,yd:10,td:6,fl:-2};
+if(!S.sc||typeof S.sc!=='object')S.sc={rec:{ppr:1,half:.5,std:0}[S.scoring]??1,ptd:S.passTD||4};
+function SC(){const s=Object.assign({},DEF_SC,S.sc);if(!(s.py>0))s.py=25;if(!(s.yd>0))s.yd=10;return s;}
+const scKey=()=>JSON.stringify(SC());
+// S.scoring (ppr / half / std) is kept as the nearest preset, for data published only in those three formats
+function syncFmt(){const c=SC();S.scoring=c.rec>=.75?'ppr':c.rec>=.25?'half':'std';S.passTD=c.ptd;}
+syncFmt();
+const PRESETS={ppr:{...DEF_SC},half:{...DEF_SC,rec:.5},std:{...DEF_SC,rec:0}};
+function scPreset(){const c=SC();return Object.keys(PRESETS).find(k=>Object.keys(DEF_SC).every(f=>PRESETS[k][f]===c[f]))||null;}
+const scName=(short)=>({ppr:'PPR',half:short?'Half':'Half-PPR',std:short?'Std':'Standard'}[scPreset()]||'Custom');
+const recPts=()=>SC().rec;
+// points to add to a Sleeper-standard PPR total for a stat line c {rec,py,ptd,pint,ry,rtd,recy,rectd,fl}
+function scDelta(c,pos,skipRec){if(!c||pos==='K'||pos==='DST'||pos==='DEF')return 0;const s=SC(),v=k=>+c[k]||0;
+  return (skipRec?0:(s.rec-1)*v('rec'))+(pos==='TE'?s.te*v('rec'):0)+v('py')*(1/s.py-.04)+(s.ptd-4)*v('ptd')+(s.int+1)*v('pint')
+    +(v('ry')+v('recy'))*(1/s.yd-.1)+(s.td-6)*(v('rtd')+v('rectd'))+(s.fl+2)*v('fl');}
 
 // ---- real players for start/sit ----
 const CX=(typeof CTX_DATA!=='undefined'&&CTX_DATA)||{sched:'',ranks:'',inj:''};
@@ -927,7 +957,7 @@ function siteAvg(p){if(!p.real)return null;const r=SITEBY.get(p.key);if(!r||S.we
 function base(p){
   if(p.real){const s=PL.get(p.key);if(!s)return 0;const v=ppg(s);if(p.pos==='DST'||p.pos==='K'){const w=Math.min(1,s.gp/10);return w*v+(1-w)*(p.pos==='K'?8.5:7.5);}return v;}
   if(p.pos==='K'||p.pos==='DST')return n(p.avgPts);
-  return n(p.passYds)*.04+n(p.passTD)*S.passTD-n(p.int)*2+n(p.rushYds)*.1+n(p.rushTD)*6+n(p.rec)*recPts()+n(p.recYds)*.1+n(p.recTD)*6-n(p.fum)*2;
+  const c=SC();return n(p.passYds)/c.py+n(p.passTD)*c.ptd+n(p.int)*c.int+(n(p.rushYds)+n(p.recYds))/c.yd+(n(p.rushTD)+n(p.recTD))*c.td+n(p.rec)*(c.rec+(p.pos==='TE'?c.te:0))+n(p.fum)*c.fl;
 }
 const trendM=p=>1+({Rising:1,Steady:0,Falling:-1}[p.trend]||0)*S.w.trend;
 const schedM=p=>1+({Easy:1,Average:0,Hard:-1}[p.sched]||0)*S.w.sched;
@@ -945,7 +975,7 @@ function volOf(p){const d=VOL[p.pos]||.3;const s=p.real?PL.get(p.key):null;if(!s
   const sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length);return .5*d+.5*Math.min(.75,Math.max(.12,sd/m));}
 const _wp=new Map();
 function weekProj(p){
-  const ck=(p.id||p.key)+'|'+S.week+'|'+S.scoring+'|'+S.passTD+'|'+JSON.stringify(S.w);if(_wp.has(ck))return _wp.get(ck);
+  const ck=(p.id||p.key)+'|'+S.week+'|'+scKey()+'|'+JSON.stringify(S.w);if(_wp.has(ck))return _wp.get(ck);
   const b=base(p);let r;
   if(onBye(p))r={b,proj:0,lo:0,hi:0,model:0,sites:null};
   else{const h=healthWk(p),sa=siteAvg(p),gp=p.real?(PL.get(p.key)?.gp||0):9;
@@ -1131,11 +1161,11 @@ function renderSources(){
 }
 function renderModel(){
   renderSources();
-  const rp=recPts();
-  $('#scoreFormula').textContent=`Pass yd ×0.04   Pass TD ×${S.passTD}   INT −2
-Rush/Rec yd ×0.1   Rush/Rec TD ×6
-Reception ×${rp}  (${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]})
-Fumble lost −2`;
+  const c=SC(),sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
+  $('#scoreFormula').textContent=`Pass yd: 1 pt per ${c.py}   Pass TD ${sg(c.ptd)}   INT ${sg(c.int)}
+Rush/Rec yd: 1 pt per ${c.yd}   Rush/Rec TD ${sg(c.td)}
+Reception ${sg(c.rec)}${c.te?`  (TE ${sg(c.rec+c.te)})`:''}   Fumble lost ${sg(c.fl)}
+(${scName()} scoring · change it in Settings)`;
   [['match',v=>'±'+Math.round(v*100)+'%'],['trend',v=>'±'+Math.round(v*100)+'%'],['sched',v=>'±'+Math.round(v*100)+'%'],['q',v=>'−'+Math.round(v*100)+'%'],['vegas',v=>'×'+v.toFixed(2)],['blend',v=>Math.round(v*100)+'%']].forEach(([k,fmt])=>{
     $('#w-'+k).value=S.w[k];$('#w-'+k+'-v').textContent=fmt(S.w[k]);});
 }
@@ -1290,7 +1320,7 @@ const rkCls=r=>r>=22?'good':r<=10?'bad':'mid';
 // "(22nd)" after the opponent on the Projections tab
 function oppRankTag(r,wk){const sc=(SCHED[r.team]||[])[wk-1];if(!sc||sc==='BYE')return '';const d=dvpData().by[sc.replace('@','')];const i=DPOS.indexOf(r.pos);
   if(!d||i<0)return '';const rk=d.rank[i];return ` <button class="ork olink ${rkCls(rk)}" data-dvp="${esc(d.t)}" title="${esc(TEAM_NAMES[d.t]||d.t)} allow ${n1(d.avg[i])} pts/game to ${r.pos}s (${ord(rk)} fewest of 32). Tap to see them week by week.">(${ord(rk)})</button>`;}
-function renderDvp(){const D=dvpData(),sc={ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring];
+function renderDvp(){const D=dvpData(),sc=scName();
   $('#dvpNote').textContent=`Fantasy points each defense has allowed per game to each position this season. Tap a column to sort, or a team to see it week by week.`;
   const k=ui.dvpSort??'team';
   const dir=ui.dvpDir||1;   // 1 = default order (A→Z for team, most allowed first for positions); -1 = reversed
@@ -1342,6 +1372,9 @@ function slpKey(id){if(!id||id==='0')return null;if(/^[A-Z]{2,3}$/.test(id))retu
   if(!SLP_IDX){SLP_IDX=new Map();(CX.ids||'').split('\n').forEach(l=>{const [n,ps,i]=l.split('|');if(i)SLP_IDX.set(i,nkey(n,ps));});}
   const k=SLP_IDX.get(id);return k&&PL.has(k)?k:null;}
 async function getJ(u){const r=await fetch(u,{headers:{Accept:'application/json'}});if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e;}return r.json();}
+// league scoring → the site's rules (only what the league actually sets)
+const scOf=o=>{const out={};for(const [k,v] of Object.entries(o))if(v!=null&&Number.isFinite(v))out[k]=Math.round(v*1000)/1000;return out;};
+const slpScoring=x=>scOf({rec:x.rec,te:x.bonus_rec_te,ptd:x.pass_td,int:x.pass_int,py:x.pass_yd?1/x.pass_yd:null,yd:x.rush_yd?1/x.rush_yd:null,td:x.rush_td,fl:x.fum_lost});
 const slotCounts=list=>{const c={QB:0,RB:0,WR:0,TE:0,FLEX:0,SFLEX:0,K:0,DST:0};list.forEach(x=>{if(x&&c[x]!=null)c[x]++;});return c;};
 // Sleeper: username → leagues → your roster
 async function slpLeagues(name){const u=await getJ('https://api.sleeper.app/v1/user/'+encodeURIComponent(name.trim()));
@@ -1358,7 +1391,7 @@ async function slpSync(cfg){
   return {leagueName:lg.name,teamName:(me&&me.metadata&&me.metadata.team_name)||(me&&me.display_name)||cfg.userName,
     roster:keys.filter(Boolean),skipped:keys.filter(k=>!k).length,taken,
     starters:(r.starters||[]).map((id,i)=>({slot:SLP_SLOT[slots[i]]||null,key:slpKey(id),empty:!id||id==='0'})).filter(x=>x.slot),
-    slots:slotCounts(slots.map(x=>SLP_SLOT[x])),rec:lg.scoring_settings?lg.scoring_settings.rec:null,passTD:lg.scoring_settings?lg.scoring_settings.pass_td:null};}
+    slots:slotCounts(slots.map(x=>SLP_SLOT[x])),sc:slpScoring(lg.scoring_settings||{})};}
 // ESPN: public league id → teams → your roster
 const espnUrl=id=>`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${lseason()}/segments/0/leagues/${id}?view=mTeam&view=mRoster&view=mSettings`;
 const espnId=v=>{v=String(v||'').trim();const m=v.match(/leagueId=(\d+)/i)||v.match(/^(\d{3,12})$/);return m?m[1]:null;};
@@ -1375,14 +1408,14 @@ async function espnSync(cfg,lg){lg=lg||await espnLeague(cfg.leagueId);const d=lg
   const keyed=ent.map(e=>({e,key:espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)}));
   const taken=[...new Set((d.teams||[]).flatMap(x=>(x.roster&&x.roster.entries)||[]).map(e=>espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)).filter(Boolean))];
   return {leagueName:lg.name,teamName:lg.teams.find(x=>x.id===cfg.teamId).name,roster:keyed.map(x=>x.key).filter(Boolean),skipped:keyed.filter(x=>!x.key).length,taken,
-    starters:keyed.filter(x=>ESPN_SLOT[x.e.lineupSlotId]).map(x=>({slot:ESPN_SLOT[x.e.lineupSlotId],key:x.key})),slots,rec:pts(53),passTD:pts(4)};}
+    starters:keyed.filter(x=>ESPN_SLOT[x.e.lineupSlotId]).map(x=>({slot:ESPN_SLOT[x.e.lineupSlotId],key:x.key})),slots,
+    sc:scOf({rec:pts(53),ptd:pts(4),int:pts(20),py:pts(3)?1/pts(3):null,yd:pts(24)?1/pts(24):null,td:pts(25),fl:pts(72)})};}
 // pull the roster in and adopt the league's scoring and lineup slots
 async function syncLeague(cfg,quiet,lg){
   const r=cfg.src==='sleeper'?await slpSync(cfg):await espnSync(cfg,lg);
   S.mine=[...new Set(r.roster)];
   if(Object.values(r.slots).some(Boolean))S.slots=r.slots;
-  if(r.rec!=null)S.scoring=r.rec>=1?'ppr':r.rec>=.5?'half':'std';
-  if(r.passTD===4||r.passTD===6)S.passTD=r.passTD;
+  if(r.sc&&Object.keys(r.sc).length){S.sc={...SC(),...r.sc};syncFmt();}
   S.league={...cfg,leagueName:r.leagueName,teamName:r.teamName,starters:r.starters,taken:r.taken,skipped:r.skipped,synced:Date.now(),week:SD.week};
   _lp=null;save();if(!quiet)toast(`Synced ${r.roster.length} players from ${SRC_NAME[cfg.src]}`);render();}
 // your league lineup vs the suggested one: who to swap in
@@ -1443,7 +1476,7 @@ function autoSync(){const L=S.league;if(!L||LC.busy||Date.now()-L.synced<15*6e4)
 const LIVE={games:new Map(),stats:new Map(),dst:new Map(),done:new Set(),slp:null,any:false,at:0,timer:null};
 async function liveSleeper(){const d=await getJ(`https://api.sleeper.app/stats/nfl/${lseason()}/${SD.week}?season_type=regular&${['QB','RB','WR','TE','K','DEF'].map(p=>'position[]='+p).join('&')}`);
   const m=new Map();for(const e of d||[]){const pl=e.player,st=e.stats||{};if(!pl)continue;
-    const k=nkey(((pl.first_name||'')+' '+(pl.last_name||'')).trim(),pl.position);m.set(k,{ppr:st.pts_ppr||0,rec:st.rec||0,ptd:st.pass_td||0,team:e.team});}
+    const k=nkey(((pl.first_name||'')+' '+(pl.last_name||'')).trim(),pl.position);m.set(k,{ppr:st.pts_ppr||0,rec:st.rec||0,ptd:st.pass_td||0,py:st.pass_yd||0,pint:st.pass_int||0,ry:st.rush_yd||0,rtd:st.rush_td||0,recy:st.rec_yd||0,rectd:st.rec_td||0,fl:st.fum_lost||0,pos:pl.position==='DEF'?'DST':pl.position,team:e.team});}
   if(!m.size)throw new Error('empty');LIVE.slp=m;}
 const ESB='https://site.api.espn.com/apis/site/v2/sports/football/nfl';
 const espnAb=a=>({WSH:'WAS'}[a]||a);
@@ -1481,7 +1514,7 @@ function liveOf(p){if(!p||!p.team||!LIVE.games.size)return null;const g=LIVE.gam
   if(LIVE.slp){const x=LIVE.slp.get(p.key);return {pts:x?Math.round(wpts(x)*10)/10:0,g,src:'sleeper'};}
   if(p.pos==='DST'){const d=LIVE.dst.get(p.team);if(!d)return null;pts=d.sack+2*d.int+2*d.fr+6*d.td+paPts(d.pa);}
   else{const x=LIVE.stats.get(p.key);if(x&&x.team!==p.team)return null;
-    if(x)pts=p.pos==='K'?x.kp:x.py*.04+x.ptd*S.passTD-2*x.int+.1*(x.ry+x.recy)+6*(x.rtd+x.rectd+x.ret)+recPts()*x.rec-2*x.fl;
+    if(x){const c=SC();pts=p.pos==='K'?x.kp:x.py/c.py+x.ptd*c.ptd+c.int*x.int+(x.ry+x.recy)/c.yd+c.td*(x.rtd+x.rectd)+6*x.ret+(c.rec+(p.pos==='TE'?c.te:0))*x.rec+c.fl*x.fl;}
     else if(!LIVE.done.has(g.id)&&g.state==='post')return null;}
   return {pts:Math.round(pts*10)/10,g};}
 function liveRefresh(){const b=$('#t-home');if(b)b.classList.toggle('live',LIVE.any);
@@ -1506,7 +1539,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now(
 ui.homePos='QB';
 function renderHome(){
   const wk=S.week,live=wk===SD.week,lw=Math.min(wk,SD.week)-1,i4=['QB','RB','WR','TE'];
-  const sc={ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring];
+  const sc=scName();
   const pname=p=>PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name);
   const oppLine=p=>onBye(p)?'Bye':oppText(p,wk)+oppRankTag(p,wk);
   // hero
@@ -1617,11 +1650,11 @@ document.querySelector('table.rostbl thead').onclick=e=>{const th=e.target.close
 function sortCmp(A,B,dir){const na=A==null||!Number.isFinite(A),nb=B==null||!Number.isFinite(B);if(na&&nb)return 0;if(na)return 1;if(nb)return -1;return dir*(B-A);}
 function render(){
   document.querySelectorAll('.mine-cb').forEach(c=>c.checked=!!ui.mineOnly);document.querySelectorAll('.mine-n').forEach(n=>n.textContent=S.mine.length?`(${S.mine.length})`:'');
-  document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
-  $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
+  document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',{ppr:1,half:.5,std:0}[b.dataset.v]===SC().rec));
+  $('#weekIn').value=S.week;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));
-  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
-  if(ui.tab==='home')renderHome();renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();if(ui.tab==='acc')renderAcc();if(ui.tab==='trade')renderTrade();if(ui.tab==='dvp')renderDvp();renderModel();
+  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model','settings'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  if(ui.tab==='home')renderHome();if(ui.tab==='settings')renderSettings();renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();if(ui.tab==='acc')renderAcc();if(ui.tab==='trade')renderTrade();if(ui.tab==='dvp')renderDvp();renderModel();
 }
 
 // ---- site projections ----
@@ -1657,7 +1690,7 @@ function weatherText(w){if(!w||w.wind==null)return '';const bits=[Math.round(w.t
 function vegasCell(p){const g=gameOf(p);if(!g||g.implied==null)return '<span class="muted">—</span>';const w=g.weather;
   const windy=w&&w.wind>=15;return `${n1(g.implied)}<span class="subn">${g.spread>0?'+':''}${g.spread} · O/U ${g.total}${windy?' · '+Math.round(w.wind)+' mph':''}</span>`;}
 function xfpOf(p){const a=advOf(p.key);if(!a||!a.g||!['RB','WR','TE'].includes(p.pos))return null;
-  const rp=recPts(),x=a.xRec*rp+.1*(a.xRecYd+a.xRushYd)+6*(a.xRecTd+a.xRushTd);
+  const c=SC(),rp=c.rec+(p.pos==='TE'?c.te:0),x=a.xRec*rp+(a.xRecYd+a.xRushYd)/c.yd+c.td*(a.xRecTd+a.xRushTd);
   const s=p.s,act=s.rec*rp+.1*(s.rec_yd+s.rush_yd)+6*(s.rec_td+s.rush_td);
   return {tot:x,pg:x/a.g,actPg:p.gp?act/p.gp:0,fpoe:p.gp?act/p.gp-x/a.g:0};}
 const SITES=(function(){
@@ -1673,10 +1706,13 @@ const SITES=(function(){
 const hasFP=SITES.some(r=>r.fp);
 ui.posS='All';ui.sortS='avg';ui.q='';
 // FantasyPros and CBS publish PPR only; other formats subtract the player's catches per game
-function pprConv(r,src){const x=r[src];if(!x)return null;if(S.scoring==='ppr'||r.pos==='K'||r.pos==='DST'||r.pos==='QB')return x.ppr;
-  const s=PL.get(r.key),rpg=s&&s.gp?s.s.rec/s.gp:0;return Math.max(0,x.ppr-(S.scoring==='half'?.5:1)*rpg);}
+// outside projections are published as totals, so custom rules are applied with the player's per-game stats this season
+function siteAdj(r,fromFmt){const p=PL.get(r.key);if(!p||!p.gp||r.pos==='K'||r.pos==='DST')return 0;const s=p.s,g=p.gp;
+  const c={rec:s.rec/g,py:s.pass_yd/g,ptd:s.pass_td/g,pint:s.pass_int/g,ry:s.rush_yd/g,rtd:s.rush_td/g,recy:s.rec_yd/g,rectd:s.rec_td/g,fl:s.fum_lost/g};
+  return scDelta(c,r.pos,true)+(SC().rec-{ppr:1,half:.5,std:0}[fromFmt])*c.rec;}
+function pprConv(r,src){const x=r[src];if(!x)return null;return Math.max(0,x.ppr+siteAdj(r,'ppr'));}
 const fpPts=r=>pprConv(r,'fp');
-function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]?r[s][S.scoring]:null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
+function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]&&r[s][S.scoring]!=null?Math.max(0,r[s][S.scoring]+siteAdj(r,S.scoring)):null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
   const xs=Object.values(v).filter(x=>x!=null);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
 // ---- past weeks (saved pregame projections + actual points), loaded when picked ----
 function loadPastWeek(w,cb){window.PASTWK=window.PASTWK||{};if(PASTWK[w])return cb();
@@ -1700,7 +1736,7 @@ function renderSites(){
   if(past&&!(window.PASTWK&&PASTWK[wk])){$('#sitesBody').innerHTML='<tr><td colspan="12" class="muted">Loading…</td></tr>';loadPastWeek(wk,renderSites);return;}
   $('#sitesWk').textContent=wk;
   if(past){const P=PASTWK[wk];
-    $('#sitesNote').textContent=P.failed?'That week could not be loaded.':`Saved right before each kickoff · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring · Scored is what each player actually put up.${P.backfilled?' This week was rebuilt afterward from what was known at the time, so only Sleeper and this site\'s model are shown.':''}`;
+    $('#sitesNote').textContent=P.failed?'That week could not be loaded.':`Saved right before each kickoff · ${scName()} scoring · Scored is what each player actually put up.${P.backfilled?' This week was rebuilt afterward from what was known at the time, so only Sleeper and this site\'s model are shown.':''}`;
     $('#yahooNote').hidden=true;}
   else $('#yahooNote').hidden=hasFP;
   if(!past)$('#sitesNote').textContent=`Updated ${SD.pulled||''}`;
@@ -1745,7 +1781,7 @@ function ownOf(key){const e=AD.ecr&&AD.ecr[key];if(e&&e[8]!=null)return {pct:e[8
 // Every player with a projection this week: real players use the full model; players without stats use the site average
 let _lp=null,_lpKey='';
 function lineupPool(){
-  const ck=S.week+'|'+S.scoring+'|'+S.passTD+'|'+JSON.stringify(S.w);if(_lp&&_lpKey===ck)return _lp;
+  const ck=S.week+'|'+scKey()+'|'+JSON.stringify(S.w);if(_lp&&_lpKey===ck)return _lp;
   const m=new Map();
   for(const p of realPlayers()){const w=weekProj(p);m.set(p.key,{key:p.key,p,name:p.name,pos:p.pos,team:p.team,proj:w.proj,real:true});}
   if(S.week===SD.week)for(const r of SITES){if(m.has(r.key))continue;const v=siteVals(r);if(!v.n)continue;
@@ -1822,7 +1858,7 @@ const ESPNR=(function(){const m={};(SD.espnRanks||'').split('\n').filter(Boolean
 const CBSX=(AD.cbs&&AD.cbs.experts)||[];
 let _tools=null,_toolsKey='';
 function toolTable(){
-  const ck=S.week+'|'+S.scoring+'|'+S.passTD+'|'+JSON.stringify(S.w);if(_tools&&_toolsKey===ck)return _tools;
+  const ck=S.week+'|'+scKey()+'|'+JSON.stringify(S.w);if(_tools&&_toolsKey===ck)return _tools;
   const sameWk=S.week===SD.week;
   const rankBy=(vals)=>{const byPos={};for(const [k,pos,v] of vals){if(v==null||!(v>0))continue;(byPos[pos]=byPos[pos]||[]).push([k,v]);}
     const out={};for(const arr of Object.values(byPos)){arr.sort((a,b)=>b[1]-a[1]);arr.forEach(([k,v],i)=>out[k]={rank:i+1,val:v});}return out;};
@@ -1883,7 +1919,8 @@ const PL=new Map();
   (STD.rows||'').split('\n').filter(Boolean).forEach(l=>{
     const a=l.split('|'),s={};
     F.forEach((f,i)=>{if(i>3&&f!=='weeks')s[f]=a[i]===''?0:+a[i];});
-    const weeks=a[a.length-1].split(';').map(w=>{if(w==='-')return null;const [p,r,t,sn]=w.split(':');return {ppr:+p,rec:+r,ptd:+t,snap:sn===''?null:+sn};});
+    const wpos=a[1]==='DEF'?'DST':a[1];
+    const weeks=a[a.length-1].split(';').map(w=>{if(w==='-')return null;const [p,r,t,sn,py,pi,ry,rt,cy,ct,fl]=w.split(':');return {ppr:+p,rec:+r,ptd:+t,snap:sn===''?null:+sn,py:+py||0,pint:+pi||0,ry:+ry||0,rtd:+rt||0,recy:+cy||0,rectd:+ct||0,fl:+fl||0,pos:wpos};});
     const pos=a[1]==='DEF'?'DST':a[1];
     const p={key:nkey(a[0],a[1]),name:a[0],pos,team:a[2],gp:+a[3],s,weeks,d:a[1]==='DEF'?dst[a[2]]||null:null};
     PL.set(p.key,p);
@@ -1891,9 +1928,10 @@ const PL=new Map();
 })();
 const SITEBY=new Map(SITES.map(r=>[r.key,r]));
 const adj=()=>({ppr:0,half:.5,std:1}[S.scoring]);
-const tot=p=>p.s.pts_ppr-adj()*p.s.rec+(S.passTD-4)*p.s.pass_td;
+const compS=s=>({rec:s.rec,py:s.pass_yd,ptd:s.pass_td,pint:s.pass_int,ry:s.rush_yd,rtd:s.rush_td,recy:s.rec_yd,rectd:s.rec_td,fl:s.fum_lost});
+const tot=p=>p.s.pts_ppr+scDelta(compS(p.s),p.pos);
 const ppg=p=>p.gp?tot(p)/p.gp:0;
-const wpts=w=>w?w.ppr-adj()*w.rec+(S.passTD-4)*w.ptd:null;
+const wpts=w=>w?w.ppr+scDelta(w,w.pos):null;
 const dv=(a,b)=>b?a/b:null;
 const pct=v=>v==null?'—':(v*100).toFixed(1)+'%';
 const n1=v=>v==null?'—':(Math.round(v*10)/10).toFixed(1);
@@ -1998,7 +2036,7 @@ function spark(p){// last 4 finished weeks (the current week is left out)
   return `<span class="spark" aria-label="Weekly points">${p.weeks.map((w,i)=>[w,i]).slice(0,Math.max(0,SD.week-1)).slice(-4).map(([w,i])=>w?`<i style="height:${Math.max(2,(wpts(w)/mx)*22)}px" title="Wk ${i+1}: ${n1(wpts(w))}"></i>`:'<i class="dnp" title="Did not play"></i>').join('')}</span>`;}
 ui.posT='All';ui.sortT='ppg';ui.qT='';
 function renderStats(){
-  $('#statsNote').textContent=`${STD.through||''} · ${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]} scoring · Source: Sleeper`;
+  $('#statsNote').textContent=`${STD.through||''} · ${scName()} scoring · Source: Sleeper`;
   chips($('#posStats'),ui.posT,'posT');
   const q=ui.qT.trim().toLowerCase();
   const use=p=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);return m?m.f(p):null;};
@@ -2040,7 +2078,7 @@ function weekCard(p,projV){
       <div class="wklabs">${weeks.map(lab).join('')}</div>
     </div></div></div>`;}
 function boxScore(p){
-  const g=p.gp||1,sc={ppr:'PPR',half:'Half',std:'Std'}[S.scoring];
+  const g=p.gp||1,sc=scName(true);
   // [label, value for any player, options] — low: fewer is better; pg: per-game value; noPg: no per-game cell; show: custom display
   const d=q=>q.d||{};
   const SPEC={
@@ -2136,7 +2174,7 @@ function renderPlayer(){
      ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
-     <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${tr.tot}</b> · `:''}${{ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring]}</span></div>
+     <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${tr.tot}</b> · `:''}${scName()}</span></div>
      ${sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${tr.snap}</b> · `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
      <div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection (bye or out)'}</span></div>
      <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${tr.cons}</b> · `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
@@ -2161,9 +2199,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)r
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
 
 // events
-$('#scoringSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.scoring=b.dataset.v;save();render();};
+$('#scoringSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.sc={...SC(),rec:{ppr:1,half:.5,std:0}[b.dataset.v]};syncFmt();save();render();};
 $('#weekIn').oninput=e=>{const v=Math.round(n(e.target.value));if(v>=1&&v<=18){S.week=v;save();render();}};
-$('#passTdIn').onchange=e=>{S.passTD=n(e.target.value);save();render();};
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);};
 // Browser history: every tab and player page gets its own address, so Back and Forward move around the site
 // (and a link like …/#player=puka-nacua opens straight to that page)
@@ -2181,7 +2218,7 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');i
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});});})();
 // Features that are built but switched off. To bring one back, change false to true.
 const FEATURES={trade:false};
-const TABS=['home','stats','sites','ros','week','lineup','dvp','trade','acc','model'].filter(t=>FEATURES[t]!==false);
+const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model'].filter(t=>FEATURES[t]!==false);
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
@@ -2215,6 +2252,23 @@ render();
 renderTicker();
 autoSync();
 liveTick();
+// ---- settings: scoring rules ----
+function scFields(){return [['rec','Per catch','',.5],['te','TE catch bonus','TE premium',.25],['ptd','Passing TD','',1],['int','Interception','',1],
+  ['py','Pass yds per pt','25 = 0.04 a yard',1],['td','Rush / rec TD','',1],['yd','Rush / rec yds per pt','10 = 0.1 a yard',1],['fl','Fumble lost','',1]];}
+function renderSettings(){const el=$('#setScoring');if(!el)return;const c=SC(),pre=scPreset(),dflt=JSON.stringify(c)===JSON.stringify(DEF_SC);
+  if(el.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'){   // typing: refresh only the labels
+    el.querySelector('.sc-name').textContent=scName()+' scoring';el.querySelectorAll('[data-pre]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===pre));
+    el.querySelector('[data-screset]').disabled=dflt;return;}
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline"><h2>Scoring rules</h2><b class="sc-name mono">${scName()} scoring</b></div>
+    <p class="muted">Match your league. Projections, stats, the lineup tools and live points all use these.</p>
+    <div class="chips" role="group" aria-label="Presets">${[['ppr','PPR'],['half','Half-PPR'],['std','Standard']].map(([k,l])=>`<button class="chip" data-pre="${k}" aria-pressed="${pre===k}">${l}</button>`).join('')}</div>
+    <div class="form-grid sc-grid">${scFields().map(([k,l,h,st])=>`<div class="field"><label class="label" for="sc-${k}">${l}</label><input id="sc-${k}" type="number" inputmode="decimal" step="${st}" value="${c[k]}" data-sc="${k}"><small class="note">${h?h+' · ':''}default ${DEF_SC[k]}</small></div>`).join('')}</div>
+    <div class="btns"><button class="btn sm" data-screset ${dflt?'disabled':''}>Reset to default</button></div>
+    <p class="note">Default is standard PPR. Kickers and defenses always use standard scoring. ESPN, CBS and FantasyPros only publish point totals, so for their numbers the site applies your rules using each player's per-game stats this season.${S.league?` Connecting or syncing your ${SRC_NAME[S.league.src]} league copies its scoring here.`:''}</p>`;}
+document.addEventListener('input',e=>{const t=e.target;if(!t.matches||!t.matches('[data-sc]'))return;const v=parseFloat(t.value);if(!Number.isFinite(v))return;
+  if((t.dataset.sc==='py'||t.dataset.sc==='yd')&&v<=0)return;S.sc={...SC(),[t.dataset.sc]:v};syncFmt();save();render();});
+document.addEventListener('click',e=>{const p=e.target.closest('[data-pre]');if(p&&p.closest('#setScoring')){S.sc={...PRESETS[p.dataset.pre]};syncFmt();save();render();return;}
+  if(e.target.closest('[data-screset]')){S.sc={...DEF_SC};syncFmt();save();render();toast('Scoring reset to standard PPR');}});
 // ---- theme ----
 (function(){const k=KEY+'.theme',mq=matchMedia('(prefers-color-scheme: dark)');
   const pref=()=>{try{return localStorage.getItem(k)||'auto';}catch(_){return 'auto';}};

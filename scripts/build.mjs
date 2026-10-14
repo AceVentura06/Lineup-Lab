@@ -108,7 +108,9 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     for (const f of F) p.t[f] = (p.t[f] || 0) + (s[f] || 0);
     const tt = team[w + e.team] || {};
     for (const f of TF) p.tm[f] = (p.tm[f] || 0) + (tt[f] || 0);
-    p.w[w] = [+(s.pts_ppr || 0).toFixed(1), s.rec || 0, s.pass_td || 0, s.tm_off_snp ? Math.round(100 * (s.off_snp || 0) / s.tm_off_snp) : ''];
+    // points, catches, pass TDs, snap %, then the rest of the stat line so the site can apply custom scoring
+    p.w[w] = [+(s.pts_ppr || 0).toFixed(1), s.rec || 0, s.pass_td || 0, s.tm_off_snp ? Math.round(100 * (s.off_snp || 0) / s.tm_off_snp) : '',
+      s.pass_yd || 0, s.pass_int || 0, s.rush_yd || 0, s.rush_td || 0, s.rec_yd || 0, s.rec_td || 0, s.fum_lost || 0];
   }
   const rows = Object.values(P).filter(p => p.t.pts_ppr >= 3 || p.pos === 'K' || p.pos === 'DEF')
     .map(p => [p.name, p.pos, p.team, p.gp, ...F.map(f => r1(p.t[f])), ...TF.map(f => r1(p.tm[f])),
