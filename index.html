@@ -283,14 +283,13 @@ td.scol{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 .olink:hover{text-decoration:none;filter:brightness(.8)}.olink:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 tr.dvpdetail>td{padding:4px 8px 14px;background:var(--surface-2)}
 tr.dvpdetail .card{margin:0}
-/* the team breakdown is tinted with the team's color (mixed with the page surface, so it works in dark mode too) */
-tr.dvpdetail .card.teamed{background:color-mix(in srgb,var(--team) 12%,var(--surface))}
-tr.dvpdetail .card.teamed .tbl-wrap{background:color-mix(in srgb,var(--team) 5%,var(--surface))}
-tr.dvpdetail .card.teamed th{background:color-mix(in srgb,var(--team) 18%,var(--surface))}
-tr.dvpdetail .card.teamed tr+tr td{border-top-color:color-mix(in srgb,var(--team) 18%,var(--line))}
-:root[data-theme="dark"] tr.dvpdetail .card.teamed{background:color-mix(in srgb,var(--team-hi) 14%,var(--surface))}
-:root[data-theme="dark"] tr.dvpdetail .card.teamed .tbl-wrap{background:color-mix(in srgb,var(--team-hi) 6%,var(--surface))}
-:root[data-theme="dark"] tr.dvpdetail .card.teamed th{background:color-mix(in srgb,var(--team-hi) 20%,var(--surface))}
+/* the whole team breakdown is tinted with the team's primary color (mixed with the page surface, so it works in dark mode too) */
+tr.dvpdetail>td.dvp-team{--dvp-a:30%;background:color-mix(in srgb,var(--team) var(--dvp-a),var(--surface))}
+:root[data-theme="dark"] tr.dvpdetail>td.dvp-team{--dvp-a:55%}
+tr.dvpdetail .card.teamed{background:transparent;box-shadow:none;border-top-color:var(--team)}
+tr.dvpdetail .card.teamed .tbl-wrap{background:color-mix(in srgb,var(--team) 14%,var(--surface))}
+tr.dvpdetail .card.teamed th{background:color-mix(in srgb,var(--team) 32%,var(--surface))}
+tr.dvpdetail .card.teamed tr+tr td{border-top-color:color-mix(in srgb,var(--team) 30%,var(--line))}
 .mpill{display:inline-flex;flex-direction:column;vertical-align:middle}
 /* ===== Prime Time broadcast layer ===== */
 /* sticky, joined top area: header + ticker + tabs, edge to edge; contents line up with the page */
@@ -1358,7 +1357,7 @@ function renderDvp(){const D=dvpData(),sc=scName();
   const rows=[...D.list].sort((a,b)=>dir*(k==='team'?a.t.localeCompare(b.t):b.avg[+k]-a.avg[+k]));
   document.querySelectorAll('table.dvp th.sortable').forEach(th=>String(th.dataset.sort)===String(k)?th.setAttribute('aria-sort',(k==='team')===(dir===1)?'ascending':'descending'):th.removeAttribute('aria-sort'));
   const t=ui.dvpTeam&&D.by[ui.dvpTeam];
-  const detail=t=>`<tr class="dvpdetail"><td colspan="8"><div class="card teamed" style="${teamVars(t.t)}"><div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center">
+  const detail=t=>`<tr class="dvpdetail"><td colspan="8" class="dvp-team" style="${teamVars(t.t)}"><div class="card teamed" style="${teamVars(t.t)}"><div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center">
       <h3>${esc(TEAM_NAMES[t.t]||t.t)}: points allowed by week</h3><button class="btn sm" id="dvpClose" type="button">Close</button></div>
     <div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl" style="min-width:640px"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
     ${t.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${esc(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=t.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=t.avg[i]*.75?'color:var(--bad)':''}">${n1(x)}</td>`).join('')}</tr>`).join('')}
