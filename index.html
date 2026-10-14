@@ -418,6 +418,9 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .lc-src{display:flex;gap:6px}
 .lc-src button{all:unset;cursor:pointer;padding:8px 16px;border-radius:4px;font-family:var(--f-display);font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-2);color:#3A475C}
 .lc-src button[aria-pressed="true"]{background:var(--gold);color:var(--accent-ink)}
+.lc-src button{display:inline-flex;align-items:center;gap:8px}
+.lc-logo{width:20px;height:20px;border-radius:4px;background:#fff;padding:1px;box-sizing:content-box}
+.lc-warn{background:var(--warn-soft);color:#6B4300;border-radius:4px;padding:10px 12px;font-size:.92rem;line-height:1.45}
 .lc-form{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
 .lc-form .field{flex:1 1 260px}
 .lc-pick{display:flex;flex-wrap:wrap;gap:8px}
@@ -1280,7 +1283,7 @@ async function slpSync(cfg){
 // ESPN: public league id → teams → your roster
 const espnUrl=id=>`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${lseason()}/segments/0/leagues/${id}?view=mTeam&view=mRoster&view=mSettings`;
 const espnId=v=>{v=String(v||'').trim();const m=v.match(/leagueId=(\d+)/i)||v.match(/^(\d{3,12})$/);return m?m[1]:null;};
-async function espnLeague(id){let d;try{d=await getJ(espnUrl(id));}catch(e){throw Object.assign(e,{msg:'ESPN wouldn\'t share this league. ESPN only lets outside sites read <b>public</b> leagues. If yours is private, your league manager can turn on "Make League Viewable to Public" in League Settings, or you can add your players by hand below. Also double-check the league ID.'});}
+async function espnLeague(id){let d;try{d=await getJ(espnUrl(id));}catch(e){throw Object.assign(e,{msg:'ESPN wouldn\'t share this league. It\'s probably private (see above), or the league ID is off.'});}
   const mem=new Map((d.members||[]).map(m=>[m.id,m.displayName||((m.firstName||'')+' '+(m.lastName||'')).trim()]));
   return {data:d,name:(d.settings&&d.settings.name)||'ESPN league',teams:(d.teams||[]).map(t=>({id:t.id,name:t.name||`${t.location||''} ${t.nickname||''}`.trim()||('Team '+t.id),abbrev:t.abbrev||'',owner:mem.get(t.primaryOwner||(t.owners||[])[0])||''}))};}
 function espnKey(pl){if(!pl)return null;if(pl.defaultPositionId===16)return dstKeyOf(ESPN_TEAM[pl.proTeamId]);const k=nkey(pl.fullName||'',{1:'QB',2:'RB',3:'WR',4:'TE',5:'K'}[pl.defaultPositionId]||'');return PL.has(k)?k:null;}
@@ -1318,6 +1321,8 @@ function checkHTML(c,max){const L=S.league,src=SRC_NAME[L.src];
   const nm=x=>x.real&&PL.has(x.key)?`<button class="plink" data-k="${esc(x.key)}">${esc(x.name)}</button>`:esc(x.name);
   return `<div class="lc-chk">${c.moves.slice(0,max||99).map(m=>`<div class="lc-mv"><span>Start <span class="pos ${m.inP.pos}">${m.inP.pos}</span> ${nm(m.inP)} <span class="muted">${f1(m.inP.proj)}</span></span><span>${m.outP?`over ${nm(m.outP)} <span class="muted">${f1(m.outP.proj)}${m.outP.proj<=0?' · not playing':''}</span>`:'in an empty slot'}</span><span class="gain">+${f1(m.gain)}</span></div>`).join('')}
     ${max&&c.moves.length>max?`<span class="note">+${c.moves.length-max} more on Suggested Lineup</span>`:''}<p class="note">Make the swap${c.moves.length>1?'s':''} in the ${src} app: outside sites can read lineups but can't change them.</p></div>`;}
+// each service's own icon, via Google's favicon service; hidden if it doesn't load
+const lcLogo=d=>`<img class="lc-logo" src="https://www.google.com/s2/favicons?domain=${d}&sz=64" alt="" width="20" height="20" referrerpolicy="no-referrer" onerror="this.remove()">`;
 function renderConnect(){const el=$('#luConnect');if(!el)return;const L=S.league;
   if(L){const c=lineupCheck();
     el.innerHTML=`<div class="lc-on"><div><h3>Your league</h3><div class="lc-badge" style="margin-top:6px"><span class="lc-dot"></span>${esc(L.teamName)} · ${esc(L.leagueName)} on ${SRC_NAME[L.src]}</div>
@@ -1330,11 +1335,12 @@ function renderConnect(){const el=$('#luConnect');if(!el)return;const L=S.league
     :`<div class="lc-err">No ${lseason()} leagues found for that Sleeper account.</div>`;
   else if(o&&o.kind==='teams')body=`<p class="note">${esc(o.lg.name)}: which team is yours?</p><div class="lc-pick">${o.lg.teams.map((t,i)=>`<button data-lc="pickT" data-i="${i}"><b>${esc(t.name)}</b><span>${esc(t.owner||t.abbrev)}</span></button>`).join('')}</div>`;
   el.innerHTML=`<div><h3>Connect your league</h3><p class="note" style="margin-top:4px">Bring in your roster, scoring and lineup slots, then see which lineup changes the projections suggest. Read-only: nothing is changed in your league.</p></div>
-    <div class="lc-src" role="group" aria-label="Fantasy site"><button data-lc="src" data-v="sleeper" aria-pressed="${src==='sleeper'}">Sleeper</button><button data-lc="src" data-v="espn" aria-pressed="${src==='espn'}">ESPN</button></div>
+    <div class="lc-src" role="group" aria-label="Fantasy site"><button data-lc="src" data-v="sleeper" aria-pressed="${src==='sleeper'}">${lcLogo('sleeper.com')}Sleeper</button><button data-lc="src" data-v="espn" aria-pressed="${src==='espn'}">${lcLogo('fantasy.espn.com')}ESPN</button></div>
+    ${src==='espn'?`<div class="lc-warn" role="note"><b>Public ESPN leagues only.</b> ESPN doesn't let outside sites read private leagues. If yours is private, your league manager can turn on "Make League Viewable to Public" in League Settings, or you can add your players by hand below.</div>`:''}
     <form class="lc-form" id="lcForm">${src==='sleeper'
       ?`<div class="field"><label class="label" for="lcIn">Sleeper username</label><input id="lcIn" autocomplete="off" spellcheck="false" placeholder="Your Sleeper username" value="${esc(LC.inSleeper||'')}"></div><button class="btn primary" type="submit" ${LC.busy?'disabled':''}>${LC.busy?'Looking…':'Find my leagues'}</button>`
       :`<div class="field"><label class="label" for="lcIn">ESPN league ID or link</label><input id="lcIn" autocomplete="off" spellcheck="false" inputmode="url" placeholder="e.g. 12345678, or paste your league's link" value="${esc(LC.inEspn||'')}"></div><button class="btn primary" type="submit" ${LC.busy?'disabled':''}>${LC.busy?'Looking…':'Find teams'}</button>`}</form>
-    ${src==='espn'&&!o?'<p class="note">The league ID is the number after <span class="mono">leagueId=</span> in your league\'s web address. ESPN only shares public leagues with outside sites.</p>':''}
+    ${src==='espn'&&!o?'<p class="note">The league ID is the number after <span class="mono">leagueId=</span> in your league\'s web address.</p>':''}
     ${LC.err?`<div class="lc-err">${LC.err}</div>`:''}${body}`;}
 async function lcRun(fn){LC.busy=true;LC.err='';renderConnect();try{await fn();}catch(e){LC.err=e.msg||'Couldn\'t reach '+SRC_NAME[LC.src]+'. Check your connection and try again.';}LC.busy=false;renderConnect();if(ui.tab==='home')renderHome();}
 document.addEventListener('submit',e=>{if(e.target.id!=='lcForm')return;e.preventDefault();const v=$('#lcIn').value.trim();if(!v)return;
