@@ -137,6 +137,7 @@ th.sortable{cursor:pointer;user-select:none}
 th.sortable:hover{color:var(--ink)}
 th.sortable[aria-sort]{color:var(--ink)}
 th.sortable[aria-sort]::after{content:" ▾"}
+th.sortable[aria-sort="ascending"]::after{content:" ▴"}
 td.top{color:var(--turf);font-weight:700}
 td.none{color:var(--muted)}
 .srange{position:relative;height:18px;min-width:130px}
@@ -1038,8 +1039,9 @@ function oppRankTag(r,wk){const sc=(SCHED[r.team]||[])[wk-1];if(!sc||sc==='BYE')
 function renderDvp(){const D=dvpData(),sc={ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring];
   $('#dvpNote').textContent=`Fantasy points each defense has allowed per game to each position this season. Tap a column to sort, or a team to see it week by week.`;
   const k=ui.dvpSort??'team';
-  const rows=[...D.list].sort((a,b)=>k==='team'?a.t.localeCompare(b.t):b.avg[+k]-a.avg[+k]);
-  document.querySelectorAll('table.dvp th.sortable').forEach(th=>String(th.dataset.sort)===String(k)?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
+  const dir=ui.dvpDir||1;   // 1 = default order (A→Z for team, most allowed first for positions); -1 = reversed
+  const rows=[...D.list].sort((a,b)=>dir*(k==='team'?a.t.localeCompare(b.t):b.avg[+k]-a.avg[+k]));
+  document.querySelectorAll('table.dvp th.sortable').forEach(th=>String(th.dataset.sort)===String(k)?th.setAttribute('aria-sort',(k==='team')===(dir===1)?'ascending':'descending'):th.removeAttribute('aria-sort'));
   const t=ui.dvpTeam&&D.by[ui.dvpTeam];
   const detail=t=>`<tr class="dvpdetail"><td colspan="8"><div class="card teamed" style="${teamVars(t.t)}"><div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center">
       <h3>${esc(TEAM_NAMES[t.t]||t.t)}: points allowed by week</h3><button class="btn sm" id="dvpClose" type="button">Close</button></div>
@@ -1054,7 +1056,7 @@ function renderDvp(){const D=dvpData(),sc={ppr:'PPR',half:'Half-PPR',std:'Standa
     :'<tr><td colspan="8" class="muted">No games played yet this season.</td></tr>';
   if(!t)return;
   $('#dvpClose').onclick=()=>{ui._dvpScroll=true;go('dvp',null);};}
-document.addEventListener('click',e=>{const th=e.target.closest('table.dvp th.sortable');if(th){ui.dvpSort=th.dataset.sort;renderDvp();return;}
+document.addEventListener('click',e=>{const th=e.target.closest('table.dvp th.sortable');if(th){const k=th.dataset.sort;if(String(ui.dvpSort??'team')===k)ui.dvpDir=-(ui.dvpDir||1);else{ui.dvpSort=k;ui.dvpDir=1;}renderDvp();return;}
   const tr=e.target.closest('tr.dvprow');if(tr){lastDvp=tr.dataset.t;ui._dvpScroll=true;go('dvp',ui.dvpTeam===tr.dataset.t?null:tr.dataset.t);return;}
   const ol=e.target.closest('.olink');if(ol){if(ui.tab!=='dvp')ui.prev=ui.tab;go('dvp',ol.dataset.dvp);}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('tr.dvprow'))e.target.click();});
@@ -1079,6 +1081,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-star]');if
   const i=S.mine.indexOf(k);if(i>=0)S.mine.splice(i,1);else S.mine.push(k);save();render();});
 document.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('.mine-cb')){ui.mineOnly=e.target.checked;render();}});
 $('#wkSearch').oninput=e=>{ui.qW=e.target.value;renderWeek();};
+// sort helper: dir 1 = highest first, -1 = lowest first; players with no value always go last
+function sortCmp(A,B,dir){const na=A==null||!Number.isFinite(A),nb=B==null||!Number.isFinite(B);if(na&&nb)return 0;if(na)return 1;if(nb)return -1;return dir*(B-A);}
 function render(){
   document.querySelectorAll('.mine-cb').forEach(c=>c.checked=!!ui.mineOnly);document.querySelectorAll('.mine-n').forEach(n=>n.textContent=S.mine.length?`(${S.mine.length})`:'');
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
@@ -1178,8 +1182,9 @@ function renderSites(){
       ...[...RP.values()].filter(p=>!SITEBY.has(p.key)).map(p=>({key:p.key,name:p.name,pos:p.pos,team:p.team,opp:''})).filter(match)
         .map(r=>{const ms=modelScored(r,RP);return {r,v:{espn:null,sleeper:null,cbs:null,fp:null,n:0,avg:null,min:0,max:0,spread:0,model:ms.model,scored:ms.scored,live:ms.live}};})];
   const key=ui.sortS==='scored'&&!rows.some(x=>x.v.scored!=null)?'avg':ui.sortS;
-  rows.sort((a,b)=>key==='spread'?b.v.spread-a.v.spread:((b.v[key]??-1)-(a.v[key]??-1)));
-  document.querySelectorAll('table.sites th.sortable').forEach(th=>th.dataset.sort===key?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
+  const dir=ui.dirS||1;
+  rows.sort((a,b)=>sortCmp(key==='spread'?a.v.spread:a.v[key],key==='spread'?b.v.spread:b.v[key],dir));
+  document.querySelectorAll('table.sites th.sortable').forEach(th=>th.dataset.sort===key?th.setAttribute('aria-sort',dir===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   const maxV=Math.max(1,...rows.slice(0,600).map(x=>x.v.max));
   const cell=(v,s,x)=>v[s]==null?'<td class="r num none">—</td>':`<td class="r num${x.n>1&&v[s]===x.max?' top':''}">${f1(v[s])}</td>`;
   $('#sitesBody').innerHTML=rows.length?rows.slice(0,600).map((x,i)=>{const {r,v}=x;
@@ -1196,7 +1201,7 @@ function renderSites(){
       <td>${agree}</td></tr>`}).join(''):`<tr><td colspan="12" class="muted">${ui.mineOnly?'No starred players here yet. Turn off "My team only" and tap ☆ next to your players.':'No players match. Try a different name or position.'}</td></tr>`;
 }
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
-document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortS=th.dataset.sort;renderSites();};
+document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if(ui.sortS===th.dataset.sort)ui.dirS=-(ui.dirS||1);else{ui.sortS=th.dataset.sort;ui.dirS=1;}renderSites();};
 
 // ---- suggested lineup ----
 const DEF_SLOTS={QB:1,RB:2,WR:2,TE:1,FLEX:1,SFLEX:0,K:1,DST:1};
@@ -1460,15 +1465,16 @@ function renderStats(){
   const use=p=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);return m?m.f(p):null;};
   let rows=[...PL.values()].filter(p=>(ui.posT==='All'||p.pos===ui.posT)&&(!ui.mineOnly||S.mine.includes(p.key))&&(!q||p.name.toLowerCase().includes(q)||p.team.toLowerCase()===q));
   const key={ppg:ppg,tot:tot,snap:p=>dv(p.s.off_snp,p.s.tm_off_snp),use:use,xfp:p=>xfpOf(p)?.pg??null}[ui.sortT];
-  rows.sort((a,b)=>(key(b)??-1)-(key(a)??-1));
-  document.querySelectorAll('table.dir th.sortable').forEach(th=>th.dataset.sort===ui.sortT?th.setAttribute('aria-sort','descending'):th.removeAttribute('aria-sort'));
+  const dir=ui.dirT||1;
+  rows.sort((a,b)=>sortCmp(key(a),key(b),dir));
+  document.querySelectorAll('table.dir th.sortable').forEach(th=>th.dataset.sort===ui.sortT?th.setAttribute('aria-sort',dir===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   $('#statsBody').innerHTML=rows.length?rows.slice(0,450).map((p,i)=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);const sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp);
     return `<tr><td class="rank">${i+1}</td><td style="white-space:nowrap">${starBtn(p.key)}<span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button> <span class="muted" style="font-size:.85rem">${esc(p.team)}</span></td>
     <td class="r num">${p.gp}</td><td class="r big">${n1(ppg(p))}</td><td class="r num">${n1(tot(p))}</td><td class="r num">${sn==null?'—':Math.round(sn*100)+'%'}</td>
     <td class="r num" title="${m?esc(m.l):''}">${m?m.fmt(m.f(p)):'—'} <span class="stub">${m?{rfp:'rush FP',rsh:'carries',tsh:'tgt share',fgp:'FG',to:'TO/g'}[m.k]:''}</span></td><td class="r num">${(()=>{const x=xfpOf(p);return x?n1(x.pg):'—'})()}</td><td>${spark(p)}</td></tr>`}).join(''):'<tr><td colspan="9" class="muted">No players match.</td></tr>';
 }
 $('#statSearch').oninput=e=>{ui.qT=e.target.value;renderStats();};
-document.querySelector('table.dir thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;ui.sortT=th.dataset.sort;renderStats();};
+document.querySelector('table.dir thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if(ui.sortT===th.dataset.sort)ui.dirT=-(ui.dirT||1);else{ui.sortT=th.dataset.sort;ui.dirT=1;}renderStats();};
 
 function weekChart(p){
   // right margin holds the average label so it never sits on top of the bars
