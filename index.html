@@ -376,7 +376,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .teamed .card,.teamed .metric{border-top:3px solid var(--t-accent);background:linear-gradient(180deg,color-mix(in srgb,var(--t-accent) 9%,var(--surface)),var(--surface) 140px)}
 .teamed .card h3,.teamed>div>h2{padding-left:10px;border-left:5px solid var(--t-accent)}
 .tile .tr{color:var(--gold)}
-.teamed .tile .tr{display:inline-block;background:var(--t-accent);color:var(--team-lo-ink);font-family:var(--f-display);font-size:1.15rem;font-weight:800;padding:1px 10px;margin-right:2px}
+.teamed .tile .tr{display:inline-block;background:var(--team-lo,var(--gold));color:#fff;font-family:var(--f-display);font-size:1.15rem;font-weight:800;padding:1px 10px;margin-right:2px}
 .teamed .chart .wbar{fill:var(--t-accent)}
 .teamed .chart .avg{stroke:var(--team-stripe)}
 .teamed .pbar i.hi{background:var(--t-accent)}
@@ -455,7 +455,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 :root[data-theme="dark"] .tabs button:hover:not([aria-selected="true"]){background:#2E3440;color:var(--ink)}
 :root[data-theme="dark"] .tabs button[aria-selected="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{color:#fff}
 :root[data-theme="dark"] .p-gold{background:#24304A;color:#AFC0E2}
-:root[data-theme="dark"] .rank,:root[data-theme="dark"] .star.on,:root[data-theme="dark"] .tile .tr,:root[data-theme="dark"] .hm-link,:root[data-theme="dark"] .hm-news a:hover,:root[data-theme="dark"] .tk-h{color:var(--gold-hi)}
+:root[data-theme="dark"] .rank,:root[data-theme="dark"] .star.on,:root[data-theme="dark"] .tile:not(.teamed .tile) .tr,:root[data-theme="dark"] .hm-link,:root[data-theme="dark"] .hm-news a:hover,:root[data-theme="dark"] .tk-h{color:var(--gold-hi)}
 :root[data-theme="dark"] .ticker .tk-h{color:#fff}
 :root[data-theme="dark"] .ticker .tk-tag{background:#0B0D10}
 :root[data-theme="dark"] .hm-hero{background:#0B0D10;box-shadow:0 0 0 1px var(--line)}
@@ -465,6 +465,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 :root[data-theme="dark"] .board select option{color:#E7EAEF;background:#1A1D23}
 /* team colors: brighter versions read on dark cards; bars use the team's lighter color */
 :root[data-theme="dark"] .teamed{--t-accent:color-mix(in srgb,var(--team-hi) 78%,#fff)}
+:root[data-theme="dark"] .teamed .tile .tr{box-shadow:0 0 0 1px rgba(255,255,255,.25)}
 :root[data-theme="dark"] .wkb.played{background:var(--team-hi,var(--gold));color:var(--team-hi-ink,#fff)}
 :root:not([data-theme="dark"]) .theme-dark-only{display:none}
 /* Settings */
@@ -2199,7 +2200,8 @@ function renderPlayer(){
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
      <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${tr.tot}</b> · `:''}${scName()}</span></div>
      ${sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${tr.snap}</b> · `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
-     <div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection (bye or out)'}</span></div>
+     ${(()=>{const me=realPlayers().find(x=>x.key===p.key),bye=me&&onBye(me),st=me?effStatus(me):null,out=!bye&&(st==='Out'||st==='IR');
+       return `<div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${bye?'Bye':out?(st==='IR'?'IR':'Out'):tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${bye?`${esc(TEAM_NAMES[p.team]||p.team)} are off this week`:out?(st==='IR'?'On injured reserve':'Ruled out this week'):tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection yet'}</span></div>`;})()}
      <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${tr.cons}</b> · `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
