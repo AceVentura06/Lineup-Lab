@@ -476,6 +476,13 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .sc-h{font-size:1.02rem;margin:4px 0 -4px;color:var(--muted)}
 .sc-chg input{box-shadow:inset 3px 0 0 var(--gold)}
 .btn[disabled]{opacity:.45;cursor:default}
+/* Buy low / sell high */
+.bs{display:flex;flex-direction:column;gap:10px}
+.bs-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.bs h4{margin:0;font-family:var(--f-display);font-size:1.05rem;text-transform:uppercase;letter-spacing:.03em}
+.bs-l{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.bs-l li{display:flex;gap:10px;align-items:center}.bs-n{flex:1;min-width:0}
+.bs-d{font-family:var(--f-mono);font-size:1rem}.bs-d.up{color:var(--good)}.bs-d.down{color:var(--bad)}
 /* League connect */
 .lc{display:flex;flex-direction:column;gap:12px}
 .lc-src{display:flex;gap:6px}
@@ -765,6 +772,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div><h2>Rest-of-season rankings</h2><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
+    <div class="card bs" id="rosBuySell"></div>
     <div class="tbl-wrap bigtbl"><table class="rostbl pin2">
       <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="games">Games left</th><th class="r sortable" data-sort="total">Total pts</th><th class="sortable" data-sort="pct">Vs. top at position</th><th>Tier</th></tr></thead>
       <tbody id="rosBody"></tbody>
@@ -1138,6 +1146,7 @@ function renderH2H(){
 }
 
 function renderRos(){
+  if(ui.tab==='ros')renderBuySell();
   chips($('#posRos'),ui.posR,'posR');
   const all=pool().map(p=>({p,...rosProj(p)}));
   const best={};all.forEach(r=>{best[r.p.pos]=Math.max(best[r.p.pos]||0,r.ppg)});
@@ -1707,7 +1716,7 @@ function vegasCell(p){const g=gameOf(p);if(!g||g.implied==null)return '<span cla
   const windy=w&&w.wind>=15;return `${n1(g.implied)}<span class="subn">${g.spread>0?'+':''}${g.spread} · O/U ${g.total}${windy?' · '+Math.round(w.wind)+' mph':''}</span>`;}
 function xfpOf(p){const a=advOf(p.key);if(!a||!a.g||!['RB','WR','TE'].includes(p.pos))return null;
   const c=SC(),rp=c.rec+(p.pos==='TE'?c.te:0),x=a.xRec*rp+(a.xRecYd+a.xRushYd)/c.yd+c.td*(a.xRecTd+a.xRushTd);
-  const s=p.s,act=s.rec*rp+.1*(s.rec_yd+s.rush_yd)+6*(s.rec_td+s.rush_td);
+  const s=p.s,act=s.rec*rp+(s.rec_yd+s.rush_yd)/c.yd+c.td*(s.rec_td+s.rush_td);
   return {tot:x,pg:x/a.g,actPg:p.gp?act/p.gp:0,fpoe:p.gp?act/p.gp-x/a.g:0};}
 const SITES=(function(){
   const m=new Map();
@@ -1813,6 +1822,19 @@ function optimize(keys){
   const order={QB:0,RB:1,WR:2,TE:3,FLEX:4,SFLEX:5,K:6,DST:7};start.sort((a,b)=>order[a.slot]-order[b.slot]);
   return {start,bench:avail.filter(c=>!used.has(c.key)),total};}
 ui.luOwn=50;
+// ---- buy low / sell high: actual scoring vs. what each player's usage predicts (expected points, from play-by-play) ----
+function renderBuySell(){const el=$('#rosBuySell');if(!el)return;
+  const pos=['RB','WR','TE'].includes(ui.posR)?ui.posR:null,LG=S.league&&Array.isArray(S.league.taken)&&S.league.taken.length?new Set(S.league.taken):null;
+  const rows=[];for(const p of PL.values()){if(!['RB','WR','TE'].includes(p.pos)||(pos&&p.pos!==pos)||p.gp<3)continue;const x=xfpOf(p);if(!x||x.pg<7)continue;rows.push({p,x});}
+  const tag=p=>isMine(p)?'<span class="pill p-gold">Yours</span>':LG&&!LG.has(p.key)?'<span class="pill p-good">Available</span>':'';
+  const li=(r,kind)=>`<li><span class="pos ${r.p.pos}">${r.p.pos}</span><span class="bs-n"><button class="plink" data-k="${esc(r.p.key)}">${esc(r.p.name)}</button> <span class="muted">${esc(r.p.team)}</span> ${tag(r.p)}<br>
+      <span class="hm-sm">${n1(r.x.actPg)} pts/g · usage says ${n1(r.x.pg)}</span></span><b class="bs-d ${kind}" title="${n1(Math.abs(r.x.fpoe))} points a game ${r.x.fpoe<0?'below':'above'} what his usage predicts">${kind==='up'?'▲':'▼'} ${n1(Math.abs(r.x.fpoe))}</b></li>`;
+  const low=rows.filter(r=>r.x.fpoe<=-1.5).sort((a,b)=>a.x.fpoe-b.x.fpoe).slice(0,8),high=rows.filter(r=>r.x.fpoe>=1.5).sort((a,b)=>b.x.fpoe-a.x.fpoe).slice(0,8);
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Buy low / sell high${pos?` · ${pos}s`:''}</h3>
+    <span class="note">Points per game vs. expected points: what an average player scores with the same targets and carries, from where they happened on the field.</span></div>
+    <div class="bs-cols"><div><h4>Buy low: due for more</h4><p class="note">Getting the work but not the points yet. Usually bounces back.</p>${low.length?`<ol class="bs-l">${low.map(r=>li(r,'up')).join('')}</ol>`:'<p class="muted">Nobody well below expected right now.</p>'}</div>
+    <div><h4>Sell high: due to cool off</h4><p class="note">Scoring more than the work supports, often from long TDs. Hard to keep up.</p>${high.length?`<ol class="bs-l">${high.map(r=>li(r,'down')).join('')}</ol>`:'<p class="muted">Nobody well above expected right now.</p>'}</div></div>
+    <p class="note">Running backs, receivers and tight ends with 3+ games and a real role (7+ expected points a game), in your scoring.${LG?' "Available" means nobody in your league has him.':''}</p>`;}
 function renderLineup(){
   renderConnect();
   const pool=lineupPool(),slots=Object.assign({},DEF_SLOTS,S.slots||{});
