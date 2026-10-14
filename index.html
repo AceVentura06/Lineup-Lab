@@ -640,9 +640,9 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <div class="card">
       <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
         <div><h3>Waiver pickups that would start for you</h3><p class="note" id="luWaiverNote"></p></div>
-        <div class="slider" style="min-width:220px"><div class="top"><label class="label" for="luOwn">Rostered in at most</label><span class="mono" id="luOwnV"></span></div><input type="range" id="luOwn" min="5" max="80" step="5"></div>
+        <div class="slider" id="luOwnBox" style="min-width:220px"><div class="top"><label class="label" for="luOwn">Rostered in at most</label><span class="mono" id="luOwnV"></span></div><input type="range" id="luOwn" min="5" max="80" step="5"></div>
       </div>
-      <div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl" style="min-width:640px"><thead><tr><th>Player</th><th class="r">Rostered</th><th class="r">Projection</th><th>Would replace</th><th class="r">Gain</th></tr></thead><tbody id="luWaivers"></tbody></table></div>
+      <div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl" style="min-width:640px"><thead><tr><th>Player</th><th class="r" id="luOwnTh">Rostered</th><th class="r">Projection</th><th>Would replace</th><th class="r">Gain</th></tr></thead><tbody id="luWaivers"></tbody></table></div>
       <h3 style="margin-top:16px">Best available at each position</h3>
       <div class="mgrid" id="luAvail" style="margin-top:8px"></div>
     </div>
@@ -1275,9 +1275,9 @@ async function slpSync(cfg){
   if(!r)throw Object.assign(new Error('noroster'),{msg:'Couldn\'t find your team in that league.'});
   const slots=(lg.roster_positions||[]).filter(x=>!['BN','IR','TAXI'].includes(x));
   const me=(us||[]).find(x=>x.user_id===cfg.userId);
-  const ids=r.players||[],keys=ids.map(slpKey);
+  const ids=r.players||[],keys=ids.map(slpKey),taken=[...new Set((rs||[]).flatMap(x=>x.players||[]).map(slpKey).filter(Boolean))];
   return {leagueName:lg.name,teamName:(me&&me.metadata&&me.metadata.team_name)||(me&&me.display_name)||cfg.userName,
-    roster:keys.filter(Boolean),skipped:keys.filter(k=>!k).length,
+    roster:keys.filter(Boolean),skipped:keys.filter(k=>!k).length,taken,
     starters:(r.starters||[]).map((id,i)=>({slot:SLP_SLOT[slots[i]]||null,key:slpKey(id),empty:!id||id==='0'})).filter(x=>x.slot),
     slots:slotCounts(slots.map(x=>SLP_SLOT[x])),rec:lg.scoring_settings?lg.scoring_settings.rec:null,passTD:lg.scoring_settings?lg.scoring_settings.pass_td:null};}
 // ESPN: public league id → teams → your roster
@@ -1294,7 +1294,8 @@ async function espnSync(cfg,lg){lg=lg||await espnLeague(cfg.leagueId);const d=lg
   const counts=(d.settings&&d.settings.rosterSettings&&d.settings.rosterSettings.lineupSlotCounts)||{};
   const slots={QB:0,RB:0,WR:0,TE:0,FLEX:0,SFLEX:0,K:0,DST:0};for(const [id,n] of Object.entries(counts))if(ESPN_SLOT[id])slots[ESPN_SLOT[id]]+=n;
   const keyed=ent.map(e=>({e,key:espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)}));
-  return {leagueName:lg.name,teamName:lg.teams.find(x=>x.id===cfg.teamId).name,roster:keyed.map(x=>x.key).filter(Boolean),skipped:keyed.filter(x=>!x.key).length,
+  const taken=[...new Set((d.teams||[]).flatMap(x=>(x.roster&&x.roster.entries)||[]).map(e=>espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)).filter(Boolean))];
+  return {leagueName:lg.name,teamName:lg.teams.find(x=>x.id===cfg.teamId).name,roster:keyed.map(x=>x.key).filter(Boolean),skipped:keyed.filter(x=>!x.key).length,taken,
     starters:keyed.filter(x=>ESPN_SLOT[x.e.lineupSlotId]).map(x=>({slot:ESPN_SLOT[x.e.lineupSlotId],key:x.key})),slots,rec:pts(53),passTD:pts(4)};}
 // pull the roster in and adopt the league's scoring and lineup slots
 async function syncLeague(cfg,quiet,lg){
@@ -1303,7 +1304,7 @@ async function syncLeague(cfg,quiet,lg){
   if(Object.values(r.slots).some(Boolean))S.slots=r.slots;
   if(r.rec!=null)S.scoring=r.rec>=1?'ppr':r.rec>=.5?'half':'std';
   if(r.passTD===4||r.passTD===6)S.passTD=r.passTD;
-  S.league={...cfg,leagueName:r.leagueName,teamName:r.teamName,starters:r.starters,skipped:r.skipped,synced:Date.now(),week:SD.week};
+  S.league={...cfg,leagueName:r.leagueName,teamName:r.teamName,starters:r.starters,taken:r.taken,skipped:r.skipped,synced:Date.now(),week:SD.week};
   _lp=null;save();if(!quiet)toast(`Synced ${r.roster.length} players from ${SRC_NAME[cfg.src]}`);render();}
 // your league lineup vs the suggested one: who to swap in
 function lineupCheck(){const L=S.league;if(!L||!L.starters||S.week!==SD.week||L.week!==SD.week)return null;
@@ -1626,17 +1627,22 @@ function renderLineup(){
   // waiver scan
   $('#luOwn').value=ui.luOwn;$('#luOwnV').textContent=ui.luOwn+'% of leagues';
   const rs=new Set(roster);
-  const avail=[...pool.values()].filter(x=>!rs.has(x.key)&&x.proj>0).map(x=>({x,own:ownOf(x.key)})).filter(o=>o.own&&o.own.pct<=ui.luOwn).sort((a,b)=>b.x.proj-a.x.proj);
-  $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of leagues, using FantasyPros' average across fantasy sites (ESPN's rate for players FantasyPros doesn't list). Availability varies by league, so check your own waiver wire.`;
+  // connected league: anyone no team in it has rostered; otherwise a guess from how widely each player is rostered
+  const LG=S.league&&Array.isArray(S.league.taken)&&S.league.taken.length?S.league:null,taken=LG?new Set(LG.taken):null;
+  $('#luOwnBox').hidden=!!LG;$('#luOwnTh').textContent=LG?'Rostered elsewhere':'Rostered';
+  const avail=(LG?[...pool.values()].filter(x=>x.real&&!taken.has(x.key)&&!rs.has(x.key)&&x.proj>0).map(x=>({x,own:ownOf(x.key)}))
+    :[...pool.values()].filter(x=>!rs.has(x.key)&&x.proj>0).map(x=>({x,own:ownOf(x.key)})).filter(o=>o.own&&o.own.pct<=ui.luOwn)).sort((a,b)=>b.x.proj-a.x.proj);
+  if(LG)$('#luWaiverNote').textContent=`Players nobody in ${LG.leagueName} has on a roster, as of the last sync (${agoMin(LG.synced)}). "Rostered elsewhere" is how many leagues across fantasy sites have them, a hint at who's in demand.`;
+  else $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of leagues, using FantasyPros' average across fantasy sites (ESPN's rate for players FantasyPros doesn't list). Availability varies by league, so check your own waiver wire.`;
   if(roster.length){
     const sugg=[];for(const o of avail.slice(0,150)){const L2=optimize([...roster,o.x.key]);const gain=L2.total-L.total;if(gain>0.3){const slot=L2.start.find(r=>r.x&&r.x.key===o.x.key);
       const now=new Set(L2.start.filter(r=>r.x).map(r=>r.x.key));const out=L.start.find(r=>r.x&&!now.has(r.x.key));sugg.push({...o,gain,slot:slot.slot,out:out&&out.x});}}
     sugg.sort((a,b)=>b.gain-a.gain);
     {const per={},kept=[];for(const o of sugg){per[o.x.pos]=(per[o.x.pos]||0)+1;if(per[o.x.pos]<=3)kept.push(o);}sugg.length=0;sugg.push(...kept);}
-    $('#luWaivers').innerHTML=sugg.length?sugg.slice(0,12).map(o=>`<tr><td><span class="pos ${o.x.pos}">${o.x.pos}</span> ${pname(o.x)} <span class="muted">${esc(o.x.team||'')}</span>${o.x.real?' '+statusPill(o.x.p):''}</td><td class="r num">${n1(o.own.pct)}%<span class="subn">${o.own.src}</span></td><td class="r big">${f1(o.x.proj)}</td><td>${o.out?`${esc(o.out.name)} (${f1(o.out.proj)})${o.out.pos!==o.x.pos?`<span class="subn">others shift to make room</span>`:''}`:`Empty ${SLOT_LBL[o.slot]} slot`}</td><td class="r num" style="color:var(--good);font-weight:700">+${f1(o.gain)}</td></tr>`).join(''):`<tr><td colspan="5" class="muted">No available player projects higher than your current starters. Nice roster.</td></tr>`;
+    $('#luWaivers').innerHTML=sugg.length?sugg.slice(0,12).map(o=>`<tr><td><span class="pos ${o.x.pos}">${o.x.pos}</span> ${pname(o.x)} <span class="muted">${esc(o.x.team||'')}</span>${o.x.real?' '+statusPill(o.x.p):''}</td><td class="r num">${o.own?`${n1(o.own.pct)}%<span class="subn">${o.own.src}</span>`:'<span class="muted">—</span>'}</td><td class="r big">${f1(o.x.proj)}</td><td>${o.out?`${esc(o.out.name)} (${f1(o.out.proj)})${o.out.pos!==o.x.pos?`<span class="subn">others shift to make room</span>`:''}`:`Empty ${SLOT_LBL[o.slot]} slot`}</td><td class="r num" style="color:var(--good);font-weight:700">+${f1(o.gain)}</td></tr>`).join(''):`<tr><td colspan="5" class="muted">No available player projects higher than your current starters. Nice roster.</td></tr>`;
   }else $('#luWaivers').innerHTML='<tr><td colspan="5" class="muted">Add your roster to see which pickups would start for you.</td></tr>';
   $('#luAvail').innerHTML=['QB','RB','WR','TE','K','DST'].map(pos=>{const list=avail.filter(o=>o.x.pos===pos).slice(0,4);
-    return `<div class="metric"><div class="top"><span class="label" style="color:var(--ink)">${pos}</span></div>${list.length?list.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px"><span>${pname(o.x)} <span class="muted" style="font-size:.8rem">${esc(o.x.team||'')} · ${n1(o.own.pct)}%</span></span><b class="mono">${f1(o.x.proj)}</b></div>`).join(''):'<span class="muted">None under the threshold</span>'}</div>`;}).join('');
+    return `<div class="metric"><div class="top"><span class="label" style="color:var(--ink)">${pos}</span></div>${list.length?list.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px"><span>${pname(o.x)} <span class="muted" style="font-size:.8rem">${esc(o.x.team||'')}${o.own?` · ${n1(o.own.pct)}%`:''}</span></span><b class="mono">${f1(o.x.proj)}</b></div>`).join(''):`<span class="muted">${LG?'Nobody worth adding':'None under the threshold'}</span>`}</div>`;}).join('');
 }
 function luAdd(){const v=$('#luAdd').value.trim().toLowerCase();if(!v)return;const pool=[...lineupPool().values()];
   const lab=x=>`${x.name}${x.team?' ('+x.team+')':''} · ${x.pos}`.toLowerCase();
