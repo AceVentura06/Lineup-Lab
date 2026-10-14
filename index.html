@@ -1237,7 +1237,7 @@ function renderHome(){
   // hero
   $('#hmKick').textContent=`${SD.season||new Date().getFullYear()} season · ${sc}`;
   $('#hmTitle').innerHTML=`Week ${wk}<br><span>${live?'is set.':wk<SD.week?'in review.':'is coming.'}</span>`;
-  $('#hmSub').textContent=live?`Projections from ESPN, Sleeper, CBS and FantasyPros, blended with our model.${wk<18?` Week ${wk+1} takes over Tuesday at 3:30 AM ET.`:''}`
+  $('#hmSub').textContent=live?`Projections from ESPN, Sleeper, CBS and FantasyPros, blended with our model.`
     :`You're looking at Week ${wk}. Set the Week box at the top to ${SD.week} for this week.`;
   const all=pool().filter(p=>p.real).map(p=>({p,...weekProj(p)})),call=makeCall(all),byKey=new Map(all.map(r=>[r.p.key,r]));
   // my team
