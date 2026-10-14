@@ -15,8 +15,8 @@ body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}
 img{max-width:100%}
 /* Layout: a game-day stat sheet — header scoreboard with settings, tabbed boards below, yard-line hashmarks as dividers */
 :root{
-  --bg:#F3F5F9; --surface:#FFFFFF; --surface-2:#E9EDF3; --line:#DCE2EB; --ink:#0E1726; --muted:#5E6B80;
-  --turf:#E8501C; --turf-soft:#FCE6DD; --gold:#E8501C; --gold-soft:#FCE6DD; --accent-ink:#FFFFFF; --red:#D7263D;
+  --bg:#F3F5F9; --surface:#FFFFFF; --surface-2:#E9EDF3; --line:#DCE2EB; --ink:#1F2329; --muted:#5E6B80;
+  --turf:#8C1D2F; --turf-soft:#F6E3E6; --gold:#8C1D2F; --gold-soft:#F6E3E6; --gold-hi:#E0707F; --accent-ink:#FFFFFF; --red:#D7263D;
   --good:#1E8A4C; --good-soft:#DFF3E7; --warn:#A86200; --warn-soft:#FBEFD6; --bad:#C2312B; --bad-soft:#F9E1DF;
   --qb:#7A3FA8; --rb:#1E8A4C; --wr:#1F6FEB; --te:#B85A12; --k:#5E6B80; --dst:#A3304F;
   --s-espn:#C8352A; --s-yahoo:#6B3FC4; --s-sleeper:#138A8A; --s-cbs:#1F6FEB;
@@ -72,7 +72,7 @@ p{margin:0}
 .pos{display:inline-block;min-width:34px;text-align:center;font-family:var(--f-display);font-weight:800;font-size:.8rem;padding:1px 6px;border-radius:4px;color:var(--surface);letter-spacing:.04em}
 .pos.QB{background:var(--qb)}.pos.RB{background:var(--rb)}.pos.WR{background:var(--wr)}.pos.TE{background:var(--te)}.pos.K{background:var(--k)}.pos.DST{background:var(--dst)}
 .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.75rem;font-weight:700;white-space:nowrap}
-.p-good{background:var(--good-soft);color:var(--good)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-gold{background:var(--gold-soft);color:var(--gold)}.p-mute{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.p-good{background:var(--good-soft);color:var(--good)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-gold{background:#E4E9F3;color:#34466B}.p-mute{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
 .ex{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:0 4px;margin-left:4px}
 
 .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
@@ -360,7 +360,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .teamed .src{border-color:color-mix(in srgb,var(--t-accent) 50%,var(--line))}
 /* ticker colors: orange bar, white text, white tag */
 .topbar>.ticker,.ticker{background:var(--gold);color:#fff;border-bottom-color:var(--gold)}
-.ticker .tk-tag{background:#0E1726;color:var(--gold)}
+.ticker .tk-tag{background:var(--ink);color:var(--gold-hi)}
 /* the tag sits at the screen's left edge; the headlines run to the right edge */
 .topbar>.ticker{padding-left:0;padding-right:0}
 /* the orange ticker replaces the header's orange underline, so the black tag runs the bar's full height */
@@ -416,9 +416,9 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 /* Home */
 .hm-row{display:flex;flex-wrap:wrap;gap:18px}
 .hm-hero{flex:1 1 460px;min-width:0;justify-content:center;background:var(--ink);color:#fff;border-radius:4px;border-top:4px solid var(--gold);padding:28px;display:flex;flex-direction:column;gap:16px}
-.hm-kick{font-family:var(--f-display);font-weight:700;font-size:.95rem;letter-spacing:.12em;text-transform:uppercase;color:#F7A688}
+.hm-kick{font-family:var(--f-display);font-weight:700;font-size:.95rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-hi)}
 .hm-h1{font-size:clamp(3rem,7vw,4.6rem);line-height:.9;text-transform:uppercase}
-.hm-h1 span{color:var(--gold)}
+.hm-h1 span{color:var(--gold-hi)}
 .hm-sub{margin:0;color:#C9D2E0;font-size:1.05rem;line-height:1.5;max-width:30em}
 .hm-find{display:flex;flex-direction:column;gap:6px;max-width:440px}.hm-find .label{color:#C9D2E0}
 .hm-find input{font:500 1.05rem var(--f-body);padding:12px 14px;border-radius:6px;border:0;background:#fff;color:var(--ink)}
