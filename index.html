@@ -403,6 +403,27 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .team-hero.stuck .shot{max-height:56px}
   .team-hero.stuck .shot.logo{height:44px}
 }
+/* Points by week: broadcast bars */
+.wkcard{display:flex;flex-direction:column;gap:14px}
+.wkavg{font-family:var(--f-display);font-weight:700;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wkavg b{color:var(--ink);font-size:1.25rem}
+.wkscroll{overflow-x:auto}
+.wkgrid{min-width:calc(var(--n) * 64px)}
+.wkbars{position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px;align-items:end;border-bottom:2px solid var(--ink)}
+.wkcol{display:flex;flex-direction:column-reverse;align-items:stretch;gap:4px;position:relative;z-index:1}
+.wkb{display:flex;flex-direction:column;align-items:center;padding-top:12px;box-sizing:border-box;clip-path:polygon(0 8px,100% 0,100% 100%,0 100%);font-family:var(--f-display);line-height:1}
+.wkb b{font-weight:800;font-size:1.5rem}
+.wkb i{font-style:normal}.wkb span{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.wkb.played{background:var(--t-accent,var(--gold));color:var(--team-lo-ink,#fff)}
+.wkb.proj{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--t-accent,var(--gold)) 30%,transparent) 0 6px,color-mix(in srgb,var(--t-accent,var(--gold)) 12%,transparent) 6px 12px);color:var(--t-accent,var(--gold))}
+.wkb.empty{height:44px;clip-path:none;border:2px dashed var(--line);border-bottom:0;justify-content:center;padding:0;color:var(--muted);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+.wkv{text-align:center;font-family:var(--f-display);font-weight:800;font-size:1.2rem}
+.wkline{position:absolute;left:0;right:0;border-top:2px dashed var(--team-stripe,var(--gold));z-index:2;pointer-events:none}
+.wklabs{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px;margin-top:8px;text-align:center;font-family:var(--f-display);text-transform:uppercase}
+.wkl b{display:block;font-size:1rem}
+.wkl span{display:block;font-size:.85rem;color:var(--muted);white-space:nowrap}
+.wkl.now b,.wkl.now span{color:var(--t-accent,var(--gold))}
+@media (max-width:600px){.wkbars,.wklabs{gap:6px}.wkb b{font-size:1.15rem}.wkb span{font-size:.62rem;letter-spacing:.04em}.wkgrid{min-width:calc(var(--n) * 46px)}.wkcard h3{white-space:nowrap}.wkx{display:none}.wkavg{font-size:.85rem}.wkl b{font-size:.9rem}.wkl span{white-space:normal;font-size:.72rem;line-height:1.2}}
 </style>
 </head>
 <body>
@@ -1530,22 +1551,29 @@ function renderStats(){
 $('#statSearch').oninput=e=>{ui.qT=e.target.value;renderStats();};
 document.querySelector('table.dir thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if(ui.sortT===th.dataset.sort)ui.dirT=-(ui.dirT||1);else{ui.sortT=th.dataset.sort;ui.dirT=1;}renderStats();};
 
-function weekChart(p){
-  // right margin holds the average label so it never sits on top of the bars
-  const vals=p.weeks.map(wpts),W=560,H=200,pl=34,pr=64,pb=44,pt=22,cw=(W-pl-pr)/vals.length;
-  const mx=Math.max(5,...vals.filter(v=>v!=null));const top=Math.ceil(mx/5)*5;const y=v=>pt+(H-pt-pb)*(1-Math.max(0,v)/top);
-  const avg=ppg(p);let g='';
-  for(let t=0;t<=top;t+=top/4){g+=`<line class="grid" x1="${pl}" x2="${W-pr}" y1="${y(t)}" y2="${y(t)}"/><text x="${pl-6}" y="${y(t)+4}" text-anchor="end">${Math.round(t)}</text>`;}
-  // average line first, so bars and their labels draw over it
-  const ay=y(avg);
-  g+=`<line class="avg" x1="${pl}" x2="${W-pr+4}" y1="${ay}" y2="${ay}"/><rect class="avgtag" x="${W-pr+6}" y="${ay-10}" width="${pr-8}" height="20" rx="3"/><text class="avgtxt" x="${W-pr+6+(pr-8)/2}" y="${ay+4}" text-anchor="middle">avg ${n1(avg)}</text>`;
-  vals.forEach((v,i)=>{const x=pl+i*cw+cw*.2,bw=cw*.6,w=p.weeks[i];
-    if(v!=null){g+=`<rect class="wbar" x="${x}" y="${y(v)}" width="${bw}" height="${Math.max(1,y(0)-y(v))}" rx="3"/><text class="val" x="${x+bw/2}" y="${y(v)-6}" text-anchor="middle">${n1(v)}</text>`;}
-    else g+=`<text x="${x+bw/2}" y="${y(0)-6}" text-anchor="middle">—</text>`;
-    g+=`<text x="${x+bw/2}" y="${H-pb+16}" text-anchor="middle">Wk ${i+1}</text>`;
-    if(w&&w.snap!=null&&p.pos!=='K'&&p.pos!=='DST')g+=`<text x="${x+bw/2}" y="${H-pb+32}" text-anchor="middle">${w.snap}% snaps</text>`;});
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Fantasy points by week, season average ${n1(avg)}">${g}</svg>`;
-}
+// Points by week, broadcast style: bars with the score inside, missed weeks marked, this week's projection as a striped bar
+function weekCard(p,projV){
+  const cur=SD.week,sc=SCHED[p.team]||[],weeks=[];
+  for(let w=1;w<=cur;w++){const e=p.weeks[w-1],opp=sc[w-1]||'';
+    const o=opp==='BYE'?'':(opp.startsWith('@')?'at '+opp.slice(1):'vs '+opp);
+    if(e){weeks.push({w,o,v:wpts(e),snap:e.snap,kind:'played'});continue;}
+    if(opp==='BYE'){weeks.push({w,o:'',kind:'bye'});continue;}
+    if(w===cur&&projV>0){weeks.push({w,o,v:projV,kind:'proj'});continue;}
+    weeks.push({w,o,kind:w===cur?'upcoming':'out'});}
+  const vals=weeks.filter(x=>x.v!=null).map(x=>x.v),played=weeks.filter(x=>x.kind==='played').map(x=>x.v);
+  const avg=played.length?played.reduce((a,b)=>a+b,0)/played.length:null;
+  const max=Math.max(8,...vals)*1.08,H=220,h=v=>Math.max(4,Math.round(H*Math.max(0,v)/max));
+  const snaps=p.pos!=='K'&&p.pos!=='DST';
+  const col=x=>{
+    if(x.kind==='played'||x.kind==='proj'){const hh=h(x.v),inside=hh>=40;
+      return `<div class="wkb ${x.kind}" style="height:${hh}px" title="Week ${x.w}${x.o?' '+x.o:''}: ${n1(x.v)} pts${x.kind==='proj'?' projected':''}">${inside?`<b>${n1(x.v)}</b>${x.kind==='proj'?'<span>Proj<i class="wkx">ected</i></span>':''}`:''}</div>${inside?'':`<b class="wkv">${n1(x.v)}</b>`}`;}
+    return `<div class="wkb empty">${x.kind==='bye'?'Bye':x.kind==='upcoming'?'Next':'Out'}</div>`;};
+  const lab=x=>`<div class="wkl${x.kind==='proj'||x.kind==='upcoming'?' now':''}"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}${x.kind==='played'&&snaps&&x.snap!=null?' · '+x.snap+'%':''}${x.kind==='proj'?' · next':''}</span></div>`;
+  return `<div class="card wkcard"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h3>Points by week</h3>${avg!=null?`<span class="wkavg">Season avg <b>${n1(avg)}</b></span>`:''}</div>
+    <div class="wkscroll"><div class="wkgrid" style="--n:${weeks.length}">
+      <div class="wkbars" style="height:${H+30}px">${avg!=null?`<div class="wkline" style="bottom:${h(avg)}px"></div>`:''}${weeks.map(x=>`<div class="wkcol">${col(x)}</div>`).join('')}</div>
+      <div class="wklabs">${weeks.map(lab).join('')}</div>
+    </div></div></div>`;}
 function boxScore(p){
   const g=p.gp||1,sc={ppr:'PPR',half:'Half',std:'Std'}[S.scoring];
   // [label, value for any player, options] — low: fewer is better; pg: per-game value; noPg: no per-game cell; show: custom display
@@ -1650,7 +1678,7 @@ function renderPlayer(){
    </div>
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    ${thisWeek}
-   <div class="card"><h3>Points by week</h3>${weekChart(p)}<p class="note">Range so far: ${vals.length?n1(Math.min(...vals))+' to '+n1(Math.max(...vals)):'—'} points. The dashed line is his season average.</p></div>
+   ${weekCard(p,tr.projV)}
    <div id="pNews"></div>${toolsCard}${xfpCard}
    <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
    <div class="mgrid">${ms}</div></div>`;
