@@ -260,10 +260,9 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
     const rows = parseCSV(await fetchText('https://raw.githubusercontent.com/dynastyprocess/data/master/files/db_fpecr_latest.csv'));
     const kinds = {};
     for (const r of rows) { const k = `${r.ecr_type || '?'}|${r.page_type || '?'}`; kinds[k] = (kinds[k] || 0) + 1; }
-    log('FantasyPros ranking pages: ' + Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 40).map(([k, n]) => `${k}=${n}`).join(', '));
-    const j = rows.find(r => /jefferson/i.test(r.player || '') && /justin/i.test(r.player || ''));
-    if (j) log('FantasyPros sample row: ' + JSON.stringify(j).slice(0, 600));
-  } catch (e) { log('FantasyPros ROS check failed: ' + e.message); }
+    const j = rows.filter(r => /justin jefferson/i.test(r.player || '')).map(r => JSON.stringify(r).slice(0, 400));
+    out.sources['FantasyPros pages (check)'] = { ok: true, detail: Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 40).map(([k, n]) => `${k}=${n}`).join(', ') + ' || ' + j.join(' ## ') };
+  } catch (e) { out.sources['FantasyPros pages (check)'] = { ok: false, detail: e.message }; }
 
   // 9. CBS Sports: three experts' weekly rankings + consensus, and weekly projections
   try {
