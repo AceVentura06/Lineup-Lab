@@ -219,7 +219,17 @@ td.none{color:var(--muted)}
 .mlist li:last-child{border-bottom:0}
 .mlist .mv{margin-left:auto;font-family:var(--f-mono);font-size:.85rem;white-space:nowrap}
 .news{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.news li{padding:10px 0;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.news li{padding:12px 0;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:flex-start}
+.news .ntext{display:flex;flex-direction:column;gap:3px;min-width:0}
+.nthumb{flex:0 0 136px;width:136px;aspect-ratio:16/9;border-radius:4px;overflow:hidden;background:var(--surface-2);display:block}
+.nthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.nthumb.ph,.nthumb.broken{display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--sc,var(--muted)) 14%,var(--surface));color:var(--sc,var(--muted));font-family:var(--f-display);font-weight:800;font-style:italic;font-size:.95rem;text-transform:uppercase;text-align:center;padding:4px;box-sizing:border-box}
+.nthumb.broken img{display:none}.nthumb.broken::after{content:attr(data-src)}
+.hm-feat{display:flex;flex-direction:column;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.hm-feat .nthumb{width:100%;flex:none;max-height:300px}
+.hm-feat a.ht{font-size:1.2rem;line-height:1.25}
+.hm-news li{display:flex;gap:12px;align-items:flex-start}.hm-news li .nthumb{flex-basis:104px;width:104px}
+@media (max-width:600px){.nthumb{flex-basis:96px;width:96px}.hm-news li .nthumb{flex-basis:88px;width:88px}}
 .news li:last-child{border-bottom:0;padding-bottom:0}
 .news .nmeta{font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .news .nmeta b{color:var(--t-accent,var(--ink))}
@@ -1100,13 +1110,21 @@ function loadNews(cb){if(NEWS)return cb();if(typeof NEWS_DATA!=='undefined'){NEW
   if(newsLoading)return;newsLoading=true;const sc=document.createElement('script');sc.src='data/news-data.js?v='+Math.floor(Date.now()/300000);
   sc.onload=()=>{NEWS=typeof NEWS_DATA!=='undefined'?NEWS_DATA:{news:{}};cb();};sc.onerror=()=>{NEWS={news:{}};cb();};document.head.appendChild(sc);}
 function ago(iso){const m=Math.max(0,(Date.now()-Date.parse(iso))/6e4);if(m<60)return Math.max(1,Math.round(m))+'m ago';const h=m/60;if(h<24)return Math.round(h)+'h ago';const d=h/24;return d<7?Math.round(d)+'d ago':new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+const SRC_C={'ESPN':'var(--s-espn)','CBS Sports':'var(--s-cbs)','Yahoo Sports':'var(--s-yahoo)','ProFootballTalk':'#0E1726'};
+const SRC_SHORT={'ProFootballTalk':'PFT','Yahoo Sports':'Yahoo','CBS Sports':'CBS'};
+// story photo (or a tile with the source's name when the feed has none); links to the story
+function newsThumb(src,url,img){const sc=SRC_C[src]||'var(--muted)',lab=esc(SRC_SHORT[src]||src);
+  return img?`<a class="nthumb" href="${esc(url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" style="--sc:${sc}" data-src="${lab}"><img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer"></a>`
+    :`<a class="nthumb ph" href="${esc(url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" style="--sc:${sc}">${lab}</a>`;}
+// a photo that fails to load falls back to the source tile
+document.addEventListener('error',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&t.parentElement&&t.parentElement.classList.contains('nthumb'))t.parentElement.classList.add('broken');},true);
 function fillNews(p){loadNews(()=>{const el=$('#pNews');if(!el||ui.tab!=='player'||ui.player!==p.key)return;
   const list=(NEWS.news||{})[p.key];
   if(!list||!list.length){el.innerHTML='';return;}
-  el.innerHTML=`<div class="card"><h3 style="margin-bottom:6px">Latest news</h3><ul class="news">${list.map(([t,src,url,iso,txt])=>`<li>
+  el.innerHTML=`<div class="card"><h3 style="margin-bottom:6px">Latest news</h3><ul class="news">${list.map(([t,src,url,iso,txt,img])=>`<li>${newsThumb(src,url,img)}<div class="ntext">
     <div class="nmeta"><b>${esc(src)}</b> · ${esc(ago(iso))}</div>
     <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)} <span aria-hidden="true">↗</span></a>
-    ${txt?`<p>${esc(txt)}</p>`:''}</li>`).join('')}</ul></div>`;});}
+    ${txt?`<p>${esc(txt)}</p>`:''}</div></li>`).join('')}</ul></div>`;});}
 // ---- trade analyzer ----
 // Replacement level: the best player at each position still on waivers in a 12-team league with these lineup slots.
 // Teams roster backups too, so rostered players = starters × a bench factor (e.g. about 19 QBs in a 1-QB league).
@@ -1285,7 +1303,12 @@ function renderHome(){
     :'<p class="hm-empty">No injury tags on fantasy starters right now.</p>'}`;
   // latest news
   const T=(typeof TICKER_DATA!=='undefined'&&TICKER_DATA)||{};const lat=(T.latest||[]).slice(0,5);
-  $('#hmNews').innerHTML=`<div class="hm-head"><h3>Latest news</h3></div>${lat.length?`<ul>${lat.map(([t,src,url,iso])=>`<li><div class="hm-src">${esc(src)}${iso?' · '+esc(ago(iso)):''}</div><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)} <span aria-hidden="true">↗</span></a></li>`).join('')}</ul>`:'<p class="hm-empty">No headlines right now.</p>'}`;
+  // the newest story with a photo leads; the rest get small thumbnails
+  const fi=lat.findIndex(x=>x[4]),feat=fi>=0?lat[fi]:null,rest=lat.filter((x,i)=>i!==fi).slice(0,4);
+  const meta=(src,iso)=>`<div class="hm-src">${esc(src)}${iso?' · '+esc(ago(iso)):''}</div>`;
+  const ln=(t,url,c='')=>`<a${c?` class="${c}"`:''} href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)} <span aria-hidden="true">↗</span></a>`;
+  $('#hmNews').innerHTML=`<div class="hm-head"><h3>Latest news</h3></div>${lat.length?`${feat?`<div class="hm-feat">${newsThumb(feat[1],feat[2],feat[4])}${meta(feat[1],feat[3])}${ln(feat[0],feat[2],'ht')}</div>`:''}
+    <ul style="margin-top:12px">${rest.map(([t,src,url,iso,img])=>`<li>${newsThumb(src,url,img)}<div>${meta(src,iso)}${ln(t,url)}</div></li>`).join('')}</ul>`:'<p class="hm-empty">No headlines right now.</p>'}`;
 }
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return;}
   const h=e.target.closest('[data-hp]');if(h){ui.homePos=h.dataset.hp;renderHome();return;}
