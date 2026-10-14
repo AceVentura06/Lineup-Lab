@@ -1839,7 +1839,7 @@ function renderBuySell(){const el=$('#rosBuySell');if(!el)return;
   el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Buy low / sell high${pos?` · ${pos}s`:''}</h3>
     <span class="note">Points per game vs. expected points: what an average player scores with the same targets and carries, from where they happened on the field.</span></div>
     <div class="bs-cols"><div><h4>Buy low: due for more</h4><p class="note">Getting the work but not the points yet. Usually bounces back.</p>${low.length?`<ol class="bs-l">${low.map(r=>li(r,'up')).join('')}</ol>`:'<p class="muted">Nobody well below expected right now.</p>'}</div>
-    <div><h4>Sell high: due to cool off</h4><p class="note">Scoring more than the work supports, often from long TDs. Leaves out stars: anyone with a top-${TIER.RB} role (top-${TIER.TE} at TE), or whom FantasyPros' experts rank top-${ROS_TIER.RB} RB, top-${ROS_TIER.WR} WR or top-${ROS_TIER.TE} TE for the rest of the season. Selling a star after a hot streak rarely pays.</p>${high.length?`<ol class="bs-l">${high.map(r=>li(r,'down')).join('')}</ol>`:'<p class="muted">Nobody well above expected right now.</p>'}</div></div>
+    <div><h4>Sell high: due to cool off</h4><p class="note">Scoring more than the work supports, often from long TDs.</p>${high.length?`<ol class="bs-l">${high.map(r=>li(r,'down')).join('')}</ol>`:'<p class="muted">Nobody well above expected right now.</p>'}</div></div>
     <p class="note">Running backs, receivers and tight ends with 3+ games and a real role (7+ expected points a game), in your scoring.${LG?' "Available" means nobody in your league has him.':''}</p>`;}
 function renderLineup(){
   renderConnect();
