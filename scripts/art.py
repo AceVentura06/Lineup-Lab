@@ -31,6 +31,10 @@ def badge(draw, x, y, w, h, text, size, fill=MAROON, ink=WHITE):
     draw.polygon([(x, y), (x + w, y), (x + w - cut, y + h), (x, y + h)], fill=fill)
     f = DISPLAY(size)
     l, t, r, b = draw.textbbox((0, 0), text, font=f)
+    while r - l > (w - cut) * 0.86 and size > 8:   # shrink longer text to fit the badge
+        size -= 2
+        f = DISPLAY(size)
+        l, t, r, b = draw.textbbox((0, 0), text, font=f)
     draw.text((x + (w - cut * 0.6 - (r - l)) / 2 - l, y + (h - (b - t)) / 2 - t), text, font=f, fill=ink)
 
 
@@ -41,7 +45,7 @@ def icon(size, pad=0.0):
     inner = size * (1 - 2 * pad)
     w, h = inner * 0.80, inner * 0.40
     x, y = (size - w) / 2 + inner * 0.03, (size - h) / 2
-    badge(d, x, y, w, h, 'ACE', int(h * 0.80))
+    badge(d, x, y, w, h, 'A.L.L.', int(h * 0.80))
     # thin maroon rule along the bottom, like the site's header
     d.rectangle([0, size - max(2, size // 32), size, size], fill=MAROON)
     return im
