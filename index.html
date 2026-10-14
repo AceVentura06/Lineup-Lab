@@ -283,6 +283,14 @@ td.scol{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 .olink:hover{text-decoration:none;filter:brightness(.8)}.olink:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 tr.dvpdetail>td{padding:4px 8px 14px;background:var(--surface-2)}
 tr.dvpdetail .card{margin:0}
+/* the team breakdown is tinted with the team's color (mixed with the page surface, so it works in dark mode too) */
+tr.dvpdetail .card.teamed{background:color-mix(in srgb,var(--team) 12%,var(--surface))}
+tr.dvpdetail .card.teamed .tbl-wrap{background:color-mix(in srgb,var(--team) 5%,var(--surface))}
+tr.dvpdetail .card.teamed th{background:color-mix(in srgb,var(--team) 18%,var(--surface))}
+tr.dvpdetail .card.teamed tr+tr td{border-top-color:color-mix(in srgb,var(--team) 18%,var(--line))}
+:root[data-theme="dark"] tr.dvpdetail .card.teamed{background:color-mix(in srgb,var(--team-hi) 14%,var(--surface))}
+:root[data-theme="dark"] tr.dvpdetail .card.teamed .tbl-wrap{background:color-mix(in srgb,var(--team-hi) 6%,var(--surface))}
+:root[data-theme="dark"] tr.dvpdetail .card.teamed th{background:color-mix(in srgb,var(--team-hi) 20%,var(--surface))}
 .mpill{display:inline-flex;flex-direction:column;vertical-align:middle}
 /* ===== Prime Time broadcast layer ===== */
 /* sticky, joined top area: header + ticker + tabs, edge to edge; contents line up with the page */
