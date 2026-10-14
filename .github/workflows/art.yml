@@ -1,0 +1,33 @@
+name: Draw icons and preview card
+
+# Run by hand (Actions tab > "Draw icons and preview card" > Run workflow) after changing scripts/art.py.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  draw:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: main }
+      - name: Get the site's fonts (Barlow, SIL Open Font License)
+        run: |
+          mkdir -p /tmp/fonts && cd /tmp/fonts
+          for f in barlowcondensed/BarlowCondensed-ExtraBoldItalic.ttf barlow/Barlow-Medium.ttf; do
+            curl -sSfL -o "$(basename $f)" "https://raw.githubusercontent.com/google/fonts/main/ofl/$f"
+          done
+      - name: Draw
+        run: pip install pillow && python scripts/art.py
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add icons og.png
+          if git diff --cached --quiet; then echo "No changes."; else
+            git commit -m "Draw icons and link preview card"
+            git pull --rebase -X theirs && git push
+          fi

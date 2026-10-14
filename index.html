@@ -5,6 +5,33 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Ace Lineup Lab</title>
+<meta name="description" content="Weekly fantasy football projections, start/sit calls, and waiver pickups, blending ESPN, Sleeper, CBS, FantasyPros, and our own model.">
+<!-- link previews (texts, Slack, X, iMessage) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Ace Lineup Lab">
+<meta property="og:title" content="Ace Lineup Lab">
+<meta property="og:description" content="Weekly fantasy football projections, start/sit calls, and waiver pickups. PPR, half-PPR, and standard.">
+<meta property="og:url" content="https://aceventura06.github.io/Lineup-Lab/">
+<meta property="og:image" content="https://aceventura06.github.io/Lineup-Lab/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Ace Lineup Lab: weekly fantasy football projections">
+<meta name="twitter:card" content="summary_large_image">
+<!-- installable app -->
+<script>
+// theme: "auto" follows the device; set before the page draws so there's no flash
+(function(){var p='auto';try{p=localStorage.getItem('lineuplab.v1.theme')||'auto';}catch(e){}
+  var d=p==='dark'||(p==='auto'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme',d?'dark':'light');})();
+</script>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lineup Lab">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFFFFF" id="themeColor">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -413,6 +440,33 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .team-hero.stuck .shot{max-height:56px}
   .team-hero.stuck .shot.logo{height:44px}
 }
+
+/* ---- dark mode: set by data-theme on <html> (follows the phone/computer setting unless chosen in the header) ---- */
+:root[data-theme="dark"]{
+  --bg:#111317; --surface:#1A1D23; --surface-2:#252A32; --line:#323844; --ink:#E7EAEF; --muted:#9AA4B4;
+  --turf:#E0707F; --turf-soft:#3A1C23; --gold:#A8293F; --gold-soft:#3A1C23; --gold-hi:#E8828F; --accent-ink:#FFFFFF;
+  --good:#45C483; --good-soft:#15301F; --warn:#E3A63F; --warn-soft:#352812; --bad:#F06B62; --bad-soft:#3A1C1B;
+  --qb:#8A4FBA; --rb:#23945A; --wr:#2F78E8; --te:#C0641C; --k:#68758A; --dst:#B23C5C;
+  color-scheme:dark;
+}
+:root[data-theme="dark"] .topbar{box-shadow:0 2px 10px rgba(0,0,0,.5)}
+:root[data-theme="dark"] .card,:root[data-theme="dark"] .tbl-wrap,:root[data-theme="dark"] .tile,:root[data-theme="dark"] .metric,:root[data-theme="dark"] .hm-install{box-shadow:0 0 0 1px var(--line)}
+:root[data-theme="dark"] .board .sub,:root[data-theme="dark"] .seg button,:root[data-theme="dark"] .tabs button,:root[data-theme="dark"] .lc-src button{color:#C2CAD6}
+:root[data-theme="dark"] .tabs button:hover:not([aria-selected="true"]){background:#2E3440;color:var(--ink)}
+:root[data-theme="dark"] .tabs button[aria-selected="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{color:#fff}
+:root[data-theme="dark"] .p-gold{background:#24304A;color:#AFC0E2}
+:root[data-theme="dark"] .rank,:root[data-theme="dark"] .star.on,:root[data-theme="dark"] .tile .tr,:root[data-theme="dark"] .hm-link,:root[data-theme="dark"] .hm-news a:hover,:root[data-theme="dark"] .tk-h{color:var(--gold-hi)}
+:root[data-theme="dark"] .ticker .tk-h{color:#fff}
+:root[data-theme="dark"] .ticker .tk-tag{background:#0B0D10}
+:root[data-theme="dark"] .hm-hero{background:#0B0D10;box-shadow:0 0 0 1px var(--line)}
+:root[data-theme="dark"] .hm-find input{background:#F1F3F6;color:#1F2329}
+:root[data-theme="dark"] .lc-warn{color:#F2C873}
+:root[data-theme="dark"] .toast{background:#E7EAEF;color:#111317}
+:root[data-theme="dark"] .board select option{color:#E7EAEF;background:#1A1D23}
+/* team colors: brighter versions read on dark cards; bars use the team's lighter color */
+:root[data-theme="dark"] .teamed{--t-accent:color-mix(in srgb,var(--team-hi) 78%,#fff)}
+:root[data-theme="dark"] .wkb.played{background:var(--team-hi,var(--gold));color:var(--team-hi-ink,#fff)}
+:root:not([data-theme="dark"]) .theme-dark-only{display:none}
 /* League connect */
 .lc{display:flex;flex-direction:column;gap:12px}
 .lc-src{display:flex;gap:6px}
@@ -435,7 +489,25 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .lc-mv{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;padding:9px 12px;border-radius:4px;background:var(--gold-soft)}
 .lc-mv .gain{margin-left:auto;font-weight:800;color:var(--good)}
 .lc-ok{padding:9px 12px;border-radius:4px;background:var(--good-soft);color:var(--good);font-weight:700}
+/* Live */
+@keyframes lvpulse{0%,100%{opacity:1}50%{opacity:.35}}
+.livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#E5484D;margin-right:5px;vertical-align:1px;animation:lvpulse 1.6s infinite}
+.tabs button.live::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#E5484D;margin-left:6px;vertical-align:2px;animation:lvpulse 1.6s infinite}
+@media (prefers-reduced-motion:reduce){.livedot,.tabs button.live::after{animation:none}}
+.hm-live{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;padding:9px 12px;border-radius:4px;background:var(--surface-2)}
+.hm-live b.big{font-family:var(--f-display);font-size:1.5rem;line-height:1}
+.lvp{font-family:var(--f-display);font-weight:800;font-size:1.2rem;line-height:1}
+.hm-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.hm-g{border:1px solid var(--line);border-radius:6px;padding:8px 10px;display:flex;flex-direction:column;gap:3px;font-size:.92rem}
+.hm-g.in{border-color:#E5484D}
+.hm-g .row{display:flex;justify-content:space-between;gap:8px}.hm-g .row b{font-family:var(--f-mono)}
+.hm-g .row.lead{font-weight:700}
+.hm-g .st{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 /* Home */
+.hm-install{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--surface);border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08);padding:12px 14px;border-left:4px solid var(--gold)}
+.hm-install img{width:40px;height:40px;border-radius:9px}
+.hm-install p{margin:0;flex:1 1 220px;font-size:.92rem;line-height:1.4}
+.hm-install .x{all:unset;cursor:pointer;color:var(--muted);font-size:1.3rem;padding:4px 8px}
 .hm-row{display:flex;flex-wrap:wrap;gap:18px}
 .hm-hero{flex:1 1 460px;min-width:0;justify-content:center;background:var(--ink);color:#fff;border-radius:4px;border-top:4px solid var(--gold);padding:28px;display:flex;flex-direction:column;gap:16px}
 .hm-kick{font-family:var(--f-display);font-weight:700;font-size:.95rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-hi)}
@@ -515,6 +587,11 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
         </div>
       </div>
       <div class="ctl"><label class="label" for="weekIn">Week</label><input id="weekIn" type="number" min="1" max="18" style="width:64px"></div>
+      <div class="ctl"><span class="label">Theme</span>
+        <div class="seg" id="themeSeg" role="group" aria-label="Color theme">
+          <button data-v="auto" title="Match this device"><span>Auto</span></button><button data-v="light"><span>Light</span></button><button data-v="dark"><span>Dark</span></button>
+        </div>
+      </div>
       <div class="ctl"><label class="label" for="passTdIn">Pass TD</label><select id="passTdIn"><option value="4">4 pts</option><option value="6">6 pts</option></select></div>
     </div>
   </header>
@@ -540,6 +617,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 
   <!-- HOME -->
   <section class="panel" id="p-home" role="tabpanel">
+    <div class="hm-install" id="hmInstall" hidden></div>
     <div class="hm-row">
       <div class="hm-hero">
         <div class="hm-kick" id="hmKick"></div>
@@ -550,6 +628,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       </div>
       <div class="card hm-team" id="hmTeam"></div>
     </div>
+    <div class="card" id="hmGames" hidden></div>
     <div class="card" id="hmTop"></div>
     <div class="hm-grid3"><div class="card" id="hmSoft"></div><div class="card" id="hmLast"></div><div class="card" id="hmAcc"></div></div>
     <div class="hm-row"><div class="card hm-inj" id="hmInj"></div><div class="card hm-news" id="hmNews"></div></div>
@@ -1133,7 +1212,7 @@ function loadNews(cb){if(NEWS)return cb();if(typeof NEWS_DATA!=='undefined'){NEW
   if(newsLoading)return;newsLoading=true;const sc=document.createElement('script');sc.src='data/news-data.js?v='+Math.floor(Date.now()/300000);
   sc.onload=()=>{NEWS=typeof NEWS_DATA!=='undefined'?NEWS_DATA:{news:{}};cb();};sc.onerror=()=>{NEWS={news:{}};cb();};document.head.appendChild(sc);}
 function ago(iso){const m=Math.max(0,(Date.now()-Date.parse(iso))/6e4);if(m<60)return Math.max(1,Math.round(m))+'m ago';const h=m/60;if(h<24)return Math.round(h)+'h ago';const d=h/24;return d<7?Math.round(d)+'d ago':new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
-const SRC_C={'ESPN':'var(--s-espn)','CBS Sports':'var(--s-cbs)','Yahoo Sports':'var(--s-yahoo)','ProFootballTalk':'#0E1726'};
+const SRC_C={'ESPN':'var(--s-espn)','CBS Sports':'var(--s-cbs)','Yahoo Sports':'var(--s-yahoo)','ProFootballTalk':'var(--ink)'};
 const SRC_SHORT={'ProFootballTalk':'PFT','Yahoo Sports':'Yahoo','CBS Sports':'CBS'};
 // story photo (or a tile with the source's name when the feed has none); links to the story
 function newsThumb(src,url,img){const sc=SRC_C[src]||'var(--muted)',lab=esc(SRC_SHORT[src]||src);
@@ -1358,6 +1437,63 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-lc]');if(!
 // refresh a connected league quietly when the page opens (trades, waivers, lineup changes)
 function autoSync(){const L=S.league;if(!L||LC.busy||Date.now()-L.synced<15*6e4)return;LC.busy=true;
   syncLeague({src:L.src,leagueId:L.leagueId,userId:L.userId,userName:L.userName,teamId:L.teamId},true).catch(()=>{}).finally(()=>{LC.busy=false;if(ui.tab==='lineup')renderConnect();});}
+// ---- live scores: ESPN's public scoreboard and box scores, checked every minute while games are on.
+// Points are worked out here with the site's scoring, so they're unofficial until the regular data update.
+const LIVE={games:new Map(),stats:new Map(),dst:new Map(),done:new Set(),any:false,at:0,timer:null};
+const ESB='https://site.api.espn.com/apis/site/v2/sports/football/nfl';
+const espnAb=a=>({WSH:'WAS'}[a]||a);
+// share of the game still to play (for "on pace for")
+function liveFrac(g){if(!g||g.state==='post')return 0;if(g.state!=='in')return 1;const p=g.period||1,c=g.clock==null?900:g.clock;if(p>4)return .02;return Math.max(0,1-((p-1)*900+(900-c))/3600);}
+async function liveScoreboard(){const d=await getJ(`${ESB}/scoreboard?seasontype=2&week=${SD.week}&dates=${lseason()}`);
+  for(const ev of d.events||[]){const c=(ev.competitions||[])[0];if(!c)continue;const st=c.status||ev.status||{},ty=st.type||{};
+    const tm=(c.competitors||[]).map(x=>({ab:espnAb(x.team&&x.team.abbreviation),score:+x.score||0,home:x.homeAway==='home'}));
+    const g={id:ev.id,state:ty.state,short:ty.shortDetail||ty.detail||'',period:st.period,clock:st.clock,teams:tm,date:Date.parse(ev.date||c.date)};
+    tm.forEach(t=>LIVE.games.set(t.ab,g));}}
+const paPts=pa=>pa===0?10:pa<=6?7:pa<=13?4:pa<=20?1:pa<=27?0:pa<=34?-1:-4;
+function parseBox(sum,g){const fresh=new Map(),T={};
+  for(const tb of (sum.boxscore&&sum.boxscore.players)||[]){const ab=espnAb(tb.team&&tb.team.abbreviation);const t=T[ab]={sacks:0,int:0,fl:0,td:0};
+    for(const cat of tb.statistics||[]){const keys=cat.keys||[];
+      for(const a of cat.athletes||[]){const nm=a.athlete&&a.athlete.displayName;if(!nm)continue;const raw=k=>String((a.stats||[])[keys.indexOf(k)]??'0');const v=k=>keys.includes(k)?parseFloat(raw(k).split(/[\/-]/)[0])||0:0;
+        const pk=nkey(nm,'');const x=fresh.get(pk)||{py:0,ptd:0,int:0,ry:0,rtd:0,rec:0,recy:0,rectd:0,fl:0,kp:0,ret:0,team:ab};
+        switch(cat.name){
+          case 'passing':x.py=v('passingYards');x.ptd=v('passingTouchdowns');x.int=v('interceptions');t.sacks+=v('sacks-sackYardsLost');t.int+=x.int;break;
+          case 'rushing':x.ry=v('rushingYards');x.rtd=v('rushingTouchdowns');break;
+          case 'receiving':x.rec=v('receptions');x.recy=v('receivingYards');x.rectd=v('receivingTouchdowns');break;
+          case 'fumbles':x.fl=v('fumblesLost');t.fl+=x.fl;break;
+          case 'kicking':{const fg=raw('fieldGoalsMade/fieldGoalAttempts').split('/').map(Number),xp=raw('extraPointsMade/extraPointAttempts').split('/').map(Number);
+            x.kp=3*(fg[0]||0)+(xp[0]||0)-((fg[1]||0)-(fg[0]||0))-((xp[1]||0)-(xp[0]||0));break;}
+          case 'kickReturns':x.ret+=v('kickReturnTouchdowns');t.td+=v('kickReturnTouchdowns');break;
+          case 'puntReturns':x.ret+=v('puntReturnTouchdowns');t.td+=v('puntReturnTouchdowns');break;
+          case 'defensive':t.td+=v('defensiveTouchdowns');break;}
+        fresh.set(pk,x);}}}
+  for(const [k,x] of fresh)LIVE.stats.set(k,x);
+  // defense: what the other offense gave up, plus the points it allowed
+  for(const tm of g.teams){const o=g.teams.find(x=>x!==tm);if(!o||!T[tm.ab]||!T[o.ab])continue;const mine=T[tm.ab],opp=T[o.ab];
+    LIVE.dst.set(tm.ab,{sack:opp.sacks,int:opp.int,fr:opp.fl,td:mine.td,pa:o.score});}}
+// live points for a player whose game has started, or null
+function liveOf(p){if(!p||!p.team||!LIVE.games.size)return null;const g=LIVE.games.get(p.team);if(!g||(g.state!=='in'&&g.state!=='post'))return null;
+  let pts=0;
+  if(p.pos==='DST'){const d=LIVE.dst.get(p.team);if(!d)return null;pts=d.sack+2*d.int+2*d.fr+6*d.td+paPts(d.pa);}
+  else{const x=LIVE.stats.get(p.key);if(x&&x.team!==p.team)return null;
+    if(x)pts=p.pos==='K'?x.kp:x.py*.04+x.ptd*S.passTD-2*x.int+.1*(x.ry+x.recy)+6*(x.rtd+x.rectd+x.ret)+recPts()*x.rec-2*x.fl;
+    else if(!LIVE.done.has(g.id)&&g.state==='post')return null;}
+  return {pts:Math.round(pts*10)/10,g};}
+function liveRefresh(){const b=$('#t-home');if(b)b.classList.toggle('live',LIVE.any);
+  if(S.week!==SD.week)return;if(ui.tab==='home')renderHome();else if(ui.tab==='sites')renderSites();}
+// only runs near game time (from this week's kickoffs), and pauses while the page is in the background
+function kickTimes(){return [...new Set(Object.values(AD.games||{}).map(kickTime).filter(Boolean))];}
+function liveDue(){const now=Date.now();return kickTimes().some(t=>now>=t-10*6e4&&now<=t+5*36e5);}
+async function liveTick(){clearTimeout(LIVE.timer);
+  if(!document.hidden&&liveDue()){
+    try{await liveScoreboard();const gs=[...new Set(LIVE.games.values())],now=Date.now();
+      for(const g of gs){if(g.state==='in'||(g.state==='post'&&!LIVE.done.has(g.id)&&now-g.date<9*36e5)){
+        try{parseBox(await getJ(`${ESB}/summary?event=${g.id}`),g);if(g.state==='post')LIVE.done.add(g.id);}catch(_){}}}
+      LIVE.any=gs.some(g=>g.state==='in');LIVE.at=now;liveRefresh();}catch(_){}}
+  // next check: every minute during games, otherwise at the next kickoff
+  const now=Date.now(),next=kickTimes().filter(t=>t>now).sort((a,b)=>a-b)[0];
+  const wait=LIVE.any||liveDue()?6e4:next?Math.min(next-now+5e3,6*36e5):null;
+  if(wait!=null)LIVE.timer=setTimeout(liveTick,Math.max(3e4,wait));}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LIVE.at>6e4)liveTick();});
 // ---- home: this week at a glance ----
 ui.homePos='QB';
 function renderHome(){
@@ -1378,15 +1514,29 @@ function renderHome(){
     <div class="btns"><button class="btn primary" data-go="lineup">Connect Sleeper or ESPN</button><button class="btn" data-go="sites">Star players</button></div>`;
   else{const L=optimize(mine),starters=L.start.filter(x=>x.x&&byKey.has(x.x.key)),bench=L.bench.filter(x=>byKey.has(x.key));
     let close=null;for(const st of starters)for(const b of bench){if(b.proj<=0||!SLOT_OK[st.slot].includes(b.pos))continue;const gap=st.x.proj-b.proj;if(!close||gap<close.gap)close={a:st.x,b,gap,slot:st.slot};}
-    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span>${call(r)}</span>`;
+    const lvOn=live&&LIVE.games.size;
+    const row=(r,slot)=>{const lv=lvOn?liveOf(r.p):null;
+      return `<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span>${lv?`<span class="lvp">${f1(lv.pts)}</span><br><span class="hm-sm">${lv.g.state==='in'?'<span class="livedot"></span>':''}${esc(lv.g.short)}</span>`:call(r)}</span>`;};
+    // live total for the starters, and where they're on pace to finish
+    let lvTot=null;if(lvOn){let sofar=0,pace=0,any=false;for(const x of starters){const r=byKey.get(x.x.key),lv=liveOf(r.p);if(lv){any=true;sofar+=lv.pts;pace+=lv.pts+r.proj*liveFrac(lv.g);}else pace+=r.proj;}
+      if(any)lvTot={sofar,pace,on:starters.some(x=>{const lv=liveOf(byKey.get(x.x.key).p);return lv&&lv.g.state==='in';})};}
     const LG=S.league,chk=LG?lineupCheck():null;
     $('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3><button class="hm-link" data-go="lineup">${LG?'League':'Edit roster'}</button></div>
       ${LG?`<div class="hm-sm" style="margin-top:-6px"><span class="lc-dot" style="display:inline-block;margin-right:6px"></span>${esc(LG.teamName)} · ${SRC_NAME[LG.src]} · synced ${agoMin(LG.synced)}</div>`:''}
       ${chk&&chk.moves.length?`<div><b style="font-size:.9rem">Lineup check:</b> ${checkHTML(chk,2)}</div>`:chk?`<div class="lc-ok" style="font-size:.9rem">Your ${SRC_NAME[LG.src]} lineup matches the best projected lineup.</div>`:''}
-      <div class="hm-tt"><span class="hd">Pos</span><span class="hd">Player</span><span class="hd" style="text-align:right">Proj</span><span class="hd">Call</span>
+      ${lvTot?`<div class="hm-live">${lvTot.on?'<span class="livedot"></span>':''}<span><b class="big">${f1(lvTot.sofar)}</b> pts so far</span><span class="hm-sm">on pace for <b>${f1(lvTot.pace)}</b> · projected ${f1(starters.reduce((a,x)=>a+x.x.proj,0))}</span></div>`:''}
+      <div class="hm-tt"><span class="hd">Pos</span><span class="hd">Player</span><span class="hd" style="text-align:right">Proj</span><span class="hd">${lvTot?'Live':'Call'}</span>
       ${starters.map(x=>row(byKey.get(x.x.key),x.slot)).join('')}</div>
       ${bench.length?`<div class="hm-bench"><b>Bench:</b> ${bench.slice(0,6).map(x=>`${esc(x.name)} ${f1(x.proj)}`).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
       ${!LG&&close&&close.gap<=4?`<div class="hm-close"><b>Closest call:</b> ${esc(close.a.name)} ${f1(close.a.proj)} vs ${esc(close.b.name)} ${f1(close.b.proj)} for your ${SLOT_LBL[close.slot]==='D/ST'?'D/ST':SLOT_LBL[close.slot].toLowerCase()} spot. <button class="hm-link" data-cmp="${esc(close.a.key)}|${esc(close.b.key)}">Compare</button></div>`:''}`;}
+  // this week's games, once any has started or one kicks off within 12 hours
+  {const el=$('#hmGames'),now=Date.now(),gs=[...new Set(LIVE.games.values())].filter(g=>g.state==='in'||Math.abs(now-g.date)<12*36e5).sort((a,b)=>({in:0,pre:1,post:2}[a.state]-{in:0,pre:1,post:2}[b.state])||a.date-b.date);
+    if(!live||!gs.length)el.hidden=true;
+    else{el.hidden=false;const tm=(g,home)=>g.teams.find(t=>t.home===home)||{ab:'',score:0};
+      el.innerHTML=`<div class="hm-head"><h3>${gs.some(g=>g.state==='in')?'<span class="livedot"></span>Live games':'Games'}</h3><span class="hm-sm">Live points are unofficial until the next data update</span></div>
+        <div class="hm-games">${gs.map(g=>{const a=tm(g,false),h=tm(g,true),st=g.state;
+          const ln=(t,o)=>`<div class="row${st!=='pre'&&t.score>o.score?' lead':''}"><span>${esc(t.ab)} <span class="hm-sm">${esc(TEAM_NAMES[t.ab]||'')}</span></span><b>${st==='pre'?'':t.score}</b></div>`;
+          return `<div class="hm-g ${st}">${ln(a,h)}${ln(h,a)}<span class="st">${st==='in'?'<span class="livedot"></span>':''}${esc(g.short)}</span></div>`;}).join('')}</div>`;}}
   // top projected
   const top=pos=>all.filter(r=>r.p.pos===pos&&r.proj>0).sort((a,b)=>b.proj-a.proj);
   $('#hmTop').innerHTML=`<div class="hm-head"><h3>Top projected, Week ${wk}</h3><button class="hm-link" data-go="sites">Full projections</button></div>
@@ -1551,10 +1701,10 @@ function renderSites(){
   const q=ui.q.trim().toLowerCase(),RP=new Map(realPlayers().map(p=>[p.key,p]));
   const match=r=>(ui.posS==='All'||r.pos===ui.posS)&&(!ui.mineOnly||S.mine.includes(r.key))&&(!q||r.name.toLowerCase().includes(q)||r.team.toLowerCase()===q||oppText(r,wk).toLowerCase().endsWith(' '+q));
   let rows=past?pastRows(wk).filter(x=>match(x.r)).filter(x=>Math.max(x.v.max,x.v.model||0)>=2||q)
-    :[...SITES.filter(match).map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;return {r,v};}).filter(x=>x.v.max>=2||q||RP.has(x.r.key)),
+    :[...SITES.filter(match).map(r=>{const v=siteVals(r);const ms=modelScored(r,RP);v.model=ms.model;v.scored=ms.scored;v.live=ms.live;v.clock=ms.clock;return {r,v};}).filter(x=>x.v.max>=2||q||RP.has(x.r.key)),
       // players with no site projection this week (on bye, out, or not projected) still get a row
       ...[...RP.values()].filter(p=>!SITEBY.has(p.key)).map(p=>({key:p.key,name:p.name,pos:p.pos,team:p.team,opp:''})).filter(match)
-        .map(r=>{const ms=modelScored(r,RP);return {r,v:{espn:null,sleeper:null,cbs:null,fp:null,n:0,avg:null,min:0,max:0,spread:0,model:ms.model,scored:ms.scored,live:ms.live}};})];
+        .map(r=>{const ms=modelScored(r,RP);return {r,v:{espn:null,sleeper:null,cbs:null,fp:null,n:0,avg:null,min:0,max:0,spread:0,model:ms.model,scored:ms.scored,live:ms.live,clock:ms.clock}};})];
   const key=ui.sortS==='scored'&&!rows.some(x=>x.v.scored!=null)?'avg':ui.sortS;
   const dir=ui.dirS||1;
   rows.sort((a,b)=>sortCmp(key==='spread'?a.v.spread:a.v[key],key==='spread'?b.v.spread:b.v[key],dir));
@@ -1570,7 +1720,7 @@ function renderSites(){
       ${cell(v,'espn',v)}${cell(v,'sleeper',v)}${cell(v,'cbs',v)}${cell(v,'fp',v)}
       <td class="r big">${v.avg!=null?f1(v.avg):'<span class="muted">—</span>'}</td>
       <td class="r big mcol">${v.model!=null?f1(v.model):'<span class="muted">—</span>'}</td>
-      <td class="r num">${v.scored==null?'<span class="muted">—</span>':`<b style="color:${v.model==null?'var(--ink)':v.scored-v.model>=3?'var(--good)':v.model-v.scored>=3?'var(--bad)':'var(--ink)'}">${f1(v.scored)}</b>${v.live?'<span class="subn">in progress</span>':''}`}</td>
+      <td class="r num">${v.scored==null?'<span class="muted">—</span>':`<b style="color:${v.model==null?'var(--ink)':v.scored-v.model>=3?'var(--good)':v.model-v.scored>=3?'var(--bad)':'var(--ink)'}">${f1(v.scored)}</b>${v.live?`<span class="subn"><span class="livedot"></span>${esc(v.clock||'in progress')}</span>`:''}`}</td>
       <td><div class="srange"><div class="track"></div>${v.n>1?`<div class="span" style="left:${v.min/maxV*100}%;width:${(v.max-v.min)/maxV*100}%"></div>`:''}${dots}</div></td>
       <td>${agree}</td></tr>`}).join(''):`<tr><td colspan="12" class="muted">${ui.mineOnly?'No starred players here yet. Turn off "My team only" and tap ☆ next to your players.':'No players match. Try a different name or position.'}</td></tr>`;
 }
@@ -1693,6 +1843,7 @@ function modelScored(r,RP){const out={model:null,scored:null,live:false};if(S.we
   if(started&&fz&&fz[si]!=null)out.model=fz[si];else{const p=RP.get(r.key);if(p&&!onBye(p))out.model=weekProj(p).proj;}
   const pl=PL.get(r.key),w=pl&&pl.weeks[SD.week-1];
   if(started&&w){out.scored=wpts(w);out.live=Date.now()<t+3.75*36e5;}
+  const lv=liveOf(pl||r);if(lv&&(lv.g.state==='in'||out.scored==null)){out.scored=lv.pts;out.live=lv.g.state==='in';out.clock=lv.g.short;}
   return out;}
 function toolsFor(p){
   if(!p.real)return [];
@@ -2055,6 +2206,29 @@ $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');
 render();
 renderTicker();
 autoSync();
+liveTick();
+// ---- theme ----
+(function(){const k=KEY+'.theme',mq=matchMedia('(prefers-color-scheme: dark)');
+  const pref=()=>{try{return localStorage.getItem(k)||'auto';}catch(_){return 'auto';}};
+  const apply=()=>{const p=pref(),d=p==='dark'||(p==='auto'&&mq.matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');
+    const m=$('#themeColor');if(m)m.setAttribute('content',d?'#1A1D23':'#FFFFFF');
+    document.querySelectorAll('#themeSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===p));};
+  $('#themeSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(k,b.dataset.v);}catch(_){}apply();};
+  (mq.addEventListener?mq.addEventListener('change',apply):mq.addListener(apply));apply();})();
+// ---- installable app: offline copy, and a one-time "add to home screen" hint on phones ----
+if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+(function(){const el=$('#hmInstall');if(!el)return;
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  let off=false;try{off=!!localStorage.getItem(KEY+'.noinstall');}catch(_){}
+  if(standalone||off)return;
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const show=html=>{el.innerHTML=`<img src="icons/icon-192.png" alt="">${html}<button class="x" aria-label="Dismiss" data-noinstall>×</button>`;el.hidden=false;};
+  if(ios)show('<p><b>Get the app.</b> Tap the Share button, then <b>Add to Home Screen</b>, to open Lineup Lab full-screen like an app.</p>');
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();const ev=e;
+    show('<p><b>Get the app.</b> Install Lineup Lab on your home screen. It opens full-screen and works with weak signal.</p><button class="btn primary sm" data-install>Install</button>');
+    el.querySelector('[data-install]').onclick=()=>{ev.prompt();ev.userChoice.finally(()=>{el.hidden=true;});};});
+  el.addEventListener('click',e=>{if(e.target.closest('[data-noinstall]')){el.hidden=true;try{localStorage.setItem(KEY+'.noinstall','1');}catch(_){}}});
+  window.addEventListener('appinstalled',()=>{el.hidden=true;});})();
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
   const pad=()=>{document.documentElement.style.scrollPaddingTop=(tb.offsetHeight+8)+'px';document.documentElement.style.setProperty('--tbh',tb.offsetHeight+'px');};
