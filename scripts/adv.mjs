@@ -255,14 +255,21 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
     ok('FantasyPros consensus', `${Object.keys(out.ecr).length} players${out.ecrCurrent ? '' : ' (last week\'s rankings; this week\'s not posted yet)'}`);
   } catch (e) { fail('FantasyPros consensus', e); }
 
-  // 8b. FantasyPros rest-of-season rankings (how experts value a player for the rest of the year, roughly trade value)
+  // 8b. FantasyPros rest-of-season rankings (PPR, by position): how experts value a player for the rest of the
+  // year, roughly trade value. key -> [positional ECR, overall ECR]
   try {
     const rows = parseCSV(await fetchText('https://raw.githubusercontent.com/dynastyprocess/data/master/files/db_fpecr_latest.csv'));
-    const kinds = {};
-    for (const r of rows) { const k = `${r.ecr_type || '?'}|${r.page_type || '?'}`; kinds[k] = (kinds[k] || 0) + 1; }
-    const j = rows.filter(r => /justin jefferson/i.test(r.player || '')).map(r => JSON.stringify(r).slice(0, 400));
-    out.sources['FantasyPros pages (check)'] = { ok: true, detail: Object.entries(kinds).sort((a, b) => b[1] - a[1]).slice(0, 40).map(([k, n]) => `${k}=${n}`).join(', ') + ' || ' + j.join(' ## ') };
-  } catch (e) { out.sources['FantasyPros pages (check)'] = { ok: false, detail: e.message }; }
+    const posMap = { QB: 'QB', RB: 'RB', WR: 'WR', TE: 'TE', K: 'K', DST: 'DST' };
+    out.ros = {}; const overall = {};
+    for (const r of rows) {
+      const pos = posMap[(r.pos || '').toUpperCase()]; if (!pos) continue;
+      const key = nkey(r.player, pos);
+      if (r.ecr_type === 'rp' && /^redraft-(qb|rb|wr|te|k|dst)$/.test(r.page_type || '') && !out.ros[key]) out.ros[key] = [r2(num(r.ecr)), null];
+      if (r.ecr_type === 'ro' && r.page_type === 'redraft-overall' && overall[key] == null) overall[key] = r2(num(r.ecr));
+    }
+    for (const k in out.ros) out.ros[k][1] = overall[k] ?? null;
+    ok('FantasyPros rest of season', `${Object.keys(out.ros).length} players`);
+  } catch (e) { fail('FantasyPros rest of season', e); }
 
   // 9. CBS Sports: three experts' weekly rankings + consensus, and weekly projections
   try {
