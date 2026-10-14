@@ -255,7 +255,7 @@ html{overflow-x:clip}body{overflow-x:clip}
 .topbar>.ticker{border-radius:0;border-bottom:1px solid var(--line);padding-left:var(--gut);padding-right:var(--gut);box-shadow:none;background:var(--surface)}
 .topbar>.tabs{background:var(--surface);padding:6px var(--gut);border-radius:0;box-shadow:none}
 .topbar>.tabs button{background:var(--surface-2);padding:8px 11px}
-@media (min-width:760px) and (max-width:1439px){.topbar>.tabs button{font-size:.88rem;padding:7px 8px}}
+@media (min-width:760px) and (max-width:1679px){.topbar>.tabs button{font-size:.88rem;padding:7px 8px}}
 .topbar>.tabs button[aria-selected="true"]{background:var(--gold)}
 /* once you scroll, the top area slims down */
 .topbar.scrolled>.board{padding-top:10px;padding-bottom:10px}
@@ -403,6 +403,43 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .team-hero.stuck .shot{max-height:56px}
   .team-hero.stuck .shot.logo{height:44px}
 }
+/* Home */
+.hm-row{display:flex;flex-wrap:wrap;gap:18px}
+.hm-hero{flex:1 1 460px;min-width:0;justify-content:center;background:var(--ink);color:#fff;border-radius:4px;border-top:4px solid var(--gold);padding:28px;display:flex;flex-direction:column;gap:16px}
+.hm-kick{font-family:var(--f-display);font-weight:700;font-size:.95rem;letter-spacing:.12em;text-transform:uppercase;color:#F7A688}
+.hm-h1{font-size:clamp(3rem,7vw,4.6rem);line-height:.9;text-transform:uppercase}
+.hm-h1 span{color:var(--gold)}
+.hm-sub{margin:0;color:#C9D2E0;font-size:1.05rem;line-height:1.5;max-width:30em}
+.hm-find{display:flex;flex-direction:column;gap:6px;max-width:440px}.hm-find .label{color:#C9D2E0}
+.hm-find input{font:500 1.05rem var(--f-body);padding:12px 14px;border-radius:6px;border:0;background:#fff;color:var(--ink)}
+.hm-btns{display:flex;flex-wrap:wrap;gap:10px}
+.hm-go{all:unset;cursor:pointer;font-family:var(--f-display);font-weight:800;font-size:1.05rem;text-transform:uppercase;padding:10px 16px;border-radius:4px;border:2px solid #3A4659;color:#fff}
+.hm-go.hm-pri{background:var(--gold);border-color:var(--gold)}
+.hm-go:hover{border-color:#fff}.hm-go:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.hm-team{flex:1 1 420px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.hm-inj{flex:1 1 320px;min-width:0}.hm-news{flex:2 1 480px;min-width:0}
+.hm-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+.hm-link{all:unset;cursor:pointer;font-size:.85rem;font-weight:700;color:var(--gold)}.hm-link:hover{text-decoration:underline}
+.hm-tt{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:9px 12px;align-items:center}
+.hm-tt .hd{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.hm-pr{font-family:var(--f-display);font-weight:800;font-size:1.2rem;text-align:right}
+.hm-sm{font-size:.82rem;color:var(--muted)}
+.hm-close{padding:9px 12px;background:var(--gold-soft);border-radius:4px;font-size:.92rem}
+.hm-bench{font-size:.85rem;color:var(--muted)}
+.hm-pos4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.hm-pcol{border-top:3px solid var(--c);padding-top:10px;display:flex;flex-direction:column;gap:9px}
+.hm-pcol>b{font-family:var(--f-display);letter-spacing:.1em;color:var(--c)}
+.hm-li{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hm-pick{display:none}
+.hm-grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.hm-list{display:flex;flex-direction:column;gap:11px}
+.hm-big{font-family:var(--f-display);font-weight:800;font-size:2.4rem;line-height:1}
+.hm-news ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.hm-news a{color:var(--ink);font-weight:700;text-decoration:none}.hm-news a:hover{color:var(--gold)}
+.hm-src{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.hm-empty{color:var(--muted);font-size:.95rem;line-height:1.5}
+@media (max-width:600px){.hm-hero{padding:20px;gap:12px}.hm-btns .hm-go{flex:1 1 40%;text-align:center}
+  .hm-pick{display:flex}.hm-pos4 .hm-pcol:not(.on){display:none}.hm-pos4{grid-template-columns:1fr}}
 /* Points by week: broadcast bars */
 .wkcard{display:flex;flex-direction:column;gap:14px;--wkbg:var(--surface)}
 .teamed .wkcard{--wkbg:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
@@ -456,6 +493,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   </div>
 
   <nav class="tabs" role="tablist">
+    <button role="tab" data-tab="home" id="t-home">Home</button>
     <button role="tab" data-tab="sites" id="t-sites">Projections</button>
     <button role="tab" data-tab="stats" id="t-stats">Player Stats</button>
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
@@ -468,8 +506,25 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   </nav>
   </div>
 
+  <!-- HOME -->
+  <section class="panel" id="p-home" role="tabpanel">
+    <div class="hm-row">
+      <div class="hm-hero">
+        <div class="hm-kick" id="hmKick"></div>
+        <h1 class="hm-h1" id="hmTitle"></h1>
+        <p class="hm-sub" id="hmSub"></p>
+        <div class="hm-find"><label class="label" for="homeSearch">Find a player</label><input id="homeSearch" type="search" list="hSearchList" placeholder="Name, then pick from the list" autocomplete="off" spellcheck="false"></div>
+        <div class="hm-btns"><button class="hm-go hm-pri" data-go="week">Start / Sit</button><button class="hm-go" data-go="lineup">Suggested lineup</button><button class="hm-go" data-go="sites">All projections</button></div>
+      </div>
+      <div class="card hm-team" id="hmTeam"></div>
+    </div>
+    <div class="card" id="hmTop"></div>
+    <div class="hm-grid3"><div class="card" id="hmSoft"></div><div class="card" id="hmLast"></div><div class="card" id="hmAcc"></div></div>
+    <div class="hm-row"><div class="card hm-inj" id="hmInj"></div><div class="card hm-news" id="hmNews"></div></div>
+  </section>
+
   <!-- START / SIT -->
-  <section class="panel" id="p-week" role="tabpanel">
+  <section class="panel" id="p-week" role="tabpanel" hidden>
     <div class="card">
       <h2>Head to head</h2>
       <p class="muted" style="margin-bottom:14px">Type two players' names to compare them for this week. Your starred players are marked in the suggestions.</p>
@@ -711,7 +766,7 @@ let S={players:[],mine:[],scoring:'ppr',week:5,passTD:4,w:{...DEF_W}};
 try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});}}catch(e){}
 S.players=[];if(!Array.isArray(S.mine))S.mine=[];
 if(typeof SITE_DATA!=='undefined'&&SITE_DATA.week)S.week=SITE_DATA.week;
-let ui={tab:'sites',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
+let ui={tab:'home',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
 
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 
@@ -837,6 +892,18 @@ function chips(el,cur,key){
   el.onclick=e=>{const b=e.target.closest('button');if(!b)return;ui[key]=b.dataset.p;render();};
 }
 
+// Start / Sit call for a row {p,proj}: the tools' consensus when 3+ weigh in, else 12-team cutoffs by projected rank
+function makeCall(all){
+  const byPos={};all.filter(r=>r.p.real&&r.proj>0).forEach(r=>{(byPos[r.p.pos]=byPos[r.p.pos]||[]).push(r.proj)});
+  Object.values(byPos).forEach(a=>a.sort((x,y)=>y-x));
+  return r=>{
+    if(r.proj===0)return `<span class="pill p-bad">Sit · ${onBye(r.p)?'bye':'out'}</span>`;
+    const cn=r.p.real?consensus(r.p):null;
+    if(cn&&cn.total>=3){const rk=Math.round(cn.avg),cls={start:'p-good',flex:'p-gold',sit:'p-mute'}[cn.vote];return `<span class="pill ${cls}" title="Average rank across ${cn.total} tools">${cn.vote[0].toUpperCase()+cn.vote.slice(1)} · ${r.p.pos}${rk}</span>`;}
+    const arr=byPos[r.p.pos]||[];let rk=arr.findIndex(v=>v<=r.proj)+1;if(!rk)rk=arr.length+1;const c=CUT[r.p.pos];
+    return rk<=c[0]?`<span class="pill p-good">Start · ${r.p.pos}${rk}</span>`:rk<=c[1]?`<span class="pill p-gold">Flex · ${r.p.pos}${rk}</span>`:`<span class="pill p-mute">Sit · ${r.p.pos}${rk}</span>`;
+  };}
+
 function renderWeek(){
   $('#wkLabel').textContent=S.week;
   chips($('#posWeek'),ui.posW,'posW');
@@ -844,15 +911,7 @@ function renderWeek(){
   $('#mineOnly').checked=!!ui.mineOnly;
   const all=pool().map(p=>({p,...weekProj(p)}));
   // calls use 12-team starter cutoffs by projected positional rank
-  const byPos={};all.filter(r=>r.p.real&&r.proj>0).forEach(r=>{(byPos[r.p.pos]=byPos[r.p.pos]||[]).push(r.proj)});
-  Object.values(byPos).forEach(a=>a.sort((x,y)=>y-x));
-  const call=r=>{
-    if(r.proj===0)return `<span class="pill p-bad">Sit · ${onBye(r.p)?'bye':'out'}</span>`;
-    const cn=r.p.real?consensus(r.p):null;
-    if(cn&&cn.total>=3){const rk=Math.round(cn.avg),cls={start:'p-good',flex:'p-gold',sit:'p-mute'}[cn.vote];return `<span class="pill ${cls}" title="Average rank across ${cn.total} tools">${cn.vote[0].toUpperCase()+cn.vote.slice(1)} · ${r.p.pos}${rk}</span>`;}
-    const arr=byPos[r.p.pos]||[];let rk=arr.findIndex(v=>v<=r.proj)+1;if(!rk)rk=arr.length+1;const c=CUT[r.p.pos];
-    return rk<=c[0]?`<span class="pill p-good">Start · ${r.p.pos}${rk}</span>`:rk<=c[1]?`<span class="pill p-gold">Flex · ${r.p.pos}${rk}</span>`:`<span class="pill p-mute">Sit · ${r.p.pos}${rk}</span>`;
-  };
+  const call=makeCall(all);
   const q=(ui.qW||'').trim().toLowerCase();
   let rows=all.filter(r=>(ui.posW==='All'||r.p.pos===ui.posW)&&(!ui.mineOnly||isMine(r.p))&&(!q||r.p.name.toLowerCase().includes(q)||(r.p.team||'').toLowerCase()===q));
   const kW=ui.sortW||'proj',dW=ui.dirW||1;
@@ -975,8 +1034,8 @@ const SRC_COLOR={lab:'var(--gold)',mod:'#8A94A6',espn:'var(--s-espn)',sleeper:'v
 function loadAcc(){if(ACC||accLoading)return;accLoading=true;
   if(typeof ACC_DATA!=='undefined'){ACC=ACC_DATA;return;}
   const sc=document.createElement('script');sc.src='data/accuracy-data.js?v='+Math.floor(Date.now()/300000);
-  sc.onload=()=>{ACC=typeof ACC_DATA!=='undefined'?ACC_DATA:{weeks:{}};if(ui.tab==='acc')renderAcc();};
-  sc.onerror=()=>{ACC={weeks:{}};if(ui.tab==='acc')renderAcc();};document.head.appendChild(sc);}
+  sc.onload=()=>{ACC=typeof ACC_DATA!=='undefined'?ACC_DATA:{weeks:{}};if(ui.tab==='acc')renderAcc();else if(ui.tab==='home')renderHome();};
+  sc.onerror=()=>{ACC={weeks:{}};if(ui.tab==='acc')renderAcc();else if(ui.tab==='home')renderHome();};document.head.appendChild(sc);}
 // season totals for each source across the chosen weeks
 function accAgg(ws){const sc=S.scoring,t={};
   for(const w of ws){const W=ACC.weeks[w];for(const s of W.srcs){const m=W.m[sc][s];const a=t[s]=t[s]||{ae:0,n:0,hit:0,tot:0,rs:0,rn:0,weeks:0,pos:{}};
@@ -1150,6 +1209,87 @@ function renderTicker(){const el=$('#ticker'),tr=$('#tkTrack');if(!el||!tr)retur
   // constant reading speed regardless of how much is in it
   requestAnimationFrame(()=>{const w=tr.firstElementChild.scrollWidth;tr.style.setProperty('--tk-dur',Math.max(30,w/70)+'s');});}
 document.addEventListener('click',e=>{const b=e.target.closest('.tk-a');if(b){go(b.dataset.tab);}});
+// ---- home: this week at a glance ----
+ui.homePos='QB';
+function renderHome(){
+  const wk=S.week,live=wk===SD.week,lw=Math.min(wk,SD.week)-1,i4=['QB','RB','WR','TE'];
+  const sc={ppr:'PPR',half:'Half-PPR',std:'Standard'}[S.scoring];
+  const pname=p=>PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name);
+  const oppLine=p=>onBye(p)?'Bye':oppText(p,wk)+oppRankTag(p,wk);
+  // hero
+  $('#hmKick').textContent=`${SD.season||new Date().getFullYear()} season · ${sc}`;
+  $('#hmTitle').innerHTML=`Week ${wk}<br><span>${live?'is set.':wk<SD.week?'in review.':'is coming.'}</span>`;
+  $('#hmSub').textContent=live?`Projections from ESPN, Sleeper, CBS and FantasyPros, blended with our model.${wk<18?` Week ${wk+1} takes over Tuesday at 3:30 AM ET.`:''}`
+    :`You're looking at Week ${wk}. Set the Week box at the top to ${SD.week} for this week.`;
+  const all=pool().filter(p=>p.real).map(p=>({p,...weekProj(p)})),call=makeCall(all),byKey=new Map(all.map(r=>[r.p.key,r]));
+  // my team
+  const mine=S.mine.filter(k=>byKey.has(k));
+  if(!mine.length)$('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3></div>
+    <p class="hm-empty">Tap the ☆ next to your players on Projections, Player Stats or Start / Sit. They'll show up here with this week's projection and a start or sit call.</p>
+    <div><button class="btn" data-go="sites">Find my players</button></div>`;
+  else{const L=optimize(mine),starters=L.start.filter(x=>x.x&&byKey.has(x.x.key)),bench=L.bench.filter(x=>byKey.has(x.key));
+    let close=null;for(const st of starters)for(const b of bench){if(b.proj<=0||!SLOT_OK[st.slot].includes(b.pos))continue;const gap=st.x.proj-b.proj;if(!close||gap<close.gap)close={a:st.x,b,gap,slot:st.slot};}
+    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span>${call(r)}</span>`;
+    $('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3><button class="hm-link" data-go="lineup">Edit roster</button></div>
+      <div class="hm-tt"><span class="hd">Pos</span><span class="hd">Player</span><span class="hd" style="text-align:right">Proj</span><span class="hd">Call</span>
+      ${starters.map(x=>row(byKey.get(x.x.key),x.slot)).join('')}</div>
+      ${bench.length?`<div class="hm-bench"><b>Bench:</b> ${bench.slice(0,6).map(x=>`${esc(x.name)} ${f1(x.proj)}`).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
+      ${close&&close.gap<=4?`<div class="hm-close"><b>Closest call:</b> ${esc(close.a.name)} ${f1(close.a.proj)} vs ${esc(close.b.name)} ${f1(close.b.proj)} for your ${SLOT_LBL[close.slot]==='D/ST'?'D/ST':SLOT_LBL[close.slot].toLowerCase()} spot. <button class="hm-link" data-cmp="${esc(close.a.key)}|${esc(close.b.key)}">Compare</button></div>`:''}`;}
+  // top projected
+  const top=pos=>all.filter(r=>r.p.pos===pos&&r.proj>0).sort((a,b)=>b.proj-a.proj);
+  $('#hmTop').innerHTML=`<div class="hm-head"><h3>Top projected, Week ${wk}</h3><button class="hm-link" data-go="sites">Full projections</button></div>
+    <div class="chips hm-pick" style="margin-bottom:12px">${i4.map(x=>`<button class="chip" aria-pressed="${ui.homePos===x}" data-hp="${x}">${x}</button>`).join('')}</div>
+    <div class="hm-pos4">${i4.map(pos=>`<div class="hm-pcol${ui.homePos===pos?' on':''}" style="--c:var(--${pos.toLowerCase()})"><b>${{QB:'QUARTERBACKS',RB:'RUNNING BACKS',WR:'WIDE RECEIVERS',TE:'TIGHT ENDS'}[pos]}</b>
+      ${top(pos).slice(0,5).map(r=>`<div class="hm-li"><span>${pname(r.p)} <span class="hm-sm">${oppText(r.p,wk)}</span></span><b class="hm-pr">${f1(r.proj)}</b></div>`).join('')||'<span class="hm-sm">No projections yet.</span>'}</div>`).join('')}</div>`;
+  // softest matchups: startable players facing the defenses that give up the most to their position
+  const D=dvpData();
+  const soft=i4.map((pos,ix)=>{const i=DPOS.indexOf(pos);let best=null;
+    for(const r of top(pos).slice(0,CUT[pos][0])){if(onBye(r.p))continue;const o=(SCHED[r.p.team]||[])[wk-1];const d=o&&o!=='BYE'?D.by[o.replace('@','')]:null;if(!d)continue;
+      const rk=d.rank[i];const soft=rk>=25,bs=best&&best.rk>=25;
+      // among players facing a bottom-8 defense, the best projected; otherwise the softest matchup available
+      if(!best||(soft&&(!bs||r.proj>best.r.proj))||(!soft&&!bs&&rk>best.rk))best={r,rk,d};}
+    return best&&{pos,...best};}).filter(Boolean);
+  $('#hmSoft').innerHTML=`<div class="hm-head"><h3>Softest matchups</h3><button class="hm-link" data-go="dvp">All defenses</button></div>
+    ${soft.length?`<div class="hm-list">${soft.map(x=>`<div class="hm-li" style="align-items:center"><span style="display:flex;gap:10px;align-items:center"><span class="pos ${x.pos}">${x.pos}</span><span>${pname(x.r.p)}<br><span class="hm-sm">${oppText(x.r.p,wk)} · proj ${f1(x.r.proj)}</span></span></span>
+      <button class="ork olink good" data-dvp="${esc(x.d.t)}" title="${esc(TEAM_NAMES[x.d.t]||x.d.t)} allow ${n1(x.d.avg[DPOS.indexOf(x.pos)])} pts/game to ${x.pos}s">${ord(x.rk)} vs ${x.pos}</button></div>`).join('')}</div>`
+      :'<p class="hm-empty">Matchup ranks show up after the first week of games.</p>'}`;
+  // last week's top scorers
+  const tops=[];if(lw>=1)for(const pos of DPOS){let b=null;for(const p of PL.values()){if(p.pos!==pos)continue;const w=p.weeks[lw-1];if(!w)continue;const v=wpts(w);if(!b||v>b.v)b={p,v};}if(b)tops.push({pos,...b});}
+  $('#hmLast').innerHTML=`<div class="hm-head"><h3>Week ${Math.max(1,lw)} top scorers</h3></div>
+    ${tops.length?`<div class="hm-list">${tops.map(x=>`<div class="hm-li" style="align-items:center"><span style="display:flex;gap:10px;align-items:center"><span class="pos ${x.pos}">${x.pos}</span>${pname(x.p)}</span><b class="hm-pr">${n1(x.v)}</b></div>`).join('')}</div>`
+      :'<p class="hm-empty">Top scorers show up once the first week is played.</p>'}`;
+  // accuracy
+  loadAcc();let acc='<p class="hm-empty">Loading…</p>';
+  if(ACC){const ws=Object.keys(ACC.weeks||{}).map(Number).sort((a,b)=>a-b);
+    if(!ws.length)acc=`<p class="hm-empty">Grades show up once Week ${SD.week}'s games are final.</p>`;
+    else{const last=ws[ws.length-1],rows=accAgg([last]).sort((a,b)=>a.mae-b.mae),season=accAgg(ws).sort((a,b)=>a.mae-b.mae),best=rows[0];
+      const li=rows.findIndex(r=>r.s==='lab'),si=season.findIndex(r=>r.s==='lab');
+      acc=`<div class="hm-list"><span class="hm-sm" style="font-weight:700;text-transform:uppercase;letter-spacing:.06em">Most accurate, Week ${last}</span>
+        <span class="hm-big">${esc(ACC.sources[best.s])}</span><span class="hm-sm">${best.mae.toFixed(1)} points off per player</span>
+        <div style="border-top:1px solid var(--line);padding-top:10px;font-size:.92rem">${best.s==='lab'?'That was us.':li>=0?`Ace Lineup Lab: <b>${ord(li+1)}</b> of ${rows.length} (${rows[li].mae.toFixed(1)} off).`:''}${si>=0?` Season to date: <b>${ord(si+1)}</b> of ${season.length}.`:''}</div></div>`;}}
+  $('#hmAcc').innerHTML=`<div class="hm-head"><h3>Who called it</h3><button class="hm-link" data-go="acc">Scoreboard</button></div>${acc}`;
+  // injury watch: fantasy starters (by season scoring) and your players with an injury tag or a missed or limited practice
+  if(!NEWS)loadNews(()=>{if(ui.tab==='home')renderHome();});
+  const sev={Doubtful:0,Questionable:1,Out:2};
+  const startRank={};i4.forEach(pos=>all.filter(r=>r.p.pos===pos).sort((a,b)=>b.b-a.b).slice(0,CUT[pos][0]).forEach(r=>startRank[r.p.key]=1));
+  const inj=all.filter(r=>{const p=r.p;if(onBye(p))return false;const mineP=isMine(p);if(!mineP&&!startRank[p.key])return false;
+      const st=effStatus(p),pr=practiceOf(p),pc=pr?pr[0]:'';if(st==='IR')return mineP;return sev[st]!=null||pc==='DNP'||pc==='LP';})
+    .map(r=>{const st=effStatus(r.p);return {r,st,mine:isMine(r.p),o:sev[st]??3};})
+    .sort((a,b)=>(b.mine-a.mine)||(a.o-b.o)||(b.r.b-a.r.b)).slice(0,6);
+  const recent=p=>{const l=NEWS&&(NEWS.news||{})[p.key];if(!l)return null;const last=p.name.split(' ').filter(w=>!/^(jr|sr|ii|iii|iv)\.?$/i.test(w)).pop().toLowerCase();
+    return l.find(x=>Date.now()-Date.parse(x[3])<4*864e5&&x[0].toLowerCase().includes(last))||null;};
+  $('#hmInj').innerHTML=`<div class="hm-head"><h3>Injury watch</h3></div>${inj.length?`<div class="hm-list">${inj.map(x=>{const p=x.r.p,pr=practiceOf(p),pc=pr?pr[0]:'',nw=recent(p);
+      const note=pc?{DNP:'Did not practice',LP:'Limited in practice',FP:'Full practice'}[pc]+(pr[2]?` (${esc(pr[2])})`:''):{Out:'Not expected to play',Doubtful:'Doubtful to play',Questionable:'Questionable to play',IR:'On injured reserve'}[x.st]||'';
+      return `<div style="display:flex;gap:10px;align-items:flex-start"><span style="min-width:34px">${statusPill(p)||'<span class="pill p-warn">LP</span>'}</span><span>${pname(p)} <span class="hm-sm">${esc(p.team)} ${p.pos}${x.mine?' · your team':''}</span><br>
+        <span class="hm-sm">${note}</span>${nw?`<br><a class="hm-sm" href="${esc(nw[2])}" target="_blank" rel="noopener noreferrer">${esc(nw[1])}: ${esc(nw[0])} ↗</a>`:''}</span></div>`;}).join('')}</div>`
+    :'<p class="hm-empty">No injury tags on fantasy starters right now.</p>'}`;
+  // latest news
+  const T=(typeof TICKER_DATA!=='undefined'&&TICKER_DATA)||{};const lat=(T.latest||[]).slice(0,5);
+  $('#hmNews').innerHTML=`<div class="hm-head"><h3>Latest news</h3></div>${lat.length?`<ul>${lat.map(([t,src,url,iso])=>`<li><div class="hm-src">${esc(src)}${iso?' · '+esc(ago(iso)):''}</div><a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)} <span aria-hidden="true">↗</span></a></li>`).join('')}</ul>`:'<p class="hm-empty">No headlines right now.</p>'}`;
+}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return;}
+  const h=e.target.closest('[data-hp]');if(h){ui.homePos=h.dataset.hp;renderHome();return;}
+  const c=e.target.closest('[data-cmp]');if(c){const [a,b]=c.dataset.cmp.split('|');ui.a=a;ui.b=b;go('week');const el=$('#p-week .h2h');if(el)el.scrollIntoView({block:'start'});}});
 // ---- my team: stars and the shared "My team only" filter ----
 function starBtn(k){const on=S.mine.includes(k);return `<button class="star${on?' on':''}" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on?'Remove from':'Add to'} my team" title="${on?'On my team':'Add to my team'}">${on?'★':'☆'}</button>`;}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-star]');if(!b)return;const k=b.dataset.star;
@@ -1165,8 +1305,8 @@ function render(){
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===S.scoring));
   $('#weekIn').value=S.week;$('#passTdIn').value=S.passTD;
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));
-  ['week','sites','stats','player','ros','lineup','dvp','trade','acc','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
-  renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();if(ui.tab==='acc')renderAcc();if(ui.tab==='trade')renderTrade();if(ui.tab==='dvp')renderDvp();renderModel();
+  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  if(ui.tab==='home')renderHome();renderWeek();renderSites();renderStats();if(ui.tab==='player')renderPlayer();renderRos();if(ui.tab==='lineup')renderLineup();if(ui.tab==='acc')renderAcc();if(ui.tab==='trade')renderTrade();if(ui.tab==='dvp')renderDvp();renderModel();
 }
 
 // ---- site projections ----
@@ -1706,7 +1846,7 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');i
 // Browser history: every tab and player page gets its own address, so Back and Forward move around the site
 // (and a link like …/#player=puka-nacua opens straight to that page)
 // ---- header search: jump to any player's page ----
-(function(){const inp=$('#hSearch'),dl=$('#hSearchList');if(!inp)return;
+(function(){const dl=$('#hSearchList');['#hSearch','#homeSearch'].forEach(sel=>{const inp=$(sel);if(!inp||!dl)return;
   const lab=p=>`${p.name} (${p.team}) · ${p.pos}`;
   const list=()=>[...PL.values()].sort((a,b)=>(b.s.pts_ppr||0)-(a.s.pts_ppr||0));
   let built=false;const build=()=>{if(built)return;built=true;dl.innerHTML=list().map(p=>`<option value="${esc(lab(p))}"></option>`).join('');};
@@ -1716,10 +1856,10 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');i
     if(!hit){if(!exact)toast('No player matches that name');return;}
     inp.value='';inp.blur();if(ui.tab!=='player')ui.prev=ui.tab;go('player',hit.key);};
   inp.addEventListener('input',()=>open(true));
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});})();
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});});})();
 // Features that are built but switched off. To bring one back, change false to true.
 const FEATURES={trade:false};
-const TABS=['stats','sites','ros','week','lineup','dvp','trade','acc','model'].filter(t=>FEATURES[t]!==false);
+const TABS=['home','stats','sites','ros','week','lineup','dvp','trade','acc','model'].filter(t=>FEATURES[t]!==false);
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
@@ -1727,7 +1867,7 @@ const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):t==='dvp'&&k?'#dvp='+k:'
 function readHash(){const h=decodeURIComponent(location.hash.slice(1));
   if(h.startsWith('player=')){const raw=h.slice(7);const k=[raw,raw.replace(/-/g,' ')].find(x=>PL.has(x));if(k)return {tab:'player',player:k};}
   if(h.startsWith('dvp=')){const t=h.slice(4).toUpperCase();return {tab:'dvp',player:TEAM_NAMES[t]?t:null};}
-  return TABS.includes(h)?{tab:h}:{tab:'sites'};}
+  return TABS.includes(h)?{tab:h}:{tab:'home'};}
 // go to a tab; "sub" is the player on a player page, or the team on Defense vs Position
 function cur(){return ui.tab==='player'?ui.player:ui.tab==='dvp'?ui.dvpTeam||null:null;}
 function apply(tab,sub){ui.tab=tab;if(tab==='player'&&sub)ui.player=sub;if(tab==='dvp')ui.dvpTeam=sub||null;}
@@ -1742,9 +1882,9 @@ function go(tab,sub,push=true){
   if(tab==='dvp'&&sub)lastDvp=sub;}
 let lastDvp=null;
 window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Math.max(0,navDepth-1);
-  if(st.tab==='player'&&!PL.has(st.player))st.tab='sites';apply(st.tab,st.player);render();
+  if(st.tab==='player'&&!PL.has(st.player))st.tab='home';apply(st.tab,st.player);render();
   const row=st.tab==='dvp'&&st.player&&document.querySelector(`tr.dvprow[data-t="${st.player}"]`);if(row)row.scrollIntoView({block:'start'});else window.scrollTo(0,0);});
-(function(){const st=readHash();if(location.hash&&(st.tab!=='sites'||location.hash==='#sites')){apply(st.tab,st.player);render();}
+(function(){const st=readHash();if(location.hash&&(st.tab!=='home'||location.hash==='#home')){apply(st.tab,st.player);render();}
   try{history.replaceState({tab:ui.tab,player:cur()},'',hashFor(ui.tab,cur()));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);save();renderModel();renderWeek();renderRos();});
 $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
