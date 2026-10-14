@@ -425,8 +425,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div class="field" style="flex:1 1 220px"><label class="label" for="wkSearch">Find a player or team</label><input id="wkSearch" type="search" placeholder="e.g. Kittle, or SF"></div>
       <label class="mine-toggle"><input type="checkbox" id="mineOnly" class="mine-cb"> <span>My team only <span class="muted mono mine-n" id="mineCount"></span></span></label>
     </div>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>#</th><th>Player</th><th class="r">Avg pts</th><th>Matchup</th><th class="r" title="Team implied points from the betting line">Vegas</th><th title="How each start/sit tool votes: green start, gold flex, gray sit">Tools</th><th class="r">Projection</th><th>Floor – ceiling</th><th>Call</th></tr></thead>
+    <div class="tbl-wrap"><table class="wk">
+      <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="avg">Avg pts</th><th class="sortable" data-sort="match" title="Sort by easiest matchup">Matchup</th><th class="r sortable" data-sort="vegas" title="Team implied points from the betting line">Vegas</th><th class="sortable" data-sort="tools" title="How each start/sit tool votes: green start, gold flex, gray sit">Tools</th><th class="r sortable" data-sort="proj">Projection</th><th class="sortable" data-sort="ceil" title="Sort by ceiling">Floor – ceiling</th><th>Call</th></tr></thead>
       <tbody id="weekBody"></tbody>
     </table></div>
   </section>
@@ -525,8 +525,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div><h2>Rest-of-season rankings</h2><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
-    <div class="tbl-wrap"><table>
-      <thead><tr><th>#</th><th>Player</th><th class="r">Pts / game</th><th class="r">Games left</th><th class="r">Total pts</th><th>Vs. top at position</th><th>Tier</th></tr></thead>
+    <div class="tbl-wrap"><table class="rostbl">
+      <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="games">Games left</th><th class="r sortable" data-sort="total">Total pts</th><th class="sortable" data-sort="pct">Vs. top at position</th><th>Tier</th></tr></thead>
       <tbody id="rosBody"></tbody>
     </table></div>
     <p class="note">Tiers compare each player to the best player at his position on your list: 90%+ every-week starter, 75%+ solid starter, 60%+ flex or matchup play, below that bench or stash.</p>
@@ -790,7 +790,16 @@ function renderWeek(){
     return rk<=c[0]?`<span class="pill p-good">Start · ${r.p.pos}${rk}</span>`:rk<=c[1]?`<span class="pill p-gold">Flex · ${r.p.pos}${rk}</span>`:`<span class="pill p-mute">Sit · ${r.p.pos}${rk}</span>`;
   };
   const q=(ui.qW||'').trim().toLowerCase();
-  let rows=all.filter(r=>(ui.posW==='All'||r.p.pos===ui.posW)&&(!ui.mineOnly||isMine(r.p))&&(!q||r.p.name.toLowerCase().includes(q)||(r.p.team||'').toLowerCase()===q)).sort((a,b)=>b.proj-a.proj);
+  let rows=all.filter(r=>(ui.posW==='All'||r.p.pos===ui.posW)&&(!ui.mineOnly||isMine(r.p))&&(!q||r.p.name.toLowerCase().includes(q)||(r.p.team||'').toLowerCase()===q));
+  const kW=ui.sortW||'proj',dW=ui.dirW||1;
+  const valW=r=>{if(kW==='avg')return r.b;if(kW==='proj')return r.proj;if(kW==='ceil')return r.proj?r.hi:null;
+    if(onBye(r.p))return null;
+    if(kW==='vegas'){const g=gameOf(r.p);return g?g.implied:null;}
+    if(kW==='tools'){const c=r.proj>0&&r.p.real?consensus(r.p):null;return c?c.n.start+.5*c.n.flex+c.n.start/100:null;}
+    if(kW==='match'){const sc=(SCHED[r.p.team]||[])[S.week-1],d=sc&&sc!=='BYE'?dvpData().by[sc.replace('@','')]:null,i=DPOS.indexOf(r.p.pos);return d&&i>=0?d.rank[i]:null;}
+    return null;};
+  rows.sort((a,b)=>sortCmp(valW(a),valW(b),dW)||b.proj-a.proj);
+  document.querySelectorAll('table.wk th.sortable').forEach(th=>th.dataset.sort===kW?th.setAttribute('aria-sort',dW===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   const total=rows.length;rows=rows.slice(0,200);
   const maxHi=Math.max(1,...rows.map(r=>r.hi));
   $('#wkNote').textContent=ui.mineOnly?`Your starred players, ranked by this week's projection.`:`${total} players with stats this season${total>200?' (showing the top 200; search or filter to see more)':''}. Tap ☆ to add someone to your team.`;
@@ -856,7 +865,9 @@ function renderRos(){
   chips($('#posRos'),ui.posR,'posR');
   const all=pool().map(p=>({p,...rosProj(p)}));
   const best={};all.forEach(r=>{best[r.p.pos]=Math.max(best[r.p.pos]||0,r.ppg)});
-  const rows=all.filter(r=>(ui.posR==='All'||r.p.pos===ui.posR)&&(!ui.mineOnly||isMine(r.p))).sort((a,b)=>b.total-a.total).slice(0,250);
+  const rows=all.filter(r=>(ui.posR==='All'||r.p.pos===ui.posR)&&(!ui.mineOnly||isMine(r.p)))
+    .sort((a,b)=>{const k=ui.sortR||'total',d=ui.dirR||1,v=r=>k==='pct'?(best[r.p.pos]?r.ppg/best[r.p.pos]:null):r[k];return sortCmp(v(a),v(b),d)||b.total-a.total;}).slice(0,250);
+  document.querySelectorAll('table.rostbl th.sortable').forEach(th=>th.dataset.sort===(ui.sortR||'total')?th.setAttribute('aria-sort',(ui.dirR||1)===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   const tier=r=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;
     return f>=.9?'<span class="pill p-good">Tier 1 · every week</span>':f>=.75?'<span class="pill p-gold">Tier 2 · solid starter</span>':f>=.6?'<span class="pill p-warn">Tier 3 · flex / matchup</span>':'<span class="pill p-mute">Tier 4 · bench</span>';};
   $('#rosBody').innerHTML=rows.length?rows.map((r,i)=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;return `<tr>
@@ -1081,6 +1092,8 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-star]');if
   const i=S.mine.indexOf(k);if(i>=0)S.mine.splice(i,1);else S.mine.push(k);save();render();});
 document.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('.mine-cb')){ui.mineOnly=e.target.checked;render();}});
 $('#wkSearch').oninput=e=>{ui.qW=e.target.value;renderWeek();};
+document.querySelector('table.wk thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if((ui.sortW||'proj')===th.dataset.sort)ui.dirW=-(ui.dirW||1);else{ui.sortW=th.dataset.sort;ui.dirW=1;}renderWeek();};
+document.querySelector('table.rostbl thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if((ui.sortR||'total')===th.dataset.sort)ui.dirR=-(ui.dirR||1);else{ui.sortR=th.dataset.sort;ui.dirR=1;}renderRos();};
 // sort helper: dir 1 = highest first, -1 = lowest first; players with no value always go last
 function sortCmp(A,B,dir){const na=A==null||!Number.isFinite(A),nb=B==null||!Number.isFinite(B);if(na&&nb)return 0;if(na)return 1;if(nb)return -1;return dir*(B-A);}
 function render(){
