@@ -413,6 +413,25 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .team-hero.stuck .shot{max-height:56px}
   .team-hero.stuck .shot.logo{height:44px}
 }
+/* League connect */
+.lc{display:flex;flex-direction:column;gap:12px}
+.lc-src{display:flex;gap:6px}
+.lc-src button{all:unset;cursor:pointer;padding:8px 16px;border-radius:4px;font-family:var(--f-display);font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-2);color:#3A475C}
+.lc-src button[aria-pressed="true"]{background:var(--gold);color:var(--accent-ink)}
+.lc-form{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.lc-form .field{flex:1 1 260px}
+.lc-pick{display:flex;flex-wrap:wrap;gap:8px}
+.lc-pick button{all:unset;cursor:pointer;border:1px solid var(--line);border-radius:6px;padding:10px 14px;background:var(--surface);display:flex;flex-direction:column;gap:2px;min-width:180px}
+.lc-pick button:hover,.lc-pick button:focus-visible{border-color:var(--gold);outline:none}
+.lc-pick b{font-size:.98rem}.lc-pick span{font-size:.8rem;color:var(--muted)}
+.lc-err{background:var(--bad-soft);color:var(--bad);border-radius:4px;padding:9px 12px;font-size:.92rem;line-height:1.45}
+.lc-on{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.lc-badge{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+.lc-dot{width:9px;height:9px;border-radius:50%;background:var(--good)}
+.lc-chk{display:flex;flex-direction:column;gap:8px}
+.lc-mv{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;padding:9px 12px;border-radius:4px;background:var(--gold-soft)}
+.lc-mv .gain{margin-left:auto;font-weight:800;color:var(--good)}
+.lc-ok{padding:9px 12px;border-radius:4px;background:var(--good-soft);color:var(--good);font-weight:700}
 /* Home */
 .hm-row{display:flex;flex-wrap:wrap;gap:18px}
 .hm-hero{flex:1 1 460px;min-width:0;justify-content:center;background:var(--ink);color:#fff;border-radius:4px;border-top:4px solid var(--gold);padding:28px;display:flex;flex-direction:column;gap:16px}
@@ -591,6 +610,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
       <div><h2>Suggested lineup · Week <span id="luWk"></span></h2><p class="note">Add your players and the model fills your lineup with the highest projections. It also scans for players most leagues haven't picked up who would beat one of your starters.</p></div>
     </div>
+    <div class="card lc" id="luConnect"></div>
     <div class="split">
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
         <h3>Your roster <span class="muted mono" id="luCount"></span></h3>
@@ -1227,6 +1247,110 @@ function renderTicker(){const el=$('#ticker'),tr=$('#tkTrack');if(!el||!tr)retur
   // constant reading speed regardless of how much is in it
   requestAnimationFrame(()=>{const w=tr.firstElementChild.scrollWidth;tr.style.setProperty('--tk-dur',Math.max(30,w/70)+'s');});}
 document.addEventListener('click',e=>{const b=e.target.closest('.tk-a');if(b){go(b.dataset.tab);}});
+// ---- league connect: read a Sleeper or ESPN roster and lineup (both services are read-only for outside sites) ----
+const lseason=()=>SD.season||new Date().getFullYear();
+const ESPN_TEAM={1:'ATL',2:'BUF',3:'CHI',4:'CIN',5:'CLE',6:'DAL',7:'DEN',8:'DET',9:'GB',10:'TEN',11:'IND',12:'KC',13:'LV',14:'LAR',15:'MIA',16:'MIN',17:'NE',18:'NO',19:'NYG',20:'NYJ',21:'PHI',22:'ARI',23:'PIT',24:'LAC',25:'SF',26:'SEA',27:'TB',28:'WAS',29:'CAR',30:'JAX',33:'BAL',34:'HOU'};
+const ESPN_SLOT={0:'QB',2:'RB',3:'FLEX',4:'WR',5:'FLEX',6:'TE',7:'SFLEX',16:'DST',17:'K',23:'FLEX'};
+const SLP_SLOT={QB:'QB',RB:'RB',WR:'WR',TE:'TE',FLEX:'FLEX',WRRB_FLEX:'FLEX',REC_FLEX:'FLEX',SUPER_FLEX:'SFLEX',K:'K',DEF:'DST'};
+const SRC_NAME={sleeper:'Sleeper',espn:'ESPN'};
+let LC={src:'sleeper',busy:false,err:'',opts:null,ctx:null};   // the connect form's working state (not saved)
+const dstKeyOf=t=>{for(const p of PL.values())if(p.pos==='DST'&&p.team===t)return p.key;return null;};
+let SLP_IDX=null;
+function slpKey(id){if(!id||id==='0')return null;if(/^[A-Z]{2,3}$/.test(id))return dstKeyOf(id==='WSH'?'WAS':id);
+  if(!SLP_IDX){SLP_IDX=new Map();(CX.ids||'').split('\n').forEach(l=>{const [n,ps,i]=l.split('|');if(i)SLP_IDX.set(i,nkey(n,ps));});}
+  const k=SLP_IDX.get(id);return k&&PL.has(k)?k:null;}
+async function getJ(u){const r=await fetch(u,{headers:{Accept:'application/json'}});if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e;}return r.json();}
+const slotCounts=list=>{const c={QB:0,RB:0,WR:0,TE:0,FLEX:0,SFLEX:0,K:0,DST:0};list.forEach(x=>{if(x&&c[x]!=null)c[x]++;});return c;};
+// Sleeper: username → leagues → your roster
+async function slpLeagues(name){const u=await getJ('https://api.sleeper.app/v1/user/'+encodeURIComponent(name.trim()));
+  if(!u||!u.user_id)throw Object.assign(new Error('nouser'),{msg:`No Sleeper account named "${name}".`});
+  const ls=await getJ(`https://api.sleeper.app/v1/user/${u.user_id}/leagues/nfl/${lseason()}`)||[];
+  return {user:u,leagues:ls.map(l=>({id:l.league_id,name:l.name,teams:l.total_rosters,sc:l.scoring_settings||{},pos:l.roster_positions||[]}))};}
+async function slpSync(cfg){
+  const [rs,lg,us]=await Promise.all([getJ(`https://api.sleeper.app/v1/league/${cfg.leagueId}/rosters`),getJ(`https://api.sleeper.app/v1/league/${cfg.leagueId}`),getJ(`https://api.sleeper.app/v1/league/${cfg.leagueId}/users`).catch(()=>[])]);
+  const r=(rs||[]).find(x=>x.owner_id===cfg.userId||(x.co_owners||[]).includes(cfg.userId));
+  if(!r)throw Object.assign(new Error('noroster'),{msg:'Couldn\'t find your team in that league.'});
+  const slots=(lg.roster_positions||[]).filter(x=>!['BN','IR','TAXI'].includes(x));
+  const me=(us||[]).find(x=>x.user_id===cfg.userId);
+  const ids=r.players||[],keys=ids.map(slpKey);
+  return {leagueName:lg.name,teamName:(me&&me.metadata&&me.metadata.team_name)||(me&&me.display_name)||cfg.userName,
+    roster:keys.filter(Boolean),skipped:keys.filter(k=>!k).length,
+    starters:(r.starters||[]).map((id,i)=>({slot:SLP_SLOT[slots[i]]||null,key:slpKey(id),empty:!id||id==='0'})).filter(x=>x.slot),
+    slots:slotCounts(slots.map(x=>SLP_SLOT[x])),rec:lg.scoring_settings?lg.scoring_settings.rec:null,passTD:lg.scoring_settings?lg.scoring_settings.pass_td:null};}
+// ESPN: public league id → teams → your roster
+const espnUrl=id=>`https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/${lseason()}/segments/0/leagues/${id}?view=mTeam&view=mRoster&view=mSettings`;
+const espnId=v=>{v=String(v||'').trim();const m=v.match(/leagueId=(\d+)/i)||v.match(/^(\d{3,12})$/);return m?m[1]:null;};
+async function espnLeague(id){let d;try{d=await getJ(espnUrl(id));}catch(e){throw Object.assign(e,{msg:'ESPN wouldn\'t share this league. ESPN only lets outside sites read <b>public</b> leagues. If yours is private, your league manager can turn on "Make League Viewable to Public" in League Settings, or you can add your players by hand below. Also double-check the league ID.'});}
+  const mem=new Map((d.members||[]).map(m=>[m.id,m.displayName||((m.firstName||'')+' '+(m.lastName||'')).trim()]));
+  return {data:d,name:(d.settings&&d.settings.name)||'ESPN league',teams:(d.teams||[]).map(t=>({id:t.id,name:t.name||`${t.location||''} ${t.nickname||''}`.trim()||('Team '+t.id),abbrev:t.abbrev||'',owner:mem.get(t.primaryOwner||(t.owners||[])[0])||''}))};}
+function espnKey(pl){if(!pl)return null;if(pl.defaultPositionId===16)return dstKeyOf(ESPN_TEAM[pl.proTeamId]);const k=nkey(pl.fullName||'',{1:'QB',2:'RB',3:'WR',4:'TE',5:'K'}[pl.defaultPositionId]||'');return PL.has(k)?k:null;}
+async function espnSync(cfg,lg){lg=lg||await espnLeague(cfg.leagueId);const d=lg.data;
+  const t=(d.teams||[]).find(x=>x.id===cfg.teamId);if(!t)throw Object.assign(new Error('noteam'),{msg:'That team isn\'t in the league anymore.'});
+  const ent=(t.roster&&t.roster.entries)||[],sc=(d.settings&&d.settings.scoringSettings&&d.settings.scoringSettings.scoringItems)||[];
+  const pts=id=>{const x=sc.find(i=>i.statId===id);return x?x.points:null;};
+  const counts=(d.settings&&d.settings.rosterSettings&&d.settings.rosterSettings.lineupSlotCounts)||{};
+  const slots={QB:0,RB:0,WR:0,TE:0,FLEX:0,SFLEX:0,K:0,DST:0};for(const [id,n] of Object.entries(counts))if(ESPN_SLOT[id])slots[ESPN_SLOT[id]]+=n;
+  const keyed=ent.map(e=>({e,key:espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)}));
+  return {leagueName:lg.name,teamName:lg.teams.find(x=>x.id===cfg.teamId).name,roster:keyed.map(x=>x.key).filter(Boolean),skipped:keyed.filter(x=>!x.key).length,
+    starters:keyed.filter(x=>ESPN_SLOT[x.e.lineupSlotId]).map(x=>({slot:ESPN_SLOT[x.e.lineupSlotId],key:x.key})),slots,rec:pts(53),passTD:pts(4)};}
+// pull the roster in and adopt the league's scoring and lineup slots
+async function syncLeague(cfg,quiet,lg){
+  const r=cfg.src==='sleeper'?await slpSync(cfg):await espnSync(cfg,lg);
+  S.mine=[...new Set(r.roster)];
+  if(Object.values(r.slots).some(Boolean))S.slots=r.slots;
+  if(r.rec!=null)S.scoring=r.rec>=1?'ppr':r.rec>=.5?'half':'std';
+  if(r.passTD===4||r.passTD===6)S.passTD=r.passTD;
+  S.league={...cfg,leagueName:r.leagueName,teamName:r.teamName,starters:r.starters,skipped:r.skipped,synced:Date.now(),week:SD.week};
+  _lp=null;save();if(!quiet)toast(`Synced ${r.roster.length} players from ${SRC_NAME[cfg.src]}`);render();}
+// your league lineup vs the suggested one: who to swap in
+function lineupCheck(){const L=S.league;if(!L||!L.starters||S.week!==SD.week||L.week!==SD.week)return null;
+  const pool=lineupPool(),opt=optimize(S.mine.filter(k=>pool.has(k)));
+  const cur=L.starters.filter(x=>x.key&&pool.has(x.key)).map(x=>x.key),curSet=new Set(cur),optKeys=opt.start.filter(x=>x.x).map(x=>x.x.key),optSet=new Set(optKeys);
+  const ins=optKeys.filter(k=>!curSet.has(k)).map(k=>pool.get(k)).sort((a,b)=>b.proj-a.proj);
+  const outs=cur.filter(k=>!optSet.has(k)).map(k=>pool.get(k)).sort((a,b)=>a.proj-b.proj);
+  const empties=L.starters.filter(x=>!x.key||!pool.has(x.key)).length;
+  const moves=ins.map((x,i)=>({inP:x,outP:outs[i]||null,gain:x.proj-(outs[i]?outs[i].proj:0)})).filter(m=>m.gain>0.05);
+  return {moves,gain:moves.reduce((a,m)=>a+m.gain,0),empties};}
+const agoMin=t=>{const m=Math.round((Date.now()-t)/6e4);return m<1?'just now':m<60?m+' min ago':Math.round(m/60)+' hr ago';};
+function checkHTML(c,max){const L=S.league,src=SRC_NAME[L.src];
+  if(!c)return `<p class="note">Lineup check works for the current week (Week ${SD.week}).</p>`;
+  if(!c.moves.length)return `<div class="lc-ok">Your ${src} lineup matches the best projected lineup.</div>`;
+  const nm=x=>x.real&&PL.has(x.key)?`<button class="plink" data-k="${esc(x.key)}">${esc(x.name)}</button>`:esc(x.name);
+  return `<div class="lc-chk">${c.moves.slice(0,max||99).map(m=>`<div class="lc-mv"><span>Start <span class="pos ${m.inP.pos}">${m.inP.pos}</span> ${nm(m.inP)} <span class="muted">${f1(m.inP.proj)}</span></span><span>${m.outP?`over ${nm(m.outP)} <span class="muted">${f1(m.outP.proj)}${m.outP.proj<=0?' · not playing':''}</span>`:'in an empty slot'}</span><span class="gain">+${f1(m.gain)}</span></div>`).join('')}
+    ${max&&c.moves.length>max?`<span class="note">+${c.moves.length-max} more on Suggested Lineup</span>`:''}<p class="note">Make the swap${c.moves.length>1?'s':''} in the ${src} app: outside sites can read lineups but can't change them.</p></div>`;}
+function renderConnect(){const el=$('#luConnect');if(!el)return;const L=S.league;
+  if(L){const c=lineupCheck();
+    el.innerHTML=`<div class="lc-on"><div><h3>Your league</h3><div class="lc-badge" style="margin-top:6px"><span class="lc-dot"></span>${esc(L.teamName)} · ${esc(L.leagueName)} on ${SRC_NAME[L.src]}</div>
+      <p class="note" style="margin-top:4px">Synced ${agoMin(L.synced)}. Roster, scoring and lineup slots come from your league.${L.skipped?` ${L.skipped} rostered player${L.skipped>1?'s haven\'t':' hasn\'t'} played this season and ${L.skipped>1?'are':'is'} left out.`:''}</p></div>
+      <div class="btns"><button class="btn sm" data-lc="sync" ${LC.busy?'disabled':''}>${LC.busy?'Syncing…':'Sync now'}</button><button class="btn sm danger" data-lc="off">Disconnect</button></div></div>
+      ${LC.err?`<div class="lc-err">${LC.err}</div>`:''}<h3 style="font-size:1.05rem">Lineup check</h3>${checkHTML(c)}`;return;}
+  const src=LC.src,o=LC.opts;
+  let body='';
+  if(o&&o.kind==='leagues')body=o.list.length?`<p class="note">Pick your league.</p><div class="lc-pick">${o.list.map((l,i)=>`<button data-lc="pickL" data-i="${i}"><b>${esc(l.name)}</b><span>${l.teams} teams</span></button>`).join('')}</div>`
+    :`<div class="lc-err">No ${lseason()} leagues found for that Sleeper account.</div>`;
+  else if(o&&o.kind==='teams')body=`<p class="note">${esc(o.lg.name)}: which team is yours?</p><div class="lc-pick">${o.lg.teams.map((t,i)=>`<button data-lc="pickT" data-i="${i}"><b>${esc(t.name)}</b><span>${esc(t.owner||t.abbrev)}</span></button>`).join('')}</div>`;
+  el.innerHTML=`<div><h3>Connect your league</h3><p class="note" style="margin-top:4px">Bring in your roster, scoring and lineup slots, then see which lineup changes the projections suggest. Read-only: nothing is changed in your league.</p></div>
+    <div class="lc-src" role="group" aria-label="Fantasy site"><button data-lc="src" data-v="sleeper" aria-pressed="${src==='sleeper'}">Sleeper</button><button data-lc="src" data-v="espn" aria-pressed="${src==='espn'}">ESPN</button></div>
+    <form class="lc-form" id="lcForm">${src==='sleeper'
+      ?`<div class="field"><label class="label" for="lcIn">Sleeper username</label><input id="lcIn" autocomplete="off" spellcheck="false" placeholder="Your Sleeper username" value="${esc(LC.inSleeper||'')}"></div><button class="btn primary" type="submit" ${LC.busy?'disabled':''}>${LC.busy?'Looking…':'Find my leagues'}</button>`
+      :`<div class="field"><label class="label" for="lcIn">ESPN league ID or link</label><input id="lcIn" autocomplete="off" spellcheck="false" inputmode="url" placeholder="e.g. 12345678, or paste your league's link" value="${esc(LC.inEspn||'')}"></div><button class="btn primary" type="submit" ${LC.busy?'disabled':''}>${LC.busy?'Looking…':'Find teams'}</button>`}</form>
+    ${src==='espn'&&!o?'<p class="note">The league ID is the number after <span class="mono">leagueId=</span> in your league\'s web address. ESPN only shares public leagues with outside sites.</p>':''}
+    ${LC.err?`<div class="lc-err">${LC.err}</div>`:''}${body}`;}
+async function lcRun(fn){LC.busy=true;LC.err='';renderConnect();try{await fn();}catch(e){LC.err=e.msg||'Couldn\'t reach '+SRC_NAME[LC.src]+'. Check your connection and try again.';}LC.busy=false;renderConnect();if(ui.tab==='home')renderHome();}
+document.addEventListener('submit',e=>{if(e.target.id!=='lcForm')return;e.preventDefault();const v=$('#lcIn').value.trim();if(!v)return;
+  if(LC.src==='sleeper'){LC.inSleeper=v;lcRun(async()=>{const r=await slpLeagues(v);LC.ctx=r.user;LC.opts={kind:'leagues',list:r.leagues};
+    if(r.leagues.length===1){await syncLeague({src:'sleeper',userId:r.user.user_id,userName:r.user.display_name,leagueId:r.leagues[0].id});LC.opts=null;}});}
+  else{LC.inEspn=v;const id=espnId(v);if(!id){LC.err='That doesn\'t look like an ESPN league ID. It\'s the number after leagueId= in your league\'s link.';renderConnect();return;}
+    lcRun(async()=>{const lg=await espnLeague(id);LC.opts={kind:'teams',lg,id};});}});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-lc]');if(!b)return;const a=b.dataset.lc;
+  if(a==='src'){LC.src=b.dataset.v;LC.opts=null;LC.err='';renderConnect();}
+  else if(a==='pickL'){const l=LC.opts.list[+b.dataset.i];lcRun(async()=>{await syncLeague({src:'sleeper',userId:LC.ctx.user_id,userName:LC.ctx.display_name,leagueId:l.id});LC.opts=null;});}
+  else if(a==='pickT'){const o=LC.opts,t=o.lg.teams[+b.dataset.i];lcRun(async()=>{await syncLeague({src:'espn',leagueId:o.id,teamId:t.id},false,o.lg);LC.opts=null;});}
+  else if(a==='sync'){const L=S.league;lcRun(()=>syncLeague({src:L.src,leagueId:L.leagueId,userId:L.userId,userName:L.userName,teamId:L.teamId}));}
+  else if(a==='off'){S.league=null;save();LC.err='';toast('Disconnected. Your roster stays as it is.');render();}});
+// refresh a connected league quietly when the page opens (trades, waivers, lineup changes)
+function autoSync(){const L=S.league;if(!L||LC.busy||Date.now()-L.synced<15*6e4)return;LC.busy=true;
+  syncLeague({src:L.src,leagueId:L.leagueId,userId:L.userId,userName:L.userName,teamId:L.teamId},true).catch(()=>{}).finally(()=>{LC.busy=false;if(ui.tab==='lineup')renderConnect();});}
 // ---- home: this week at a glance ----
 ui.homePos='QB';
 function renderHome(){
@@ -1243,16 +1367,19 @@ function renderHome(){
   // my team
   const mine=S.mine.filter(k=>byKey.has(k));
   if(!mine.length)$('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3></div>
-    <p class="hm-empty">Tap the ☆ next to your players on Projections, Player Stats or Start / Sit. They'll show up here with this week's projection and a start or sit call.</p>
-    <div><button class="btn" data-go="sites">Find my players</button></div>`;
+    <p class="hm-empty">Connect your Sleeper or ESPN league to bring in your roster, or tap the ☆ next to your players on Projections, Player Stats or Start / Sit.</p>
+    <div class="btns"><button class="btn primary" data-go="lineup">Connect Sleeper or ESPN</button><button class="btn" data-go="sites">Star players</button></div>`;
   else{const L=optimize(mine),starters=L.start.filter(x=>x.x&&byKey.has(x.x.key)),bench=L.bench.filter(x=>byKey.has(x.key));
     let close=null;for(const st of starters)for(const b of bench){if(b.proj<=0||!SLOT_OK[st.slot].includes(b.pos))continue;const gap=st.x.proj-b.proj;if(!close||gap<close.gap)close={a:st.x,b,gap,slot:st.slot};}
     const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span>${call(r)}</span>`;
-    $('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3><button class="hm-link" data-go="lineup">Edit roster</button></div>
+    const LG=S.league,chk=LG?lineupCheck():null;
+    $('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3><button class="hm-link" data-go="lineup">${LG?'League':'Edit roster'}</button></div>
+      ${LG?`<div class="hm-sm" style="margin-top:-6px"><span class="lc-dot" style="display:inline-block;margin-right:6px"></span>${esc(LG.teamName)} · ${SRC_NAME[LG.src]} · synced ${agoMin(LG.synced)}</div>`:''}
+      ${chk&&chk.moves.length?`<div><b style="font-size:.9rem">Lineup check:</b> ${checkHTML(chk,2)}</div>`:chk?`<div class="lc-ok" style="font-size:.9rem">Your ${SRC_NAME[LG.src]} lineup matches the best projected lineup.</div>`:''}
       <div class="hm-tt"><span class="hd">Pos</span><span class="hd">Player</span><span class="hd" style="text-align:right">Proj</span><span class="hd">Call</span>
       ${starters.map(x=>row(byKey.get(x.x.key),x.slot)).join('')}</div>
       ${bench.length?`<div class="hm-bench"><b>Bench:</b> ${bench.slice(0,6).map(x=>`${esc(x.name)} ${f1(x.proj)}`).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
-      ${close&&close.gap<=4?`<div class="hm-close"><b>Closest call:</b> ${esc(close.a.name)} ${f1(close.a.proj)} vs ${esc(close.b.name)} ${f1(close.b.proj)} for your ${SLOT_LBL[close.slot]==='D/ST'?'D/ST':SLOT_LBL[close.slot].toLowerCase()} spot. <button class="hm-link" data-cmp="${esc(close.a.key)}|${esc(close.b.key)}">Compare</button></div>`:''}`;}
+      ${!LG&&close&&close.gap<=4?`<div class="hm-close"><b>Closest call:</b> ${esc(close.a.name)} ${f1(close.a.proj)} vs ${esc(close.b.name)} ${f1(close.b.proj)} for your ${SLOT_LBL[close.slot]==='D/ST'?'D/ST':SLOT_LBL[close.slot].toLowerCase()} spot. <button class="hm-link" data-cmp="${esc(close.a.key)}|${esc(close.b.key)}">Compare</button></div>`:''}`;}
   // top projected
   const top=pos=>all.filter(r=>r.p.pos===pos&&r.proj>0).sort((a,b)=>b.proj-a.proj);
   $('#hmTop').innerHTML=`<div class="hm-head"><h3>Top projected, Week ${wk}</h3><button class="hm-link" data-go="sites">Full projections</button></div>
@@ -1470,6 +1597,7 @@ function optimize(keys){
   return {start,bench:avail.filter(c=>!used.has(c.key)),total};}
 ui.luOwn=50;
 function renderLineup(){
+  renderConnect();
   const pool=lineupPool(),slots=Object.assign({},DEF_SLOTS,S.slots||{});
   $('#luWk').textContent=S.week;
   // slot inputs
@@ -1914,6 +2042,7 @@ $('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');
 
 render();
 renderTicker();
+autoSync();
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
   const pad=()=>{document.documentElement.style.scrollPaddingTop=(tb.offsetHeight+8)+'px';document.documentElement.style.setProperty('--tbh',tb.offsetHeight+'px');};
