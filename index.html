@@ -386,6 +386,23 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .pin1 td:nth-child(1) .muted{display:none}
   .pin2 td:nth-child(2)>.muted,.pin2 td:nth-child(2)>.pill,.pin2 td:nth-child(2) .ex{display:none}
 }
+/* player banner stays on screen under the top bar, and slims down once the page scrolls past it */
+.team-hero{position:sticky;top:var(--tbh,0px);z-index:40;transition:padding .2s}
+.team-hero h1{transition:font-size .2s}
+.team-hero .shot{transition:max-height .2s,height .2s}
+.team-hero.stuck{padding-top:8px;padding-bottom:12px;box-shadow:inset 18px 0 0 var(--team-stripe),0 4px 10px rgba(14,23,38,.18)}
+.team-hero.stuck h1{font-size:2rem;line-height:1}
+.team-hero.stuck>div>.meta{font-size:.85rem}
+.team-hero.stuck>.meta{font-size:.95rem}
+.team-hero.stuck .shot{max-height:74px}
+.team-hero.stuck .shot.logo{height:60px}
+.team-hero.stuck::after{display:none}
+@media (max-width:600px){
+  .team-hero.stuck h1{font-size:1.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .team-hero.stuck>div>.meta{display:none}
+  .team-hero.stuck .shot{max-height:56px}
+  .team-hero.stuck .shot.logo{height:44px}
+}
 </style>
 </head>
 <body>
@@ -1639,6 +1656,7 @@ function renderPlayer(){
    <div class="mgrid">${ms}</div></div>`;
   $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'sites');};
   fillNews(p);
+  if(window.heroChk)setTimeout(window.heroChk,0);
 }
 // start downloading a player's photo as soon as the pointer or finger lands on his name
 const PREF=new Set();
@@ -1705,7 +1723,13 @@ renderTicker();
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
   const pad=()=>{document.documentElement.style.scrollPaddingTop=(tb.offsetHeight+8)+'px';document.documentElement.style.setProperty('--tbh',tb.offsetHeight+'px');};
-  const chk=()=>{const s=window.scrollY>40;if(s!==on){on=s;tb.classList.toggle('scrolled',s);pad();setTimeout(pad,250);}};
+  const chk=()=>{const s=window.scrollY>40;if(s!==on){on=s;tb.classList.toggle('scrolled',s);pad();setTimeout(pad,250);}heroChk();};
+  // banner: slim once the page has scrolled past where it sits (measured unstuck, so no flicker at the edge)
+  let heroAt=null,heroEl=null;
+  const heroChk=()=>{const h=ui.tab==='player'&&document.querySelector('#p-player .team-hero');if(!h){heroEl=null;return;}
+    if(h!==heroEl){heroEl=h;const ref=h.previousElementSibling;heroAt=(ref?ref.getBoundingClientRect().bottom:h.getBoundingClientRect().top)+window.scrollY;}
+    h.classList.toggle('stuck',window.scrollY+tb.offsetHeight>heroAt+12);};
+  window.heroChk=heroChk;
   window.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',pad);chk();pad();})();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
 })();
