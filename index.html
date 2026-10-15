@@ -238,6 +238,8 @@ td.none{color:var(--muted)}
 .tooltbl td,.tooltbl th{padding:6px 8px;border-bottom:1px solid var(--line);font-size:.88rem}
 .tooltbl tr:last-child td{border-bottom:0}
 .tooltbl td.win{font-weight:700;color:var(--turf)}
+.tooltbl .trk{font-weight:400;color:var(--muted);font-size:.85em}.tooltbl td.win .trk{color:inherit;opacity:.8}
+@media (max-width:600px){#verdict .tooltbl .trk{display:block}#verdict .tooltbl th{white-space:normal}#verdict .tooltbl td,#verdict .tooltbl th{padding-left:6px;padding-right:6px}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.9rem}
 @media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:all .25s ease}}
 
@@ -1144,11 +1146,13 @@ function renderH2H(){
   const ta=toolsFor(A),tb=toolsFor(B),names=[...new Set([...ta,...tb].map(x=>x.name))];
   let va=0,vb=0;const rowsT=names.map(nm=>{const x=ta.find(t=>t.name===nm),y=tb.find(t=>t.name===nm);
     let w='';if(x&&y){const sx=x.rank/CUT[A.pos][0],sy=y.rank/CUT[B.pos][0];if(Math.abs(sx-sy)<1e-9)w='tie';else if(sx<sy){w='a';va++;}else{w='b';vb++;}}
-    return `<tr><td>${esc(nm)}</td><td class="r num${w==='a'?' win':''}">${x?A.pos+Math.round(x.rank):'—'}</td><td class="r num${w==='b'?' win':''}">${y?B.pos+Math.round(y.rank):'—'}</td></tr>`;}).join('');
+    // "11.3 (WR20)": the tool's projected points and the rank they give at the position (rank only for expert rankings)
+    const cell=(t,P)=>!t?'—':t.pts!=null?`${f1(t.pts)} <span class="trk">(${P.pos}${Math.round(t.rank)})</span>`:`${P.pos}${Math.round(t.rank)}`;
+    return `<tr><td>${esc(nm)}</td><td class="r num${w==='a'?' win':''}">${cell(x,A)}</td><td class="r num${w==='b'?' win':''}">${cell(y,B)}</td></tr>`;}).join('');
   if(va+vb>0&&!(wa.proj===0&&wb.proj===0)){const TW=va>=vb?A:B,tv=Math.max(va,vb),tt=va+vb;
     if(diff<1&&tt>=3&&tv/tt>=2/3)msg=`<b>Start ${esc(TW.name)}</b><br>The projections are within a point, so the tools break the tie: <b style="font-size:1rem">${tv} of ${tt}</b> pick ${esc(TW.name)}.`;
     else msg+=TW===W||diff<1?` <b style="font-size:1rem">${tv} of ${tt}</b> tools pick ${esc(TW.name)}.`:` But <b style="font-size:1rem">${tv} of ${tt}</b> tools pick ${esc(TW.name)}, so it's closer than the projection says.`;}
-  const tblT=names.length?`<div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div><p class="note" style="margin-top:6px">Each tool's rank at the player's position this week. When the players play different positions, ranks are compared against each position's starter cutoff.</p>`:'';
+  const tblT=names.length?`<div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div><p class="note" style="margin-top:6px">Each tool's projected points this week, with the rank that gives the player at his position. ESPN's analysts and CBS's experts publish rankings only. When the players play different positions, ranks are compared against each position's starter cutoff.</p>`:'';
   $('#verdict').innerHTML=`<div class="verdict">${msg}</div>${tblT}`;
 }
 
@@ -1943,16 +1947,16 @@ function modelScored(r,RP){const out={model:null,scored:null,live:false};if(S.we
 function toolsFor(p){
   if(!p.real)return [];
   const t=toolTable(),sameWk=S.week===SD.week,k=p.key,out=[];
-  const add=(name,rk,detail)=>{if(rk!=null)out.push({name,rank:rk,vote:voteOf(p.pos,Math.round(rk)),detail});};
-  if(t.model[k])add('Ace Lineup Lab model',t.model[k].rank,`${f1(t.model[k].val)} pts before blending with sites`);
-  const e=ecrOf(p);if(e&&e[1])add('FantasyPros consensus (100+ experts)',e[1],`best ${e[3]}, worst ${e[4]} overall${e[5]?' · grade '+e[5]:''}`);
+  const add=(name,rk,detail,pts)=>{if(rk!=null)out.push({name,rank:rk,vote:voteOf(p.pos,Math.round(rk)),detail,pts:pts??null});};
+  if(t.model[k])add('Ace Lineup Lab model',t.model[k].rank,`${f1(t.model[k].val)} pts before blending with sites`,t.model[k].val);
+  const e=ecrOf(p);if(e&&e[1])add('FantasyPros consensus (100+ experts)',e[1],`best ${e[3]}, worst ${e[4]} overall${e[5]?' · grade '+e[5]:''}`,e[6]!=null?Math.max(0,e[6]+siteAdj(p,'ppr')):null);
   // ESPN drops players to the bottom once their game has kicked off, so skip it then
   const er=sameWk&&!kickedOff(p)?ESPNR[k]:null;if(er)add('ESPN analysts',er[0],`${er[1]} analysts · best ${p.pos}${er[2]}, worst ${p.pos}${er[3]}`);
   const c=advWeek()&&AD.cbs&&AD.cbs.ranks?AD.cbs.ranks[k]:null;
   if(c)add('CBS experts',c[0],CBSX.map((n,i)=>c[i+1]!=null?`${n.split(' ').pop()} ${p.pos}${c[i+1]}`:'').filter(Boolean).join(' · '));
-  if(t.espn[k])add('ESPN projection',t.espn[k].rank,`${f1(t.espn[k].val)} pts`);
-  if(t.sleeper[k])add('Sleeper projection',t.sleeper[k].rank,`${f1(t.sleeper[k].val)} pts`);
-  if(t.cbsProj[k])add('CBS projection',t.cbsProj[k].rank,`${f1(t.cbsProj[k].val)} pts`);
+  if(t.espn[k])add('ESPN projection',t.espn[k].rank,`${f1(t.espn[k].val)} pts`,t.espn[k].val);
+  if(t.sleeper[k])add('Sleeper projection',t.sleeper[k].rank,`${f1(t.sleeper[k].val)} pts`,t.sleeper[k].val);
+  if(t.cbsProj[k])add('CBS projection',t.cbsProj[k].rank,`${f1(t.cbsProj[k].val)} pts`,t.cbsProj[k].val);
   return out;
 }
 function consensus(p){const ts=toolsFor(p);if(!ts.length)return null;
