@@ -85,7 +85,7 @@ p{margin:0}
 
 /* tabs */
 .tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);overflow-x:auto}
-.tabs button{all:unset;cursor:pointer;padding:10px 11px;font-family:var(--f-display-cond);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tabs button{all:unset;cursor:pointer;padding:10px 15px;font-family:var(--f-display-cond);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--turf)}
 .tabs button:focus-visible{outline:2px solid var(--turf)}
 
@@ -303,7 +303,7 @@ html{overflow-x:clip}body{overflow-x:clip}
 .topbar>.ticker{border-radius:0;border-bottom:1px solid var(--line);padding-left:var(--gut);padding-right:var(--gut);box-shadow:none;background:var(--surface)}
 .topbar>.tabs{background:var(--surface);padding:6px var(--gut);border-radius:0;box-shadow:none}
 .topbar>.tabs button{background:var(--surface-2);padding:8px 11px}
-@media (min-width:760px) and (max-width:1679px){.topbar>.tabs button{font-size:.88rem;padding:7px 8px}}
+@media (min-width:760px) and (max-width:1679px){.topbar>.tabs button{font-size:.88rem;padding:7px 11px}}
 .topbar>.tabs button[aria-selected="true"]{background:var(--gold)}
 /* once you scroll, the top area slims down */
 .topbar.scrolled>.board{padding-top:10px;padding-bottom:10px}
@@ -347,10 +347,10 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .board select,.board input{border:0;background:var(--surface-2);color:var(--ink);border-radius:4px;padding:7px 10px}
 .board select option{color:#0E1726}
 .tabs{gap:6px;border-bottom:0;padding-bottom:2px}
-.tabs button{padding:9px 13px;margin:0;border:0;background:var(--surface);color:#3A475C;font-size:1.05rem;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.tabs button{padding:9px 17px;margin:0;border:0;background:var(--surface);color:#3A475C;font-size:1.05rem;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .tabs button[aria-selected="true"]{background:var(--gold);color:var(--accent-ink)}
 @media (min-width:760px){.tabs{flex-wrap:wrap;overflow:visible}}
-@media (min-width:760px) and (max-width:1439px){.tabs button{font-size:.92rem;padding:8px 10px}}
+@media (min-width:760px) and (max-width:1439px){.tabs button{font-size:.92rem;padding:8px 13px}}
 .tabs button:hover:not([aria-selected="true"]){background:#DCE3EC;color:var(--ink)}
 .card{border:0;border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08)}
 .tbl-wrap{border:0;border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08)}
