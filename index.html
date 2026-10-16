@@ -2462,7 +2462,18 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
   const pad=()=>{document.documentElement.style.scrollPaddingTop=(tb.offsetHeight+8)+'px';document.documentElement.style.setProperty('--tbh',tb.offsetHeight+'px');};
-  const chk=()=>{const s=window.scrollY>40;if(s!==on){on=s;tb.classList.toggle('scrolled',s);pad();setTimeout(pad,250);}heroChk();};
+  // Slimming the bar would pull the page up by the height it loses, which can flip it back (the jitter on phones).
+  // So the lost height is kept as space under the bar, and it only slims once that space has scrolled out of view:
+  // the page never moves, and a small gap between the two thresholds keeps it from flickering at the edge.
+  let gap=40;
+  const measure=()=>{if(on)return;const full=tb.offsetHeight;tb.classList.add('scrolled');const slim=tb.offsetHeight;tb.classList.remove('scrolled');gap=Math.max(40,full-slim);};
+  const set=v=>{if(v===on)return;if(v){const full=tb.offsetHeight;tb.classList.add('scrolled');tb.style.marginBottom=Math.max(0,full-tb.offsetHeight)+'px';}
+    else{tb.classList.remove('scrolled');tb.style.marginBottom='';}on=v;pad();};
+  let ticking=false;
+  const chk=()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{ticking=false;const y=window.scrollY;
+    if(!on&&y>gap+8)set(true);else if(on&&y<gap-24)set(false);heroChk();});};
+  window.addEventListener('resize',()=>{if(on){set(false);}measure();chk();});
+  measure();
   // banner: slim once the page has scrolled past where it sits (measured unstuck, so no flicker at the edge)
   let heroAt=null,heroEl=null;
   const heroChk=()=>{const h=ui.tab==='player'&&document.querySelector('#p-player .team-hero');if(!h){heroEl=null;return;}
