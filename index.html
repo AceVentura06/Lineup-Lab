@@ -1413,7 +1413,6 @@ function renderTrade(){
       <div><span class="label">You get</span><div class="bar"><i style="width:${100*R.val/W}%;background:var(--good)"></i></div><b class="mono">${f1(R.val)}</b></div>
     </div>
     <p style="margin-top:10px">${fairV?`Even in value: the sides are within ${Math.round(pct*100)}% of each other.`:`You ${winV?'gain':'give up'} about <b>${f1(Math.abs(d))}</b> points of trade value (${Math.round(pct*100)}% of the bigger side).`}</p>
-    <p class="note" style="margin-top:4px">Trade value is on a 0–100 scale (the most valuable player in football = 100), blending two opinions 50/50 · our projections alone: ${f1(G.m)} given, ${f1(R.m)} received · FantasyPros experts alone: ${f1(G.x)} given, ${f1(R.x)} received.</p>
     ${spots?`<p class="note" style="margin-top:6px">${spots}</p>`:''}</div>`;
 }
 document.addEventListener('click',e=>{const a=e.target.closest('#p-trade [data-add]'),r=e.target.closest('#p-trade [data-rm]');
