@@ -789,7 +789,6 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div><h2>Rest-of-season rankings</h2><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
-    <div class="card bs" id="rosBuySell"></div>
     <div class="tbl-wrap bigtbl"><table class="rostbl pin2">
       <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="games">Games left</th><th class="r sortable" data-sort="total">Total pts</th><th class="sortable" data-sort="pct">Vs. top at position</th><th>Tier</th></tr></thead>
       <tbody id="rosBody"></tbody>
@@ -824,6 +823,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div class="card tside" id="tGet"></div>
     </div>
     <div id="tVerdict"></div>
+    <div class="card bs" id="rosBuySell"></div>
   </section>
 
   <!-- ACCURACY -->
@@ -1166,7 +1166,6 @@ function renderH2H(){
 }
 
 function renderRos(){
-  if(ui.tab==='ros')renderBuySell();
   chips($('#posRos'),ui.posR,'posR');
   const all=pool().map(p=>({p,...rosProj(p)}));
   const best={};all.forEach(r=>{best[r.p.pos]=Math.max(best[r.p.pos]||0,r.ppg)});
@@ -1389,7 +1388,7 @@ function renderTrade(){
   S.trade=S.trade||{give:[],get:[]};const rep=replacementPpg(),all=realPlayers(),RP=new Map(all.map(p=>[p.key,p]));
   if(!$('#tradeList')){const dl=document.createElement('datalist');dl.id='tradeList';document.body.appendChild(dl);}
   if(+($('#tradeList').dataset.n||0)!==all.length){$('#tradeList').innerHTML=all.map(p=>({p,v:rosProj(p).total})).sort((a,b)=>b.v-a.v).map(({p})=>`<option value="${esc(p.name)} (${esc(p.team)}) · ${p.pos}"></option>`).join('');$('#tradeList').dataset.n=all.length;}
-  renderTradeFinder();
+  renderTradeFinder();renderBuySell();
   $('#tGive').innerHTML=tradeSide('tGive','You give',S.trade.give,rep);$('#tGet').innerHTML=tradeSide('tGet','You get',S.trade.get,rep);
   const sum=keys=>keys.map(k=>RP.get(k)).filter(Boolean).reduce((a,p)=>{const v=tradeVal(p,rep);a.val+=v.val;a.m+=v.valModel;a.x+=v.valExpert??v.valModel;a.n++;return a;},{val:0,m:0,x:0,n:0});
   const G=sum(S.trade.give),R=sum(S.trade.get),el=$('#tVerdict');
@@ -1927,7 +1926,7 @@ function optimize(keys){
 ui.luOwn=50;
 // ---- buy low / sell high: actual scoring vs. what each player's usage predicts (expected points, from play-by-play) ----
 function renderBuySell(){const el=$('#rosBuySell');if(!el)return;
-  const pos=['RB','WR','TE'].includes(ui.posR)?ui.posR:null,LG=S.league&&Array.isArray(S.league.taken)&&S.league.taken.length?new Set(S.league.taken):null;
+  const pos=['RB','WR','TE'].includes(ui.posBS)?ui.posBS:null,LG=S.league&&Array.isArray(S.league.taken)&&S.league.taken.length?new Set(S.league.taken):null;
   const rows=[];for(const p of PL.values()){if(!['RB','WR','TE'].includes(p.pos)||p.gp<3)continue;const x=xfpOf(p);if(!x||x.pg<7)continue;rows.push({p,x});}
   // elite players aren't sells even when running hot: a top-tier role (usage) or a top-tier rest-of-season expert
   // ranking (roughly trade value) keeps them off the sell list
@@ -1939,11 +1938,12 @@ function renderBuySell(){const el=$('#rosBuySell');if(!el)return;
   const li=(r,kind)=>`<li><span class="pos ${r.p.pos}">${r.p.pos}</span><span class="bs-n"><button class="plink" data-k="${esc(r.p.key)}">${esc(r.p.name)}</button> <span class="muted">${esc(r.p.team)}</span> ${tag(r.p)}<br>
       <span class="hm-sm">${n1(r.x.actPg)} pts/g · usage says ${n1(r.x.pg)}${rosR(r.p)?` · experts: ${r.p.pos}${rosR(r.p)} rest of season`:''}</span></span><b class="bs-d ${kind}" title="${n1(Math.abs(r.x.fpoe))} points a game ${r.x.fpoe<0?'below':'above'} what his usage predicts">${kind==='up'?'▲':'▼'} ${n1(Math.abs(r.x.fpoe))}</b></li>`;
   const low=shown.filter(r=>r.x.fpoe<=-1.5).sort((a,b)=>a.x.fpoe-b.x.fpoe).slice(0,8),high=shown.filter(r=>r.x.fpoe>=1.5&&!elite(r)).sort((a,b)=>b.x.fpoe-a.x.fpoe).slice(0,8);
-  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Buy low / sell high${pos?` · ${pos}s`:''}</h3>
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Buy low / sell high</h3><div class="chips" role="group" aria-label="Position">${['All','RB','WR','TE'].map(x=>`<button class="chip" data-bsp="${x}" aria-pressed="${(pos||'All')===x}">${x}</button>`).join('')}</div>
     <span class="note">Points per game vs. expected points: what an average player scores with the same targets and carries, from where they happened on the field.</span></div>
     <div class="bs-cols"><div><h4>Buy low: due for more</h4><p class="note">Getting the work but not the points yet. Usually bounces back.</p>${low.length?`<ol class="bs-l">${low.map(r=>li(r,'up')).join('')}</ol>`:'<p class="muted">Nobody well below expected right now.</p>'}</div>
     <div><h4>Sell high: due to cool off</h4><p class="note">Scoring more than the work supports, often from long TDs.</p>${high.length?`<ol class="bs-l">${high.map(r=>li(r,'down')).join('')}</ol>`:'<p class="muted">Nobody well above expected right now.</p>'}</div></div>
     <p class="note">Running backs, receivers and tight ends with 3+ games and a real role (7+ expected points a game), in your scoring.${LG?' "Available" means nobody in your league has him.':''}</p>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-bsp]');if(!b)return;ui.posBS=b.dataset.bsp;renderBuySell();});
 function renderLineup(){
   renderConnect();
   const pool=lineupPool(),slots=Object.assign({},DEF_SLOTS,S.slots||{});
