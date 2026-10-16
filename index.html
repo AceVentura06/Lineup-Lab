@@ -358,7 +358,9 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .tile .v{font-family:var(--f-display);font-weight:800;font-size:2.4rem;line-height:1}
 .metric{border:0;border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08)}
 .hash{background:repeating-linear-gradient(90deg,var(--line) 0 2px,transparent 2px 18px)}
-.pos{color:#FFFFFF;border-radius:2px}
+.pos{color:#FFFFFF;border-radius:5px;line-height:1.35;margin-right:5px;white-space:nowrap;flex:none}
+.pos:last-child{margin-right:0}
+.ph .meta{row-gap:6px;margin-bottom:8px}
 .chip{border-radius:3px;font-family:var(--f-display);font-size:.95rem;letter-spacing:.04em;text-transform:uppercase;background:var(--surface-2);border-color:transparent}
 .chip[aria-pressed="true"]{background:var(--gold);color:var(--accent-ink);border-color:var(--gold)}
 .btn{border-radius:3px;font-family:var(--f-display);font-size:1rem;letter-spacing:.04em;text-transform:uppercase;background:var(--surface-2);border-color:transparent}
@@ -425,7 +427,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   /* pinned columns: rank + player (pin2) or team (pin1) */
   .pin2 tr>:nth-child(1){position:sticky;left:0;z-index:2;background:var(--surface);min-width:34px;width:34px;max-width:34px;padding-left:6px;padding-right:4px}
   .pin2 tr>:nth-child(2){position:sticky;left:34px;z-index:2;background:var(--surface);box-shadow:1px 0 0 var(--line),4px 0 6px -4px rgba(14,23,38,.25);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .pin2 td:nth-child(2) .star{margin-right:2px}
+  .pin2 td:nth-child(2) .star{margin-right:5px}
   .pin1 tr>:nth-child(1){position:sticky;left:0;z-index:2;background:var(--surface);box-shadow:1px 0 0 var(--line),4px 0 6px -4px rgba(14,23,38,.25)}
   .pin2 thead tr>:nth-child(1),.pin2 thead tr>:nth-child(2),.pin1 thead tr>:nth-child(1){z-index:4;background:var(--surface-2)}
   .pin1 tr.dvpdetail>td{position:static;box-shadow:none}
