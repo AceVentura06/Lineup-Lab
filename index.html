@@ -34,7 +34,7 @@
 <meta name="theme-color" content="#FFFFFF" id="themeColor">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&family=Cabin+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&family=Special+Gothic+Condensed+One&family=Cabin+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
 [hidden]{display:none!important}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -48,6 +48,7 @@ img{max-width:100%}
   --qb:#7A3FA8; --rb:#1E8A4C; --wr:#1F6FEB; --te:#B85A12; --k:#5E6B80; --dst:#A3304F;
   --s-espn:#C8352A; --s-yahoo:#6B3FC4; --s-sleeper:#138A8A; --s-cbs:#1F6FEB;
   --f-display:"Special Gothic Expanded One","Arial Black",sans-serif;
+  --f-display-cond:"Special Gothic Condensed One","Arial Narrow",Impact,sans-serif;
   --f-body:"Cabin Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   color-scheme:light;
@@ -84,7 +85,7 @@ p{margin:0}
 
 /* tabs */
 .tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);overflow-x:auto}
-.tabs button{all:unset;cursor:pointer;padding:10px 11px;font-family:var(--f-display);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.tabs button{all:unset;cursor:pointer;padding:10px 11px;font-family:var(--f-display-cond);font-weight:700;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
 .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--turf)}
 .tabs button:focus-visible{outline:2px solid var(--turf)}
 
