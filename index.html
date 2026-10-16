@@ -823,12 +823,12 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <h2>Trades</h2>
       <p class="note" style="margin-top:4px;max-width:78ch">Each player is valued on his rest-of-season points above what you could pick up off waivers, blending our projections with FantasyPros' expert rankings. With your roster starred or your league connected, trades are also judged by how much they improve your starting lineup.</p>
     </div>
-    <div class="card" id="tFinder"></div>
     <div class="split">
       <div class="card tside" id="tGive"></div>
       <div class="card tside" id="tGet"></div>
     </div>
     <div id="tVerdict"></div>
+    <div class="card" id="tFinder"></div>
     <div class="card bs" id="rosBuySell"></div>
   </section>
 
@@ -1389,7 +1389,7 @@ function renderTradeFinder(){const el=$('#tFinder');if(!el)return;const f=findTr
     :`<p class="muted" style="margin-top:6px">No fair trade found that clearly improves your lineup. Your roster is in good shape for now.</p>`)+
     `<p class="note">Looks at one-for-one and two-for-one deals. Fair means the other team gets at least 90% of the value it gives up, and you don't overpay by more than 30%.</p>`;}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tfi]');if(!b)return;const o=(_tf&&_tf.list||[])[+b.dataset.tfi];if(!o)return;
-  S.trade={give:o.give.map(p=>p.key),get:[o.get.key]};save();renderTrade();const v=$('#tVerdict');if(v)v.scrollIntoView({behavior:'smooth',block:'center'});});
+  S.trade={give:o.give.map(p=>p.key),get:[o.get.key]};save();renderTrade();const v=$('#tGive');if(v)v.scrollIntoView({behavior:'smooth',block:'start'});});
 function renderTrade(){
   S.trade=S.trade||{give:[],get:[]};const rep=replacementPpg(),all=realPlayers(),RP=new Map(all.map(p=>[p.key,p]));
   if(!$('#tradeList')){const dl=document.createElement('datalist');dl.id='tradeList';document.body.appendChild(dl);}
@@ -1398,7 +1398,7 @@ function renderTrade(){
   $('#tGive').innerHTML=tradeSide('tGive','You give',S.trade.give,rep);$('#tGet').innerHTML=tradeSide('tGet','You get',S.trade.get,rep);
   const sum=keys=>keys.map(k=>RP.get(k)).filter(Boolean).reduce((a,p)=>{const v=tradeVal(p,rep);a.val+=v.val;a.m+=v.valModel;a.x+=v.valExpert??v.valModel;a.n++;return a;},{val:0,m:0,x:0,n:0});
   const G=sum(S.trade.give),R=sum(S.trade.get),el=$('#tVerdict');
-  if(!G.n||!R.n){el.innerHTML=`<div class="card"><p class="muted">Add at least one player to each side, or tap "Look at it" on a suggestion above.</p></div>`;return;}
+  if(!G.n||!R.n){el.innerHTML=`<div class="card"><p class="muted">Add at least one player to each side, or tap "Look at it" on a trade finder suggestion.</p></div>`;return;}
   const d=R.val-G.val,big=Math.max(G.val,R.val,1),pct=Math.abs(d)/big;
   // effect on your starting lineup, when the players you give are on your roster
   const mine=S.mine.filter(k=>RP.has(k)),onRoster=S.trade.give.every(k=>mine.includes(k))&&mine.length>=5;
