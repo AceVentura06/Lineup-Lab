@@ -1,13 +1,13 @@
 {
-  "hash": "2fb82c6b99469e02",
-  "updated": "2026-10-15T21:26:59.082Z",
+  "hash": "0761e25f021c6358",
+  "updated": "2026-10-16T04:37:02.747Z",
   "season": 2026,
   "week": 6,
-  "through": "Weeks 1–5",
+  "through": "Weeks 1–5 plus 1 of 14 week 6 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
-      "detail": "5506 player-weeks"
+      "detail": "5575 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
@@ -23,7 +23,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "4979 targets, 4094 carries"
+      "detail": "5049 targets, 4147 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -39,7 +39,7 @@
     },
     "Weather": {
       "ok": true,
-      "detail": "10 outdoor games forecast"
+      "detail": "9 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
@@ -47,15 +47,15 @@
     },
     "FantasyPros rest of season": {
       "ok": true,
-      "detail": "451 players"
+      "detail": "466 players"
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "410 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "409 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "180 players with news, 349 of 357 stories with photos (ESPN 1640 articles scanned; ESPN 439, CBS Sports 17, Yahoo Sports 25, ProFootballTalk 18)"
+      "detail": "178 players with news, 358 of 367 stories with photos (ESPN 1642 articles scanned; ESPN 442, CBS Sports 19, Yahoo Sports 26, ProFootballTalk 16)"
     }
   }
 }
