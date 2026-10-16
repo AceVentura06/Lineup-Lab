@@ -485,6 +485,14 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .sc-h{font-size:1.02rem;margin:4px 0 -4px;color:var(--muted)}
 .sc-chg input{box-shadow:inset 3px 0 0 var(--gold)}
 .btn[disabled]{opacity:.45;cursor:default}
+/* Trades */
+.tfind{list-style:none;margin:10px 0 6px;padding:0;display:flex;flex-direction:column;gap:8px}
+.tfind li{display:flex;gap:12px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:6px;padding:10px 12px}
+.tf-d{display:flex;flex-direction:column;gap:4px;min-width:0}
+.tfind .btn{white-space:nowrap;flex:none}
+.tf-l{display:inline-block;width:34px;font-family:var(--f-display);font-weight:800;font-size:.8rem;text-transform:uppercase;color:var(--muted)}
+.tlu{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-top:10px;padding:10px 12px;border-radius:4px;background:var(--surface-2)}
+.tlu b{font-family:var(--f-display);font-size:1.6rem;line-height:1}.tlu.up b{color:var(--good)}.tlu.down b{color:var(--bad)}
 /* Buy low / sell high */
 .bs{display:flex;flex-direction:column;gap:10px}
 .bs-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
@@ -632,8 +640,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
     <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
     <button role="tab" data-tab="lineup" id="t-lineup">Suggested Lineup</button>
+    <button role="tab" data-tab="trade" id="t-trade" hidden>Trades</button>
     <button role="tab" data-tab="dvp" id="t-dvp">Defense vs Position</button>
-    <button role="tab" data-tab="trade" id="t-trade" hidden>Trade Analyzer</button>
     <button role="tab" data-tab="acc" id="t-acc">Accuracy</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
     <button role="tab" data-tab="settings" id="t-settings" class="t-set"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
@@ -807,9 +815,10 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   <!-- TRADE -->
   <section class="panel" id="p-trade" role="tabpanel" hidden>
     <div>
-      <h2>Trade analyzer</h2>
-      <p class="note" style="margin-top:4px;max-width:78ch">Add the players on each side. Each one is valued on his rest-of-season scoring above the best player you could realistically pick up off waivers at his position, so a star is worth more than two bench players with the same total points. Uses your scoring format above and the lineup slots from Suggested Lineup, in a 12-team league.</p>
+      <h2>Trades</h2>
+      <p class="note" style="margin-top:4px;max-width:78ch">Each player is valued on his rest-of-season points above what you could pick up off waivers, blending our projections with FantasyPros' expert rankings. With your roster starred or your league connected, trades are also judged by how much they improve your starting lineup.</p>
     </div>
+    <div class="card" id="tFinder"></div>
     <div class="split">
       <div class="card tside" id="tGive"></div>
       <div class="card tside" id="tGet"></div>
@@ -1299,33 +1308,113 @@ function replacementPpg(){const sl=Object.assign({},DEF_SLOTS,S.slots||{}),T=12;
   const BENCH={QB:1.5,RB:1.6,WR:1.8,TE:1.5,K:1,DST:1.1};
   const by={};for(const p of realPlayers()){(by[p.pos]=by[p.pos]||[]).push(rosProj(p).ppg);}
   const out={};for(const pos in start){const v=(by[pos]||[]).sort((a,b)=>b-a);const i=Math.round(T*start[pos]*BENCH[pos]);out[pos]=v.length?v[Math.min(v.length-1,i)]:0;}return out;}
-function tradeVal(p,rep){const r=rosProj(p);return {...r,val:Math.max(0,(r.ppg-(rep[p.pos]||0))*r.games)};}
+// ---- trade values: rest-of-season points above waiver level, from the site's projection blended 50/50 with
+// FantasyPros' rest-of-season expert rankings (each rank is turned into points using the site's own scale) ----
+let _curve=null,_curveK='';
+function rosCurve(){const k=S.week+'|'+scKey()+'|'+JSON.stringify(S.w);if(_curve&&_curveK===k)return _curve;const by={};
+  for(const p of realPlayers())(by[p.pos]=by[p.pos]||[]).push(rosProj(p).ppg);for(const ps in by)by[ps].sort((a,b)=>b-a);_curve=by;_curveK=k;return by;}
+const rosRank=p=>{const v=AD.ros&&AD.ros[p.key];return v&&v[0]?v[0]:null;};
+function expertPpg(p){const r0=rosRank(p);if(r0==null)return null;const c=rosCurve()[p.pos];if(!c||!c.length)return null;
+  const r=Math.max(0,r0-1),i=Math.floor(r),f=r-i,a=c[Math.min(i,c.length-1)],b=c[Math.min(i+1,c.length-1)];return a+(b-a)*f;}
+let _tv=new Map(),_tvK='';
+function tradeVal(p,rep){const k=S.week+'|'+scKey()+'|'+JSON.stringify(S.w)+'|'+JSON.stringify(S.slots||{});if(k!==_tvK){_tv=new Map();_tvK=k;}
+  if(_tv.has(p.key))return _tv.get(p.key);
+  const r=rosProj(p),ex=expertPpg(p),rp=rep[p.pos]||0,b=ex!=null?(r.ppg+ex)/2:r.ppg,raw=x=>Math.max(0,(x-rp)*r.games);
+  // trade value on a 0-100 scale (the most valuable player = 100) that rises faster at the top: one star is
+  // worth more than two lesser starters with the same total, as in real trade markets
+  const M=tvMax(rep),sc=x=>M>0?100*Math.pow(raw(x)/M,1.5):0;
+  const out={...r,model:r.ppg,expert:ex,bppg:b,raw:raw(b),valModel:sc(r.ppg),valExpert:ex!=null?sc(ex):null,val:sc(b)};_tv.set(p.key,out);return out;}
+let _tvm=null,_tvmK='';
+function tvMax(rep){const k=S.week+'|'+scKey()+'|'+JSON.stringify(S.w)+'|'+JSON.stringify(S.slots||{});if(_tvm!=null&&_tvmK===k)return _tvm;let m=0;
+  for(const p of realPlayers()){const r=rosProj(p),ex=expertPpg(p),b=ex!=null?(r.ppg+ex)/2:r.ppg;m=Math.max(m,(b-(rep[p.pos]||0))*r.games);}_tvm=m;_tvmK=k;return m;}
+// buy low / sell high tag for a player (same rules as the Rest of Season list)
+let _bs=null,_bsK='';
+function bsTag(p){const k=scKey();if(!_bs||_bsK!==k){_bs={};_bsK=k;const rows=[];for(const q of PL.values()){if(!['RB','WR','TE'].includes(q.pos)||q.gp<3)continue;const x=xfpOf(q);if(x&&x.pg>=7)rows.push({q,x});}
+    const T={RB:12,WR:12,TE:6},RT={RB:15,WR:18,TE:8};['RB','WR','TE'].forEach(ps=>rows.filter(r=>r.q.pos===ps).sort((a,b)=>b.x.pg-a.x.pg).forEach((r,i)=>{const er=rosRank(r.q),elite=i+1<=T[ps]||(er!=null&&er<=RT[ps]);
+      _bs[r.q.key]=r.x.fpoe<=-1.5?'buy':r.x.fpoe>=1.5&&!elite?'sell':null;}));}
+  return _bs[p.key]||null;}
+// best weekly starting lineup (rest-of-season points per game); an empty or weak slot is filled from waivers
+function lineupPPG(keys,rep,RP){const sl=Object.assign({},DEF_SLOTS,S.slots||{});
+  const pl=keys.map(k=>RP.get(k)).filter(Boolean).map(p=>({key:p.key,pos:p.pos,v:tradeVal(p,rep).bppg})).sort((a,b)=>b.v-a.v);
+  const used=new Set();let tot=0;
+  for(const s2 of ['QB','RB','WR','TE','K','DST','FLEX','SFLEX'])for(let i=0;i<(sl[s2]||0);i++){const w=Math.max(...SLOT_OK[s2].map(q=>rep[q]||0));
+    const x=pl.find(c=>!used.has(c.key)&&SLOT_OK[s2].includes(c.pos));if(x&&x.v>w){used.add(x.key);tot+=x.v;}else tot+=w;}
+  return tot;}
+const weeksLeft=()=>Math.max(0,18-S.week);
 function tradeSide(id,title,keys,rep){
-  const ps=keys.map(k=>realPlayers().find(x=>x.key===k)).filter(Boolean);
-  const list=ps.length?`<ul class="tlist">${ps.map(p=>{const v=tradeVal(p,rep);return `<li><div>${nameCell(p,false)}<div class="note">${f1(v.ppg)} pts/game · ${v.games} games left · ${esc(p.sched)} schedule${p.bye&&n(p.bye)>S.week?' · bye wk '+p.bye:''}</div></div>
-     <div class="r"><b class="mono">${Math.round(v.val)}</b><div class="note">value</div></div><button class="btn sm" data-rm="${esc(p.key)}" aria-label="Remove ${esc(p.name)}">✕</button></li>`;}).join('')}</ul>`:'<p class="muted" style="margin:6px 0">No players yet.</p>';
+  const RP=new Map(realPlayers().map(p=>[p.key,p])),ps=keys.map(k=>RP.get(k)).filter(Boolean);
+  const list=ps.length?`<ul class="tlist">${ps.map(p=>{const v=tradeVal(p,rep),er=rosRank(p),bs=bsTag(p);
+    const flags=[bs==='buy'?'<span class="pill p-good" title="Scoring below what his usage predicts">Buy low</span>':bs==='sell'?'<span class="pill p-bad" title="Scoring above what his usage supports">Sell high</span>':'',
+      p.bye&&n(p.bye)>S.week?`<span class="pill p-mute">Bye wk ${p.bye}</span>`:''].filter(Boolean).join(' ');
+    return `<li><div>${nameCell(p,false)} ${flags}<div class="note">${f1(v.model)} pts/game projected${er!=null?` · experts: ${p.pos}${Math.round(er)} rest of season`:''} · ${v.games} games left · ${esc(p.sched)} schedule</div></div>
+     <div class="r"><b class="mono">${f1(v.val)}</b><div class="note">value</div></div><button class="btn sm" data-rm="${esc(p.key)}" aria-label="Remove ${esc(p.name)}">✕</button></li>`;}).join('')}</ul>`:'<p class="muted" style="margin:6px 0">No players yet.</p>';
   return `<h3>${title}</h3><div class="sitebar" style="align-items:end;margin-top:10px"><div class="field" style="flex:1 1 200px"><label class="label" for="${id}In">Add a player</label>
     <input id="${id}In" class="pick" type="search" list="tradeList" placeholder="Type a name" autocomplete="off" spellcheck="false"></div><button class="btn primary" data-add="${id}" type="button">Add</button></div>${list}`;}
+// ---- trade finder: one-for-one and two-for-one deals that lift your lineup and are fair enough to get accepted ----
+let _tf=null,_tfK='';
+function findTrades(){const rep=replacementPpg(),all=realPlayers(),RP=new Map(all.map(p=>[p.key,p]));
+  const mine=S.mine.filter(k=>RP.has(k));if(mine.length<5)return {need:true};
+  const LG=S.league&&Array.isArray(S.league.teams)&&S.league.teams.length?S.league:null;
+  const k=scKey()+'|'+S.week+'|'+JSON.stringify(S.w)+'|'+JSON.stringify(S.slots||{})+'|'+mine.join(',')+'|'+(LG?LG.synced:'');if(_tf&&_tfK===k)return _tf;
+  const V=p=>tradeVal(p,rep).val,base=lineupPPG(mine,rep,RP);
+  // who you could trade for: real teams' rosters with a league connected, otherwise widely rostered players
+  let targets;if(LG)targets=LG.teams.flatMap(t=>t.keys.filter(x=>RP.has(x)).map(x=>({p:RP.get(x),team:t})));
+  else targets=all.filter(p=>!mine.includes(p.key)&&(ownOf(p.key)?.pct||0)>=50).map(p=>({p,team:null}));
+  targets=targets.filter(t=>V(t.p)>0).sort((a,b)=>V(b.p)-V(a.p)).slice(0,140);
+  const gives=mine.map(x=>RP.get(x)).filter(p=>V(p)>0).sort((a,b)=>V(b)-V(a)),sets=gives.map(p=>[p]);
+  const top=gives.slice(0,10);for(let a=0;a<top.length;a++)for(let b=a+1;b<top.length;b++)sets.push([top[a],top[b]]);
+  const out=[];
+  for(const t of targets){const tv=V(t.p);
+    for(const G of sets){const gv=G.reduce((x,p)=>x+V(p),0);if(gv<tv*.9||gv>tv*1.3)continue;   // fair: they don't lose >10%, you don't overpay >30%
+      const after=mine.filter(x=>!G.some(p=>p.key===x)).concat(t.p.key),gain=lineupPPG(after,rep,RP)-base;if(gain<.5)continue;
+      let pg=null;if(t.team){const tk=t.team.keys.filter(x=>RP.has(x)),ta=tk.filter(x=>x!==t.p.key).concat(G.map(p=>p.key));pg=lineupPPG(ta,rep,RP)-lineupPPG(tk,rep,RP);if(pg<-1)continue;}
+      out.push({give:G,get:t.p,team:t.team,gain,gv,tv,pg});}}
+  out.sort((a,b)=>b.gain-a.gain);
+  // variety: each target once, and any one of your players in at most two suggestions
+  const uses={},got=new Set(),pick=[];for(const o of out){if(got.has(o.get.key)||o.give.some(p=>(uses[p.key]||0)>=2))continue;
+    got.add(o.get.key);o.give.forEach(p=>uses[p.key]=(uses[p.key]||0)+1);pick.push(o);if(pick.length>=8)break;}
+  _tf={list:pick,league:!!LG};_tfK=k;return _tf;}
+function renderTradeFinder(){const el=$('#tFinder');if(!el)return;const f=findTrades();
+  const head=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Trade finder</h3><span class="note">${f.league?`Real rosters from ${esc(S.league.leagueName)}`:'Connect your league on Suggested Lineup to trade with real teams'}</span></div>`;
+  if(f.need){el.innerHTML=head+`<p class="muted" style="margin-top:6px">Star your players or connect your league on Suggested Lineup, and the finder will look for trades that improve your starting lineup.</p>`;return;}
+  const nm=p=>`<span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`;
+  el.innerHTML=head+(f.list.length?`<ul class="tfind">${f.list.map((o,i)=>`<li><div class="tf-d"><div><span class="tf-l">Give</span> ${o.give.map(nm).join(' + ')}</div><div><span class="tf-l">Get</span> ${nm(o.get)}${o.team?` <span class="muted">from ${esc(o.team.name)}</span>`:''}</div>
+      <div class="note">Your lineup <b style="color:var(--good)">+${f1(o.gain)} pts a week</b> · value ${f1(o.gv)} for ${f1(o.tv)}${o.pg!=null?` · ${o.pg>0.3?'helps their lineup too':o.pg>=-0.3?'about even for their lineup':'small cost to their lineup'}`:''}</div></div>
+      <button class="btn sm" data-tfi="${i}">Look at it</button></li>`).join('')}</ul>`
+    :`<p class="muted" style="margin-top:6px">No fair trade found that clearly improves your lineup. Your roster is in good shape for now.</p>`)+
+    `<p class="note">Looks at one-for-one and two-for-one deals. Fair means the other team gets at least 90% of the value it gives up, and you don't overpay by more than 30%.</p>`;}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tfi]');if(!b)return;const o=(_tf&&_tf.list||[])[+b.dataset.tfi];if(!o)return;
+  S.trade={give:o.give.map(p=>p.key),get:[o.get.key]};save();renderTrade();const v=$('#tVerdict');if(v)v.scrollIntoView({behavior:'smooth',block:'center'});});
 function renderTrade(){
-  S.trade=S.trade||{give:[],get:[]};const rep=replacementPpg(),all=realPlayers();
+  S.trade=S.trade||{give:[],get:[]};const rep=replacementPpg(),all=realPlayers(),RP=new Map(all.map(p=>[p.key,p]));
   if(!$('#tradeList')){const dl=document.createElement('datalist');dl.id='tradeList';document.body.appendChild(dl);}
   if(+($('#tradeList').dataset.n||0)!==all.length){$('#tradeList').innerHTML=all.map(p=>({p,v:rosProj(p).total})).sort((a,b)=>b.v-a.v).map(({p})=>`<option value="${esc(p.name)} (${esc(p.team)}) · ${p.pos}"></option>`).join('');$('#tradeList').dataset.n=all.length;}
+  renderTradeFinder();
   $('#tGive').innerHTML=tradeSide('tGive','You give',S.trade.give,rep);$('#tGet').innerHTML=tradeSide('tGet','You get',S.trade.get,rep);
-  const sum=keys=>keys.map(k=>all.find(x=>x.key===k)).filter(Boolean).reduce((a,p)=>{const v=tradeVal(p,rep);a.val+=v.val;a.pts+=v.total;a.n++;return a;},{val:0,pts:0,n:0});
+  const sum=keys=>keys.map(k=>RP.get(k)).filter(Boolean).reduce((a,p)=>{const v=tradeVal(p,rep);a.val+=v.val;a.m+=v.valModel;a.x+=v.valExpert??v.valModel;a.n++;return a;},{val:0,m:0,x:0,n:0});
   const G=sum(S.trade.give),R=sum(S.trade.get),el=$('#tVerdict');
-  if(!G.n||!R.n){el.innerHTML=`<div class="card"><p class="muted">Add at least one player to each side to see who wins the trade.</p></div>`;return;}
+  if(!G.n||!R.n){el.innerHTML=`<div class="card"><p class="muted">Add at least one player to each side, or tap "Look at it" on a suggestion above.</p></div>`;return;}
   const d=R.val-G.val,big=Math.max(G.val,R.val,1),pct=Math.abs(d)/big;
-  const head=pct<.08?'Fair trade':d>0?(pct>=.3?'Big win for you':'You win this trade'):(pct>=.3?'Big loss for you':'You lose this trade');
-  const cls=pct<.08?'p-gold':d>0?'p-good':'p-bad';
+  // effect on your starting lineup, when the players you give are on your roster
+  const mine=S.mine.filter(k=>RP.has(k)),onRoster=S.trade.give.every(k=>mine.includes(k))&&mine.length>=5;
+  let lg=null;if(onRoster){const after=mine.filter(k=>!S.trade.give.includes(k)).concat(S.trade.get.filter(k=>!mine.includes(k)));lg=lineupPPG(after,rep,RP)-lineupPPG(mine,rep,RP);}
+  const fairV=pct<.1,winV=d>0;
+  let head,cls;
+  if(lg!=null&&lg>=1&&(winV||fairV)){head='Good trade for you';cls='p-good';}
+  else if(lg!=null&&lg>=0.3&&!winV&&!fairV){head='Helps your lineup, but you overpay';cls='p-gold';}
+  else if(lg!=null&&lg<=-0.5){head='Hurts your lineup';cls='p-bad';}
+  else{head=fairV?'Fair trade':winV?(pct>=.3?'Big win for you':'You win this trade'):(pct>=.3?'Big loss for you':'You lose this trade');cls=fairV?'p-gold':winV?'p-good':'p-bad';}
   const spots=R.n<G.n?`You get ${G.n-R.n} fewer player${G.n-R.n>1?'s':''}, which frees roster spots for waiver pickups.`:R.n>G.n?`You get ${R.n-G.n} more player${R.n-G.n>1?'s':''}, so you'll need to drop someone to make room.`:'';
   const W=Math.max(G.val,R.val,1);
   el.innerHTML=`<div class="card"><div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between"><h3>Verdict</h3><span class="pill ${cls}" style="font-size:.95rem;padding:3px 12px">${head}</span></div>
+    ${lg!=null?`<div class="tlu ${lg>=0.3?'up':lg<=-0.3?'down':''}"><b>${lg>=0?'+':'−'}${f1(Math.abs(lg))}</b> pts a week for your starting lineup<span class="note">about ${lg>=0?'+':'−'}${Math.round(Math.abs(lg)*weeksLeft())} over the rest of the season</span></div>`
+      :`<p class="note" style="margin-top:6px">Star your players or connect your league to see how this trade changes your starting lineup.</p>`}
     <div class="tbars">
-      <div><span class="label">You give</span><div class="bar"><i style="width:${100*G.val/W}%;background:var(--bad)"></i></div><b class="mono">${Math.round(G.val)}</b></div>
-      <div><span class="label">You get</span><div class="bar"><i style="width:${100*R.val/W}%;background:var(--good)"></i></div><b class="mono">${Math.round(R.val)}</b></div>
+      <div><span class="label">You give</span><div class="bar"><i style="width:${100*G.val/W}%;background:var(--bad)"></i></div><b class="mono">${f1(G.val)}</b></div>
+      <div><span class="label">You get</span><div class="bar"><i style="width:${100*R.val/W}%;background:var(--good)"></i></div><b class="mono">${f1(R.val)}</b></div>
     </div>
-    <p style="margin-top:10px">${pct<.08?`The two sides are within ${Math.round(pct*100)}% of each other in value.`:`You ${d>0?'gain':'give up'} about <b>${Math.round(Math.abs(d))}</b> points of value above waiver level over the rest of the season (${Math.round(pct*100)}% of the bigger side).`}
-      Raw rest-of-season points: ${Math.round(G.pts)} given, ${Math.round(R.pts)} received.</p>
+    <p style="margin-top:10px">${fairV?`Even in value: the sides are within ${Math.round(pct*100)}% of each other.`:`You ${winV?'gain':'give up'} about <b>${f1(Math.abs(d))}</b> points of trade value (${Math.round(pct*100)}% of the bigger side).`}</p>
+    <p class="note" style="margin-top:4px">Trade value is on a 0–100 scale (the most valuable player in football = 100), blending two opinions 50/50 · our projections alone: ${f1(G.m)} given, ${f1(R.m)} received · FantasyPros experts alone: ${f1(G.x)} given, ${f1(R.x)} received.</p>
     ${spots?`<p class="note" style="margin-top:6px">${spots}</p>`:''}</div>`;
 }
 document.addEventListener('click',e=>{const a=e.target.closest('#p-trade [data-add]'),r=e.target.closest('#p-trade [data-rm]');
@@ -1422,8 +1511,10 @@ async function slpSync(cfg){
   const slots=(lg.roster_positions||[]).filter(x=>!['BN','IR','TAXI'].includes(x));
   const me=(us||[]).find(x=>x.user_id===cfg.userId);
   const ids=r.players||[],keys=ids.map(slpKey),taken=[...new Set((rs||[]).flatMap(x=>x.players||[]).map(slpKey).filter(Boolean))];
+  const uname=id=>{const u=(us||[]).find(x=>x.user_id===id);return (u&&u.metadata&&u.metadata.team_name)||(u&&u.display_name)||'Another team';};
+  const teams=(rs||[]).filter(x=>x!==r).map(x=>({name:uname(x.owner_id),keys:(x.players||[]).map(slpKey).filter(Boolean)}));
   return {leagueName:lg.name,teamName:(me&&me.metadata&&me.metadata.team_name)||(me&&me.display_name)||cfg.userName,
-    roster:keys.filter(Boolean),skipped:keys.filter(k=>!k).length,taken,
+    roster:keys.filter(Boolean),skipped:keys.filter(k=>!k).length,taken,teams,
     starters:(r.starters||[]).map((id,i)=>({slot:SLP_SLOT[slots[i]]||null,key:slpKey(id),empty:!id||id==='0'})).filter(x=>x.slot),
     slots:slotCounts(slots.map(x=>SLP_SLOT[x])),sc:slpScoring(lg.scoring_settings||{})};}
 // ESPN: public league id → teams → your roster
@@ -1441,7 +1532,8 @@ async function espnSync(cfg,lg){lg=lg||await espnLeague(cfg.leagueId);const d=lg
   const slots={QB:0,RB:0,WR:0,TE:0,FLEX:0,SFLEX:0,K:0,DST:0};for(const [id,n] of Object.entries(counts))if(ESPN_SLOT[id])slots[ESPN_SLOT[id]]+=n;
   const keyed=ent.map(e=>({e,key:espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)}));
   const taken=[...new Set((d.teams||[]).flatMap(x=>(x.roster&&x.roster.entries)||[]).map(e=>espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)).filter(Boolean))];
-  return {leagueName:lg.name,teamName:lg.teams.find(x=>x.id===cfg.teamId).name,roster:keyed.map(x=>x.key).filter(Boolean),skipped:keyed.filter(x=>!x.key).length,taken,
+  const teams=(d.teams||[]).filter(x=>x.id!==cfg.teamId).map(x=>({name:x.name||`${x.location||''} ${x.nickname||''}`.trim()||('Team '+x.id),keys:((x.roster&&x.roster.entries)||[]).map(e=>espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)).filter(Boolean)}));
+  return {leagueName:lg.name,teamName:lg.teams.find(x=>x.id===cfg.teamId).name,roster:keyed.map(x=>x.key).filter(Boolean),skipped:keyed.filter(x=>!x.key).length,taken,teams,
     starters:keyed.filter(x=>ESPN_SLOT[x.e.lineupSlotId]).map(x=>({slot:ESPN_SLOT[x.e.lineupSlotId],key:x.key})),slots,
     sc:scOf({rec:pts(53),ptd:pts(4),int:pts(20),py:pts(3)?1/pts(3):null,yd:pts(24)?1/pts(24):null,td:pts(25),fl:pts(72)})};}
 // pull the roster in and adopt the league's scoring and lineup slots
@@ -1450,7 +1542,7 @@ async function syncLeague(cfg,quiet,lg){
   S.mine=[...new Set(r.roster)];
   if(Object.values(r.slots).some(Boolean))S.slots=r.slots;
   if(r.sc&&Object.keys(r.sc).length){S.sc={...SC(),...r.sc};syncFmt();}
-  S.league={...cfg,leagueName:r.leagueName,teamName:r.teamName,starters:r.starters,taken:r.taken,skipped:r.skipped,synced:Date.now(),week:SD.week};
+  S.league={...cfg,leagueName:r.leagueName,teamName:r.teamName,starters:r.starters,taken:r.taken,teams:r.teams,skipped:r.skipped,synced:Date.now(),week:SD.week};
   _lp=null;save();if(!quiet)toast(`Synced ${r.roster.length} players from ${SRC_NAME[cfg.src]}`);render();}
 // your league lineup vs the suggested one: who to swap in
 function lineupCheck(){const L=S.league;if(!L||!L.starters||S.week!==SD.week||L.week!==SD.week)return null;
@@ -2283,7 +2375,7 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');i
   inp.addEventListener('input',()=>open(true));
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});});})();
 // Features that are built but switched off. To bring one back, change false to true.
-const FEATURES={trade:false};
+const FEATURES={trade:true};
 const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model'].filter(t=>FEATURES[t]!==false);
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
