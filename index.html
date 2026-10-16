@@ -602,6 +602,10 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .wkl span{display:block;font-size:.85rem;color:var(--muted);white-space:nowrap}
 .wkl.now b,.wkl.now span{color:var(--t-accent,var(--gold))}
 @media (max-width:600px){.wkbars,.wklabs{gap:6px}.wkb b{font-size:1.15rem}.wkb span{font-size:.62rem;letter-spacing:.04em}.wkgrid{min-width:calc(var(--n) * 46px)}.wkcard h3{white-space:nowrap}.wkx{display:none}.wkavg{font-size:.85rem}.wkl b{font-size:.9rem}.wkl span{white-space:normal;font-size:.72rem;line-height:1.2}}
+
+/* Sharp corners on every box; dots and markers stay round */
+*,*::before,*::after{border-radius:0!important}
+.range .dot,.sw,.sd,.lc-dot,.livedot,.tk-i::after,.tabs button.live::after,.team-hero::after{border-radius:50%!important}
 </style>
 </head>
 <body>
