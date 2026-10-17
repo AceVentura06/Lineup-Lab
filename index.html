@@ -565,6 +565,9 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .hm-tt .hd{font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .hm-pr{font-family:var(--f-display);font-weight:800;font-size:1.2rem;text-align:right}
 .hm-sm{font-size:.82rem;color:var(--muted)}
+.hm-chg{border-left:4px solid var(--gold)}
+.hm-chg .chg-row{display:flex;gap:10px;align-items:flex-start;line-height:1.45}
+.hm-chg .btns{margin-top:12px}
 .hm-close{padding:9px 12px;background:var(--gold-soft);border-radius:4px;font-size:.92rem}
 .hm-bench{font-size:.85rem;color:var(--muted)}
 .hm-pos4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
@@ -660,6 +663,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   <!-- HOME -->
   <section class="panel" id="p-home" role="tabpanel">
     <div class="hm-install" id="hmInstall" hidden></div>
+    <div class="card hm-chg" id="hmChg" hidden></div>
     <div class="hm-row">
       <div class="hm-hero">
         <div class="hm-kick" id="hmKick"></div>
@@ -1672,6 +1676,50 @@ async function liveTick(){clearTimeout(LIVE.timer);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LIVE.at>6e4)liveTick();});
 // ---- home: this week at a glance ----
 ui.homePos='QB';
+// "Since your last visit": your players' injury tags, practice reports, projections and news,
+// compared with a snapshot saved in this browser on your previous visit (a gap of 30+ minutes starts a new visit)
+const SEEN_KEY=KEY+'.seen',VISIT_GAP=30*6e4;
+let SEEN={cur:null,prev:null};
+try{const d=JSON.parse(localStorage.getItem(SEEN_KEY)||'null');if(d&&typeof d==='object')SEEN={cur:d.cur||null,prev:d.prev||null};}catch(_){}
+const newVisit=()=>{if(SEEN.cur&&Date.now()-SEEN.cur.t>VISIT_GAP){SEEN.prev=SEEN.cur;return true;}return false;};
+newVisit();
+const saveSeen=()=>{try{localStorage.setItem(SEEN_KEY,JSON.stringify(SEEN));}catch(_){}};
+const ST_LBL={Healthy:'no injury tag',Questionable:'Questionable',Doubtful:'Doubtful',Out:'Out',IR:'on injured reserve'};
+const ST_SEV={Healthy:0,Questionable:1,Doubtful:2,Out:3,IR:4};
+const PC_LBL={DNP:'Did not practice',LP:'Limited in practice',FP:'Full practice'};
+const lastNameOf=p=>p.name.split(' ').filter(w=>!/^(jr|sr|ii|iii|iv)\.?$/i.test(w)).pop().toLowerCase();
+function newsSince(p,t){const l=NEWS&&(NEWS.news||{})[p.key];if(!l)return [];const last=lastNameOf(p);
+  return l.filter(x=>Date.parse(x[3])>t&&x[0].toLowerCase().includes(last));}
+function renderChanges(byKey,pname){
+  const el=$('#hmChg');if(!el)return;
+  if(S.week!==SD.week){el.hidden=true;return;}
+  const ctx=SD.week+'|'+scKey()+'|'+JSON.stringify(S.w),snap={};
+  for(const k of S.mine){const r=byKey.get(k);if(!r)continue;const pr=practiceOf(r.p);
+    snap[k]={s:effStatus(r.p)||'Healthy',pc:(pr&&pr[0])||'',pj:Math.round(r.proj*10)/10};}
+  SEEN.cur={t:Date.now(),ctx,p:snap};saveSeen();
+  const P=SEEN.prev;if(!P||!P.p){el.hidden=true;return;}
+  const items=[];
+  for(const k in snap){const was=P.p[k];if(!was)continue;const c=snap[k],p=byKey.get(k).p,notes=[];let score=0;
+    if(c.s!==was.s){const worse=(ST_SEV[c.s]??0)>(ST_SEV[was.s]??0);
+      notes.push(c.s==='Healthy'?`Injury tag cleared (was ${ST_LBL[was.s]||was.s})`:`Now ${ST_LBL[c.s]||c.s}${was.s!=='Healthy'?` (was ${ST_LBL[was.s]||was.s})`:''}`);score+=worse?100:50;}
+    else if(c.pc&&c.pc!==was.pc){notes.push(`${PC_LBL[c.pc]||c.pc}${was.pc?` (was ${(PC_LBL[was.pc]||was.pc).toLowerCase()})`:''}`);score+=c.pc==='DNP'?60:c.pc==='LP'?40:20;}
+    if(P.ctx===ctx){const d=c.pj-was.pj;
+      if(Math.abs(d)>=Math.max(1.5,.15*was.pj)){notes.push(`Projection ${f1(was.pj)} → <b>${f1(c.pj)}</b> (${d>0?'+':'−'}${f1(Math.abs(d))})`);score+=Math.abs(d)*5;}}
+    const nw=newsSince(p,P.t);
+    if(notes.length||nw.length)items.push({p,notes,nw,score:score+(nw.length?5:0)});}
+  if(!items.length){el.hidden=true;return;}
+  items.sort((a,b)=>b.score-a.score);
+  const when=new Date(P.t).toLocaleString('en-US',{weekday:'short',hour:'numeric',minute:'2-digit'});
+  el.hidden=false;
+  el.innerHTML=`<div class="hm-head"><h3>Since your last visit</h3><span class="hm-sm">${esc(when)}</span></div>
+    <div class="hm-list">${items.slice(0,6).map(x=>`<div class="chg-row"><span class="pos ${x.p.pos}">${x.p.pos}</span><span>${pname(x.p)} ${statusPill(x.p)}
+      ${x.notes.map(t=>`<br><span class="hm-sm">${t}</span>`).join('')}
+      ${x.nw.slice(0,1).map(nw=>`<br><a class="hm-sm" href="${esc(nw[2])}" target="_blank" rel="noopener noreferrer">${esc(nw[1])}: ${esc(nw[0])} ↗</a>`).join('')}${x.nw.length>1?`<br><button class="plink hm-sm" style="font-weight:400" data-k="${esc(x.p.key)}">+${x.nw.length-1} more ${x.nw.length>2?'stories':'story'}</button>`:''}</span></div>`).join('')}</div>
+    ${items.length>6?`<p class="hm-sm" style="margin-top:8px">+${items.length-6} more of your players changed</p>`:''}
+    <div class="btns"><button class="btn" data-seen>Got it</button></div>`;
+}
+document.addEventListener('click',e=>{if(e.target.closest('[data-seen]')){SEEN.prev=SEEN.cur;saveSeen();renderHome();}});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&newVisit()){saveSeen();if(ui.tab==='home')renderHome();}});
 function renderHome(){
   const wk=S.week,live=wk===SD.week,lw=Math.min(wk,SD.week)-1,i4=['QB','RB','WR','TE'];
   const sc=scName();
@@ -1684,6 +1732,7 @@ function renderHome(){
     :`You're looking at Week ${wk}. Set the Week box at the top to ${SD.week} for this week.`;
   const all=pool().filter(p=>p.real).map(p=>({p,...weekProj(p)})),call=makeCall(all),byKey=new Map(all.map(r=>[r.p.key,r]));
   // my team
+  renderChanges(byKey,pname);
   const mine=S.mine.filter(k=>byKey.has(k));
   if(!mine.length)$('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3></div>
     <p class="hm-empty">Connect your Sleeper or ESPN league to bring in your roster, or tap the ☆ next to your players on Projections, Player Stats or Start / Sit.</p>
