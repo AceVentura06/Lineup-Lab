@@ -1458,8 +1458,17 @@ function renderTrade(){
       <div><span class="label">You get</span><div class="bar"><i style="width:${100*R.val/W}%;background:var(--good)"></i></div><b class="mono">${f1(R.val)}</b></div>
     </div>
     <p style="margin-top:10px">${fairV?`Even in value: the sides are within ${Math.round(pct*100)}% of each other.`:`You ${winV?'gain':'give up'} about <b>${f1(Math.abs(d))}</b> points of trade value (${Math.round(pct*100)}% of the bigger side).`}</p>
-    ${spots?`<p class="note" style="margin-top:6px">${spots}</p>`:''}</div>`;
+    ${spots?`<p class="note" style="margin-top:6px">${spots}</p>`:''}${poTradeNote(RP)}</div>`;
 }
+// playoff-schedule note under a trade verdict: which side has the easier playoff matchups, and any playoff byes
+function poTradeNote(RP){const side=keys=>keys.map(k=>RP.get(k)).filter(Boolean).map(p=>({p,po:poOf(p)})).filter(x=>x.po);
+  const g=side(S.trade.give),r=side(S.trade.get);if(!g.length||!r.length)return '';
+  const tot=a=>a.reduce((s,x)=>s+x.po.pts,0),d=tot(r)-tot(g);
+  const msg=Math.abs(d)<1?`Playoff schedules are about even.`
+    :`You're ${d>0?'getting':'giving up'} the easier playoff schedule: about <b>${f1(Math.abs(d))}</b> pts per playoff week ${d>0?'in your favor':'against you'}.`;
+  const bye=[...r.map(x=>({...x,get:true})),...g.map(x=>({...x,get:false}))].filter(x=>x.po.bye)
+    .map(x=>`${esc(x.p.name)} (${x.get?'you get':'you give'}) has a bye in Week ${x.po.wks.find(w=>w.bye).wk}.`).join(' ');
+  return `<p class="note" style="margin-top:6px"><b>${poWeeks()}:</b> ${msg}${bye?' '+bye:''} Not counted in the verdict.</p>`;}
 document.addEventListener('click',e=>{const a=e.target.closest('#p-trade [data-add]'),r=e.target.closest('#p-trade [data-rm]');
   if(r){S.trade.give=S.trade.give.filter(k=>k!==r.dataset.rm);S.trade.get=S.trade.get.filter(k=>k!==r.dataset.rm);save();renderTrade();return;}
   if(a)tradeAdd(a.dataset.add);});
@@ -2400,6 +2409,14 @@ function renderPlayer(){
   const cons=consensus(realPlayers().find(x=>x.key===p.key)||{real:false});
   const toolsCard=cons?`<div class="card"><h3>Start/sit tools</h3><p class="note" style="margin:4px 0 8px">${cons.n.start} of ${cons.total} tools say start, ${cons.n.flex} flex, ${cons.n.sit} sit. Average rank: ${p.pos}${Math.round(cons.avg)}.</p>
    <div class="tbl-wrap"><table class="tooltbl"><tbody>${cons.tools.map(t=>`<tr><td>${esc(t.name)}</td><td class="r num">${p.pos}${Math.round(t.rank)}</td><td><span class="pill ${({start:'p-good',flex:'p-gold',sit:'p-mute'})[t.vote]}">${t.vote[0].toUpperCase()+t.vote.slice(1)}</span></td><td class="note">${esc(t.detail||'')}</td></tr>`).join('')}</tbody></table></div></div>`:'';
+  const poP=realPlayers().find(x=>x.key===p.key),po=poP?poOf(poP):null;
+  const poCard=po?(()=>{const pct=Math.round(po.ease*100),sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
+    const [lbl,cls]=po.bye?['Bye in playoffs','p-bad']:po.ease>=PO_CUT?['Easy','p-good']:po.ease<=-PO_CUT?['Tough','p-bad']:['Neutral','p-mute'];
+    return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h3>Playoff schedule · ${poWeeks()}</h3><span class="pill ${cls}">${lbl} ${sg(pct)}%</span></div>
+    <p class="note" style="margin:4px 0 12px">${po.bye?`He has a bye during your playoffs, so you'd need a fill-in that week. `:''}His opponents ${po.ease>=0?'give up':'hold'} ${p.pos}s to about ${Math.abs(pct)}% ${po.ease>=0?'more':'fewer'} points than an average schedule: roughly ${po.pts>=0?'+':'−'}${f1(Math.abs(po.pts))} pts per playoff week for him. The last week counts most. <button class="hm-link" data-go="settings">Change weeks</button></p>
+    <div class="tiles">${po.wks.map(w=>w.bye?`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v" style="color:var(--bad)">Bye</span><span class="s">No game</span></div>`
+      :w.d?`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v"><button class="ork olink ${rkCls(w.rk)}" style="font-size:1.2rem" data-dvp="${esc(w.d.t)}">${esc(w.o)}</button></span><span class="s">Allow ${n1(w.allow)} pts/game to ${p.pos}s · ${ord(w.rk)} fewest of 32</span></div>`
+      :`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v">${esc(w.o)}</span><span class="s">No defense data yet</span></div>`).join('')}</div></div>`;})():'';
   const xfpCard=xf?`<div class="card"><h3>Expected fantasy points</h3><p class="note" style="margin:4px 0 12px">Every target and carry is valued at what an average player scores in that spot (depth of target and field position), using this season's play-by-play. Compare it with what he actually scored.</p>
    <div class="tiles"><div class="tile"><span class="label">Expected / game</span><span class="v">${n1(xf.pg)}</span><span class="s">from usage alone</span></div>
    <div class="tile"><span class="label">Actual / game</span><span class="v">${n1(xf.actPg)}</span><span class="s">receiving + rushing</span></div>
@@ -2429,6 +2446,7 @@ function renderPlayer(){
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    ${thisWeek}
    ${weekCard(p,tr.projV)}
+   ${poCard}
    <div id="pNews"></div>${toolsCard}${xfpCard}
    <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
    <div class="mgrid">${ms}</div></div>`;
