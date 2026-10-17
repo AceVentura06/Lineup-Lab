@@ -279,6 +279,8 @@ th.mcol,td.mcol{background:color-mix(in srgb,var(--gold) 7%,transparent)}
 table.sites th,table.sites td{padding:9px 8px}
 table.sites .srange{min-width:96px}
 .card.prose{max-width:none}
+.po-opps{margin-top:3px;font-size:.8rem}
+#setPlayoffs{margin-top:16px}
 .ork{font-family:var(--f-mono);font-size:.8rem;font-weight:700}
 .ork.good{color:var(--good)}.ork.bad{color:var(--bad)}.ork.mid{color:var(--muted)}
 tr.dvprow{cursor:pointer}tr.dvprow:hover td{background:var(--surface-2)}tr.dvprow.sel td{background:color-mix(in srgb,var(--gold) 10%,transparent)}
@@ -803,10 +805,11 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
     <div class="tbl-wrap bigtbl"><table class="rostbl pin2">
-      <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="games">Games left</th><th class="r sortable" data-sort="total">Total pts</th><th class="sortable" data-sort="pct">Vs. top at position</th><th>Tier</th></tr></thead>
+      <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="games">Games left</th><th class="r sortable" data-sort="total">Total pts</th><th class="sortable" data-sort="po" id="poTh">Playoffs</th><th class="sortable" data-sort="pct">Vs. top at position</th><th>Tier</th></tr></thead>
       <tbody id="rosBody"></tbody>
     </table></div>
     <p class="note">Tiers compare each player to the best player at his position on your list: 90%+ every-week starter, 75%+ solid starter, 60%+ flex or matchup play, below that bench or stash.</p>
+    <p class="note" id="poNote"></p>
   </section>
 
   <!-- PLAYERS -->
@@ -865,6 +868,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
         <div class="btns"><button class="btn sm" id="resetW">Reset to defaults</button></div>
       </div>
     </div>
+    <div class="card" id="setPlayoffs"><h2>Fantasy playoffs</h2><p class="muted">The weeks your league's playoffs run. The Playoffs column on Rest of Season grades each player's matchups in these weeks.</p>
+      <div class="chips" role="group" aria-label="Playoff weeks" id="poSeg"><button class="chip" data-po="14">Weeks 14–16</button><button class="chip" data-po="15">Weeks 15–17</button><button class="chip" data-po="16">Weeks 16–18</button></div></div>
   </section>
 
   <!-- MODEL -->
@@ -1178,18 +1183,45 @@ function renderH2H(){
   $('#verdict').innerHTML=`<div class="verdict">${msg}</div>${tblT}`;
 }
 
+// Playoff schedule: how easy each player's fantasy-playoff opponents are, from the points each defense allows to his position.
+// Each defense is pulled toward the league average (as if it had 4 extra average games) so one big game can't swing it,
+// and the championship week counts a little more. A bye in a playoff week counts as losing that week.
+const PO_W=[.3,.3,.4],PO_SHRINK=4,PO_CUT=.05;
+const poStart=()=>[14,15,16].includes(S.po)?S.po:15;
+const poWeeks=()=>`Weeks ${poStart()}–${poStart()+2}`;
+let _poLg=null,_poLgK=null;
+function poLg(D){if(_poLgK===D)return _poLg;_poLgK=D;_poLg=DPOS.map((_,i)=>D.list.length?D.list.reduce((a,d)=>a+d.avg[i],0)/D.list.length:0);return _poLg;}
+function poOf(p){const sc=p.team&&SCHED[p.team],i=DPOS.indexOf(p.pos);if(!sc||i<0)return null;
+  const D=dvpData(),lg=poLg(D)[i];if(!(lg>0))return null;
+  let ease=0;const wks=PO_W.map((w,j)=>{const wk=poStart()+j,o=sc[wk-1];
+    if(!o)return {wk,o:'—',f:0};
+    if(o==='BYE'){ease-=w;return {wk,bye:true};}
+    const d=D.by[o.replace('@','')];if(!d)return {wk,o,f:0};
+    const f=(d.g*d.avg[i]+PO_SHRINK*lg)/(d.g+PO_SHRINK)/lg-1;ease+=w*f;
+    return {wk,o,d,f,rk:d.rank[i],allow:d.avg[i]};});
+  return {ease,wks,pts:rosBase(p)*ease,bye:wks.some(x=>x.bye)};}
+function poCell(r){const po=r.po;if(!po)return '<span class="muted">—</span>';
+  const pct=Math.round(po.ease*100),sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
+  const [lbl,cls]=po.bye?['Bye','p-bad']:po.ease>=PO_CUT?['Easy','p-good']:po.ease<=-PO_CUT?['Tough','p-bad']:['Neutral','p-mute'];
+  const tip=`${po.bye?'Has a bye during your playoffs. ':''}Playoff matchups ${sg(pct)}% vs an average schedule, about ${po.pts>=0?'+':'−'}${f1(Math.abs(po.pts))} pts per playoff week for ${r.p.name}`;
+  return `<span class="pill ${cls}" title="${esc(tip)}">${lbl} ${sg(pct)}%</span><div class="po-opps">${po.wks.map(w=>w.bye?`<span class="ork bad" title="Week ${w.wk}: bye">BYE</span>`
+    :w.d?`<button class="ork olink ${rkCls(w.rk)}" data-dvp="${esc(w.d.t)}" title="Week ${w.wk}: ${esc(TEAM_NAMES[w.d.t]||w.d.t)} allow ${n1(w.allow)} pts/game to ${r.p.pos}s (${ord(w.rk)} fewest of 32)">${esc(w.o)}</button>`
+    :`<span class="ork mid">${esc(w.o)}</span>`).join('<span class="muted"> · </span>')}</div>`;}
+function syncPo(){document.querySelectorAll('#poSeg [data-po]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.po===poStart()));}
 function renderRos(){
+  syncPo();$('#poTh').textContent=`Playoffs (Wk ${poStart()}–${poStart()+2})`;
+  $('#poNote').innerHTML=`Playoffs grades each player's ${poWeeks()} opponents by the fantasy points they allow to his position, with the last week counting most, and flags byes. Tap an opponent to see that defense. Change the weeks in <button class="hm-link" data-go="settings">Settings</button>.`;
   chips($('#posRos'),ui.posR,'posR');
-  const all=pool().map(p=>({p,...rosProj(p)}));
+  const all=pool().map(p=>({p,...rosProj(p),po:poOf(p)}));
   const best={};all.forEach(r=>{best[r.p.pos]=Math.max(best[r.p.pos]||0,r.ppg)});
   const rows=all.filter(r=>(ui.posR==='All'||r.p.pos===ui.posR)&&(!ui.mineOnly||isMine(r.p)))
-    .sort((a,b)=>{const k=ui.sortR||'total',d=ui.dirR||1,v=r=>k==='pct'?(best[r.p.pos]?r.ppg/best[r.p.pos]:null):r[k];return sortCmp(v(a),v(b),d)||b.total-a.total;}).slice(0,250);
+    .sort((a,b)=>{const k=ui.sortR||'total',d=ui.dirR||1,v=r=>k==='pct'?(best[r.p.pos]?r.ppg/best[r.p.pos]:null):k==='po'?(r.po?r.po.ease:null):r[k];return sortCmp(v(a),v(b),d)||b.total-a.total;}).slice(0,250);
   document.querySelectorAll('table.rostbl th.sortable').forEach(th=>th.dataset.sort===(ui.sortR||'total')?th.setAttribute('aria-sort',(ui.dirR||1)===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   const tier=r=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;
     return f>=.9?'<span class="pill p-good">Tier 1 · every week</span>':f>=.75?'<span class="pill p-gold">Tier 2 · solid starter</span>':f>=.6?'<span class="pill p-warn">Tier 3 · flex / matchup</span>':'<span class="pill p-mute">Tier 4 · bench</span>';};
   $('#rosBody').innerHTML=rows.length?rows.map((r,i)=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;return `<tr>
-    <td class="rank">${i+1}</td><td style="white-space:nowrap">${nameCell(r.p,true)}</td><td class="r big">${f1(r.ppg)}</td><td class="r num">${r.games}</td><td class="r num">${Math.round(r.total)}</td>
-    <td><div class="bar"><i style="width:${Math.max(0,f*100)}%"></i></div><div class="num muted" style="font-size:.75rem">${Math.round(f*100)}%</div></td><td>${tier(r)}</td></tr>`}).join(''):`<tr><td colspan="7" class="muted">No players at this position yet.</td></tr>`;
+    <td class="rank">${i+1}</td><td style="white-space:nowrap">${nameCell(r.p,true)}</td><td class="r big">${f1(r.ppg)}</td><td class="r num">${r.games}</td><td class="r num">${Math.round(r.total)}</td><td style="white-space:nowrap">${poCell(r)}</td>
+    <td><div class="bar"><i style="width:${Math.max(0,f*100)}%"></i></div><div class="num muted" style="font-size:.75rem">${Math.round(f*100)}%</div></td><td>${tier(r)}</td></tr>`}).join(''):`<tr><td colspan="8" class="muted">No players at this position yet.</td></tr>`;
 }
 
 const SRC_INFO=[
@@ -2414,6 +2446,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)r
 function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
 
 // events
+$('#poSeg').onclick=e=>{const b=e.target.closest('[data-po]');if(!b)return;S.po=+b.dataset.po;save();syncPo();renderRos();};
 $('#scoringSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.sc={...SC(),rec:{ppr:1,half:.5,std:0}[b.dataset.v]};syncFmt();save();render();};
 $('#weekIn').oninput=e=>{const v=Math.round(n(e.target.value));if(v>=1&&v<=18){S.week=v;save();render();}};
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);};
