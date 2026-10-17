@@ -165,6 +165,7 @@ input[type=range]{width:100%;accent-color:var(--turf)}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable:hover{color:var(--ink)}
 th.sortable[aria-sort]{color:var(--ink)}
+th.sortable:focus-visible{outline:2px solid var(--turf);outline-offset:-2px}
 th.sortable[aria-sort]::after{content:" ▾"}
 th.sortable[aria-sort="ascending"]::after{content:" ▴"}
 td.top{color:var(--turf);font-weight:700}
@@ -891,6 +892,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     </div>
     <div class="chips" id="accWeeks"></div>
     <div id="accBody"><p class="muted">Loading…</p></div>
+    <div class="card" id="accBlend" hidden></div>
   </section>
 
   <!-- SETTINGS -->
@@ -905,7 +907,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
         <div class="slider"><div class="top"><label class="label" for="w-sched">ROS schedule impact</label><span class="mono" id="w-sched-v"></span></div><input type="range" id="w-sched" min="0" max="0.2" step="0.01"><small class="note">Easy or hard remaining schedule.</small></div>
         <div class="slider"><div class="top"><label class="label" for="w-q">Questionable discount</label><span class="mono" id="w-q-v"></span></div><input type="range" id="w-q" min="0" max="0.4" step="0.01"><small class="note">Risk that a questionable player sits or gets limited snaps.</small></div>
         <div class="slider"><div class="top"><label class="label" for="w-vegas">Vegas impact</label><span class="mono" id="w-vegas-v"></span></div><input type="range" id="w-vegas" min="0" max="1.2" step="0.05"><small class="note">How much the team's implied point total from the betting line moves a projection.</small></div>
-        <div class="slider"><div class="top"><label class="label" for="w-blend">Weight on site projections</label><span class="mono" id="w-blend-v"></span></div><input type="range" id="w-blend" min="0" max="1" step="0.05"><small class="note">0% uses only this model. 100% uses only the ESPN, Sleeper and FantasyPros average.</small></div>
+        <div class="slider"><div class="top"><label class="label" for="w-blend">Weight on site projections</label><span class="mono" id="w-blend-v"></span></div><input type="range" id="w-blend" min="0" max="1" step="0.05"><small class="note">0% uses only this model. 100% uses only the ESPN, Sleeper, CBS and FantasyPros average.</small>
+          <label class="mine-toggle" style="margin-top:8px"><input type="checkbox" id="blendAuto"> <span>Tune automatically from past accuracy</span></label><small class="note" id="blendNote"></small></div>
         <div class="btns"><button class="btn sm" id="resetW">Reset to defaults</button></div>
       </div>
     </div>
@@ -929,6 +932,7 @@ Vegas      = 1 + weight × (team implied pts − team's usual pts) / team's usua
 Weather    = wind 15+ mph: passing −5%, kickers −10% (20+ mph: −10% / −18%)
 Health     = injury status, adjusted by Wed–Fri practice (DNP / limited / full)
 Projection = (1 − w) × Model + w × average(ESPN, Sleeper, CBS, FantasyPros)
+             w is tuned by position from past accuracy (see Accuracy), unless set in Settings
 On bye, Out, or IR → 0</div>
         <p class="note">Base is season points per game. Matchup rank is how many fantasy points the opponent has allowed to that position per game (this season; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls assume a 12-team league.</p>
         <p><b>Start/sit tools.</b> Each player is also run through up to seven tools: this model, the FantasyPros expert consensus, ESPN's analysts, CBS's three experts, and the ESPN, Sleeper and CBS projections. Each tool's rank at the position becomes a vote (12-team league: QB/TE top 12 start, RB top 24, WR top 30; the next tier is flex). The Start / Sit call uses the average rank across tools.</p>
@@ -969,7 +973,7 @@ Total      = Pts/game × Games left</div>
     </div>
   </section>
 </div>
-<div class="toast" id="toast" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data","ticker-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
 <script>
@@ -1072,8 +1076,12 @@ function volOf(p){const d=VOL[p.pos]||.3;const s=p.real?PL.get(p.key):null;if(!s
   const v=s.weeks.map(wpts).filter(x=>x!=null);if(v.length<3)return d;const m=v.reduce((a,b)=>a+b,0)/v.length;if(m<=0)return d;
   const sd=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length);return .5*d+.5*Math.min(.75,Math.max(.12,sd/m));}
 const _wp=new Map();
+// Weight on the sites vs. our model. By default it's tuned each update from past accuracy, by position
+// (SITE_DATA.blend, from scripts/accuracy.mjs); moving the slider in Settings switches to your own number.
+const blendAuto=()=>S.blendAuto!==false&&!!(SD.blend&&SD.blend.pos&&Object.keys(SD.blend.pos).length);
+function blendW(p){if(!blendAuto())return S.w.blend;const t=SD.blend.pos[p.pos];return t?t.w:S.w.blend;}
 function weekProj(p){
-  const ck=(p.id||p.key)+'|'+S.week+'|'+scKey()+'|'+JSON.stringify(S.w);if(_wp.has(ck))return _wp.get(ck);
+  const bl=blendW(p),ck=(p.id||p.key)+'|'+S.week+'|'+scKey()+'|'+JSON.stringify(S.w)+'|'+bl;if(_wp.has(ck))return _wp.get(ck);
   const b=base(p);let r;
   if(onBye(p))r={b,proj:0,lo:0,hi:0,model:0,sites:null};
   else{const h=healthWk(p),sa=siteAvg(p),gp=p.real?(PL.get(p.key)?.gp||0):9;
@@ -1081,7 +1089,7 @@ function weekProj(p){
     const POSBASE={QB:12,RB:6,WR:6,TE:4,K:7.5,DST:6.5};
     const bAdj=sa==null&&gp<3?(gp*b+(3-gp)*(POSBASE[p.pos]||6))/3:b;
     const model=bAdj*matchM(p)*trendM(p)*vegasM(p)*weatherM(p)*h;
-    const wB=gp<3?S.w.blend+(1-S.w.blend)*(3-gp)/3:S.w.blend;
+    const wB=gp<3?bl+(1-bl)*(3-gp)/3:bl;
     const proj=h===0?0:sa!=null?(1-wB)*model+wB*sa*(h<1?Math.max(.4,h):1):model;
     const v=volOf(p);r={b,proj,model,sites:sa,lo:proj*(1-v),hi:proj*(1+v)};}
   if(_wp.size>4000)_wp.clear();_wp.set(ck,r);return r;
@@ -1310,7 +1318,14 @@ D/ST: sack ${sg(c.dsack)}  INT ${sg(c.dint)}  FR ${sg(c.dfr)}  TD ${sg(c.dtd)}  
 (${scName()} scoring · change it in Settings)`;
   [['match',v=>'±'+Math.round(v*100)+'%'],['trend',v=>'±'+Math.round(v*100)+'%'],['sched',v=>'±'+Math.round(v*100)+'%'],['q',v=>'−'+Math.round(v*100)+'%'],['vegas',v=>'×'+v.toFixed(2)],['blend',v=>Math.round(v*100)+'%']].forEach(([k,fmt])=>{
     $('#w-'+k).value=S.w[k];$('#w-'+k+'-v').textContent=fmt(S.w[k]);});
+  const has=!!(SD.blend&&SD.blend.pos&&Object.keys(SD.blend.pos).length),au=blendAuto(),cb=$('#blendAuto');
+  cb.checked=au;cb.disabled=!has;
+  if(au){const P=SD.blend.pos,ks=Object.keys(P),avg=ks.reduce((a,k)=>a+P[k].w,0)/ks.length;$('#w-blend').value=avg;$('#w-blend-v').textContent='Auto';}
+  $('#blendNote').innerHTML=!has?'Turns on once a few weeks have been graded.':au?`Now: ${blendSummary()}. Based on Weeks ${blendWeeks()}; see Accuracy. Move the slider to use your own number.`
+    :`Using your ${Math.round(S.w.blend*100)}% for every position. Check the box to go back to the tuned split.`;
 }
+const blendWeeks=()=>{const w=(SD.blend&&SD.blend.weeks)||[];return w.length?(w.length>1?w[0]+'–'+w[w.length-1]:''+w[0]):'—';};
+function blendSummary(){const P=(SD.blend&&SD.blend.pos)||{};return ['QB','RB','WR','TE','K','DST'].filter(k=>P[k]).map(k=>`${k} ${Math.round(P[k].w*100)}%`).join(' · ')+' sites';}
 
 // ---- accuracy scoreboard ----
 let ACC=null,accLoading=false;
@@ -1341,8 +1356,16 @@ function accChart(ws){const sc=S.scoring,srcs=Object.keys(ACC.sources).filter(s=
   ends.sort((a,b)=>a[0]-b[0]);for(let i=1;i<ends.length;i++)if(ends[i][0]-ends[i-1][0]<13)ends[i][0]=ends[i-1][0]+13;
   ends.forEach(([yy,s])=>g+=`<text x="${W-pr+8}" y="${yy+4}" style="fill:${SRC_COLOR[s]};font-weight:700;font-family:var(--f-body)">${esc(ACC.sources[s])}</text>`);
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Average miss per player by week for each source; lower is better">${g}</svg>`;}
+function renderAccBlend(){const el=$('#accBlend');if(!el)return;const B=SD.blend,P=(B&&B.pos)||{},ks=['QB','RB','WR','TE','K','DST'].filter(k=>P[k]);
+  if(!ks.length){el.hidden=true;return;}el.hidden=false;
+  const best=x=>Math.min(x.mae,x.even,x.sites,x.model),cell=(v,x)=>`<td class="r num"${v===best(x)?' style="font-weight:700;color:var(--good)"':''}>${v.toFixed(2)}</td>`;
+  el.innerHTML=`<h3>How much the site trusts each source</h3>
+    <p class="note" style="margin:4px 0 12px;max-width:78ch">Every update, the site checks which mix of our model and the sites' average (ESPN, Sleeper, CBS, FantasyPros) would have missed by the least in Weeks ${blendWeeks()}, separately for each position, and uses that mix for this week's projections. Small samples are pulled toward 50/50. Graded in PPR. ${blendAuto()?'':`<b>You've set your own split in Settings (${Math.round(S.w.blend*100)}% sites), so the site is using that instead.</b>`}</p>
+    <div class="tbl-wrap"><table><thead><tr><th>Pos</th><th class="r">Weight on sites</th><th class="r">Avg miss, tuned</th><th class="r">50 / 50</th><th class="r">Sites only</th><th class="r">Model only</th><th class="r">Players</th></tr></thead>
+    <tbody>${ks.map(k=>{const x=P[k];return `<tr><td><span class="pos ${k}">${k}</span></td><td class="r num"><b>${Math.round(x.w*100)}%</b></td>${cell(x.mae,x)}${cell(x.even,x)}${cell(x.sites,x)}${cell(x.model,x)}<td class="r num muted">${x.n}</td></tr>`;}).join('')}</tbody></table></div>
+    <p class="note" style="margin-top:8px">The Ace Lineup Lab grades above are what the site projected at the time; weeks before this tuning started used a 50/50 split.</p>`;}
 function renderAcc(){
-  loadAcc();const body=$('#accBody'),wk=$('#accWeeks');
+  renderAccBlend();loadAcc();const body=$('#accBody'),wk=$('#accWeeks');
   if(!ACC){body.innerHTML='<p class="muted">Loading…</p>';wk.innerHTML='';return;}
   const ws=Object.keys(ACC.weeks||{}).map(Number).sort((a,b)=>a-b);
   if(!ws.length){wk.innerHTML='';body.innerHTML=`<div class="card"><h3>No grades yet</h3><p class="muted" style="margin-top:6px">The first grades show up once Week ${S.week}'s games are final. Projections are being saved before each kickoff.</p></div>`;return;}
@@ -2523,7 +2546,7 @@ function prefetchShot(e){const b=e.target.closest&&e.target.closest('.plink');if
 ['pointerover','touchstart','focusin'].forEach(t=>document.addEventListener(t,prefetchShot,{passive:true}));
 document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;go('player',b.dataset.k);});
 
-function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
+function toast(m){const t=$('#toast');t.hidden=false;t.textContent='';setTimeout(()=>{t.textContent=m;},50);clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
 
 // events
 $('#poSeg').onclick=e=>{const b=e.target.closest('[data-po]');if(!b)return;S.po=+b.dataset.po;save();syncPo();renderRos();};
@@ -2573,8 +2596,9 @@ window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Mat
   const row=st.tab==='dvp'&&st.player&&document.querySelector(`tr.dvprow[data-t="${st.player}"]`);if(row)row.scrollIntoView({block:'start'});else window.scrollTo(0,0);});
 (function(){const st=readHash();if(location.hash&&(st.tab!=='home'||location.hash==='#home')){apply(st.tab,st.player);render();}
   try{history.replaceState({tab:ui.tab,player:cur()},'',hashFor(ui.tab,cur()));}catch(_){}})();
-['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);save();renderModel();});
-$('#resetW').onclick=()=>{S.w={...DEF_W};save();render();toast('Weights reset');};
+['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);if(k==='blend')S.blendAuto=false;save();renderModel();});
+$('#blendAuto').onchange=e=>{S.blendAuto=e.target.checked;save();renderModel();};
+$('#resetW').onclick=()=>{S.w={...DEF_W};S.blendAuto=true;save();render();toast('Weights reset');};
 
 // phone bottom bar: four main sections plus a "More" sheet with the rest
 function syncBnav(){const tb=ui.tab;let inMore=false;
@@ -2588,6 +2612,10 @@ function syncBnav(){const tb=ui.tab;let inMore=false;
   more.onclick=e=>{const b=e.target.closest('[data-tab]');if(b)open(b.dataset.tab);};
   document.addEventListener('click',e=>{if(!more.hidden&&!e.target.closest('#bmore,#bnav'))close();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!more.hidden){close();mb.focus();}});})();
+// sortable table headers work from the keyboard: Tab to a header, Enter or Space to sort
+document.querySelectorAll('th.sortable').forEach(th=>{th.tabIndex=0;});
+document.addEventListener('keydown',e=>{const th=e.target.closest&&e.target.closest('th.sortable');if(!th||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();
+  const sel=(th.closest('table').className.split(' ')[0]);th.click();const again=document.querySelector(`table.${sel} th.sortable[data-sort="${th.dataset.sort}"]`);if(again)again.focus();});
 render();
 renderTicker();
 autoSync();

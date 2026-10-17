@@ -100,3 +100,34 @@ export function gradeAll(history, STATS, currentWeek, season) {
   }
   return { season, sources: SOURCES, starters: STARTERS, weeks };
 }
+
+// How much to trust the sites vs. our model, tuned from every graded week, by position.
+// For each position, tries site weights 0%–100% in 5% steps and keeps the one whose blend
+// would have missed actual PPR points by the least, on fantasy-relevant players (avg projection
+// 5+, any K/DST). Small samples are pulled toward the default so a lucky week can't swing it.
+export const BLEND_SITES = ['espn', 'sleeper', 'cbs', 'fp'];
+export function tuneBlend(history, STATS, currentWeek, def = 0.5, pull = 30) {
+  const act = actualsFrom(STATS), by = {}, weeks = new Set();
+  for (const [w, snap] of Object.entries(history)) {
+    if (+w >= currentWeek) continue;
+    for (const [id, p] of Object.entries(snap.players || {})) {
+      const a = act[id]?.[+w]?.[0], m = p.src?.mod?.[0];
+      if (a == null || m == null) continue;
+      const sv = BLEND_SITES.map(s => p.src[s]?.[0]).filter(v => v != null);
+      if (!sv.length) continue;
+      const s = sv.reduce((x, y) => x + y, 0) / sv.length;
+      if (p.pos !== 'K' && p.pos !== 'DST' && (m + s) / 2 < 5) continue;
+      (by[p.pos] = by[p.pos] || []).push([m, s, a]); weeks.add(+w);
+    }
+  }
+  const pos = {};
+  for (const [P, rows] of Object.entries(by)) {
+    if (rows.length < 30) continue;
+    const mae = w => rows.reduce((e, [m, s, a]) => e + Math.abs((1 - w) * m + w * s - a), 0) / rows.length;
+    let best = 0, bestE = Infinity;
+    for (let i = 0; i <= 20; i++) { const w = i / 20, e = mae(w); if (e < bestE - 1e-9) { best = w; bestE = e; } }
+    const w = Math.round((rows.length * best + pull * def) / (rows.length + pull) * 100) / 100;
+    pos[P] = { w, n: rows.length, mae: r2(mae(w)), sites: r2(mae(1)), model: r2(mae(0)), even: r2(mae(0.5)) };
+  }
+  return { weeks: [...weeks].sort((a, b) => a - b), def, pos };
+}
