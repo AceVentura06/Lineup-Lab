@@ -34,7 +34,7 @@
 <meta name="theme-color" content="#FFFFFF" id="themeColor">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&family=Special+Gothic+Condensed+One&family=Cabin+Condensed:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&family=Special+Gothic+Condensed+One&family=Cabin+Condensed:wght@400;500;600;700&family=Asap+Sharp:wght@400;600;700&display=swap">
 <style>
 [hidden]{display:none!important}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -50,7 +50,7 @@ img{max-width:100%}
   --f-display:"Special Gothic Expanded One","Arial Black",sans-serif;
   --f-display-cond:"Special Gothic Condensed One","Arial Narrow",Impact,sans-serif;
   --f-body:"Cabin Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --f-mono:"Asap Sharp","Cabin Condensed",system-ui,sans-serif;
   color-scheme:light;
 }
 
@@ -611,6 +611,10 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .pin2 td:nth-child(2) .plink,.pin2 td:nth-child(2) .pname{max-width:98px}
   .pin2 td:nth-child(2) .nm-sub{display:block;font-size:.75rem;color:var(--muted);padding-left:26px;line-height:1.2;margin-top:1px;overflow:hidden;text-overflow:ellipsis}
 }
+/* Asap Sharp's digits are equal-width already; this keeps columns lined up if a fallback font is used */
+.mono,.num,.big,.ork,.subn,.hm-pr,.hm-g .dd,.hm-g .row b{font-variant-numeric:tabular-nums}
+/* the formulas line up with spaces, so they stay in a true monospaced font */
+.formula{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}
 .hm-close{padding:9px 12px;background:var(--gold-soft);border-radius:4px;font-size:.92rem}
 .hm-bench{font-size:.85rem;color:var(--muted)}
 .hm-pos4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
@@ -1134,7 +1138,7 @@ function statusPill(p){
 }
 // full name on wide screens; "K. Walker" (or just the last name when that's still long, "Saints" for defenses) on phones
 function nmLabel(name,pos){const w=String(name||'').trim().split(/\s+/),last=w.slice(1).join(' ');
-  let short=pos==='DST'?w[w.length-1]:w.length>1?w[0][0]+'. '+last:name;if(short.length>12&&last)short=last;
+  let short=pos==='DST'?w[w.length-1]:w.length>1?w[0][0]+'. '+last:name;if(short.length>11&&last)short=last;
   return `<span class="nm-f">${esc(name)}</span><span class="nm-s" aria-hidden="true">${esc(short)}</span>`;}
 function nameCell(p,star){
   const k=p.key||p.id,on=isMine(p);
