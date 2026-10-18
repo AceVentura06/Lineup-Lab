@@ -1,6 +1,6 @@
 {
-  "hash": "638e6e7f7fed2f40",
-  "updated": "2026-10-18T04:39:09.550Z",
+  "hash": "1c0a008c404524a7",
+  "updated": "2026-10-18T11:12:54.700Z",
   "season": 2026,
   "week": 6,
   "through": "Weeks 1–5 plus 1 of 14 week 6 games",
@@ -31,7 +31,7 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "374 entries for week 6"
+      "detail": "376 entries for week 6"
     },
     "Betting lines": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "485 players"
+      "detail": "483 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "182 players with news, 352 of 361 stories with photos (ESPN 1639 articles scanned; ESPN 454, CBS Sports 37, Yahoo Sports 27, ProFootballTalk 17)"
+      "detail": "179 players with news, 355 of 356 stories with photos (ESPN 1639 articles scanned; ESPN 452, CBS Sports 30, Yahoo Sports 3, ProFootballTalk 17)"
     }
   }
 }
