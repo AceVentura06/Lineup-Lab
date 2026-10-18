@@ -1,9 +1,9 @@
 {
-  "hash": "135f4f8d433e567e",
-  "updated": "2026-10-18T21:54:39.703Z",
+  "hash": "0af4b04d202b9510",
+  "updated": "2026-10-18T23:17:18.408Z",
   "season": 2026,
   "week": 6,
-  "through": "Weeks 1–5 plus 9 of 14 week 6 games",
+  "through": "Weeks 1–5 plus 10 of 14 week 6 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "194 players with news, 363 of 381 stories with photos (ESPN 1641 articles scanned; ESPN 482, CBS Sports 12, Yahoo Sports 27, ProFootballTalk 17)"
+      "detail": "197 players with news, 376 of 392 stories with photos (ESPN 1643 articles scanned; ESPN 501, CBS Sports 14, Yahoo Sports 28, ProFootballTalk 19)"
     }
   }
 }
