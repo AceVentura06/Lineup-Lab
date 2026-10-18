@@ -563,6 +563,13 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .hm-g .dd{font-size:.78rem;font-family:var(--f-mono);color:var(--ink)}
 .hm-g .dd.rz{color:#E5484D;font-weight:700}
 .hm-g .st{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+/* finished games: greyed card, FINAL tag, loser faded; upcoming games: dashed outline */
+.hm-g.post{background:var(--surface-2);border-color:transparent}
+.hm-g.post .row:not(.lead){color:var(--muted)}
+.hm-g.post .row:not(.lead) .hm-sm{opacity:.8}
+.hm-g.post .st{align-self:flex-start;background:var(--ink);color:var(--surface);font-family:var(--f-display);font-weight:800;padding:1px 7px;border-radius:4px;letter-spacing:.06em;margin-top:2px}
+.hm-g.pre{border-style:dashed}
+.hm-g.pre .st{color:var(--ink);font-weight:600}
 /* Home */
 .hm-install{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--surface);border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08);padding:12px 14px;border-left:4px solid var(--gold)}
 .hm-install img{width:40px;height:40px;border-radius:9px}
