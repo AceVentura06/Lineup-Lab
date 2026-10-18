@@ -14,10 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: { ref: main }
-      - name: Get the site's fonts (Barlow, SIL Open Font License)
+      - name: Get the site's fonts (Special Gothic, Cabin Condensed; SIL Open Font License)
         run: |
           mkdir -p /tmp/fonts && cd /tmp/fonts
-          for f in barlowcondensed/BarlowCondensed-ExtraBoldItalic.ttf barlow/Barlow-Medium.ttf; do
+          for f in specialgothicexpandedone/SpecialGothicExpandedOne-Regular.ttf specialgothiccondensedone/SpecialGothicCondensedOne-Regular.ttf cabincondensed/CabinCondensed-Medium.ttf; do
             curl -sSfL -o "$(basename $f)" "https://raw.githubusercontent.com/google/fonts/main/ofl/$f"
           done
       - name: Draw

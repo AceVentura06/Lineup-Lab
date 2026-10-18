@@ -340,7 +340,15 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .board{background:var(--surface);color:var(--ink);border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08);border-bottom:4px solid var(--gold);align-items:center}
 .board::before{display:none}
 .board h1{display:flex;align-items:center;gap:12px;font-size:clamp(2rem,6vw,2.6rem)}
-.board h1 .ace{background:var(--gold);color:var(--accent-ink);font-size:.7em;padding:4px 18px 4px 12px;clip-path:polygon(0 0,100% 0,86% 100%,0 100%)}
+.board h1 .ace-mk{display:inline-flex;align-items:stretch;flex:none}
+.board h1 .ace{background:var(--gold);color:var(--accent-ink);font-size:.7em;padding:.14em .62em .14em .55em;clip-path:polygon(10% 0,100% 0,88% 100%,0 100%)}
+/* speed lines: tucked against the block's slanted left edge, stepped along the same angle */
+.board h1 .ace-sl{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:.12em}
+.board h1 .ace-sl i{display:block;height:.095em;background:var(--gold-hi);transform:skewX(-17deg)}
+.board h1 .ace-sl i:nth-child(1){width:.62em;transform:translateX(.13em) skewX(-17deg)}
+.board h1 .ace-sl i:nth-child(2){width:1.05em;background:var(--gold);transform:translateX(.065em) skewX(-17deg)}
+.board h1 .ace-sl i:nth-child(3){width:.43em}
+:root[data-theme="dark"] .board h1 .ace-sl i:nth-child(2){background:var(--ink)}
 .board .sub{color:#3A475C;opacity:1}
 .ctl .label{opacity:1;color:var(--muted)}
 .seg{border:0;background:var(--surface-2);padding:3px;border-radius:4px;gap:2px}
@@ -668,7 +676,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   <header class="board">
     <div>
       <div class="label tb-hide" style="color:inherit;opacity:.8">Fantasy football evaluator</div>
-      <h1><span class="ace">ACE</span> LINEUP LAB</h1>
+      <h1><span class="ace-mk"><span class="ace-sl" aria-hidden="true"><i></i><i></i><i></i></span><span class="ace">ACE</span></span> LINEUP LAB</h1>
       <p class="sub tb-hide" id="updStamp" style="font-size:.85rem;opacity:.75"></p>
     </div>
     <div class="controls">
