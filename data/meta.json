@@ -1,13 +1,13 @@
 {
-  "hash": "0e04e43a50fdefe6",
-  "updated": "2026-10-18T20:59:33.748Z",
+  "hash": "135f4f8d433e567e",
+  "updated": "2026-10-18T21:54:39.703Z",
   "season": 2026,
   "week": 6,
   "through": "Weeks 1–5 plus 9 of 14 week 6 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
-      "detail": "5575 player-weeks"
+      "detail": "6131 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
@@ -23,7 +23,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "5049 targets, 4147 carries"
+      "detail": "5600 targets, 4553 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "187 players with news, 355 of 372 stories with photos (ESPN 1641 articles scanned; ESPN 474, CBS Sports 10, Yahoo Sports 22, ProFootballTalk 14)"
+      "detail": "194 players with news, 363 of 381 stories with photos (ESPN 1641 articles scanned; ESPN 482, CBS Sports 12, Yahoo Sports 27, ProFootballTalk 17)"
     }
   }
 }
