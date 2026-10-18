@@ -542,6 +542,18 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .hm-g.in{border-color:#E5484D}
 .hm-g .row{display:flex;justify-content:space-between;gap:8px}.hm-g .row b{font-family:var(--f-mono)}
 .hm-g .row.lead{font-weight:700}
+.hm-g .row.poss>span:first-child{font-weight:700}
+/* possession marker: a small football next to the team with the ball; red in the red zone */
+.ball{display:inline-block;width:16px;height:11px;flex:none;vertical-align:-1px;color:#8B4A1F}
+.ball svg{display:block;width:100%;height:100%}
+.ball.rz{color:#E5484D}
+:root[data-theme="dark"] .ball:not(.rz){color:#D08A55}
+.hm-g .row>span:first-child{display:flex;align-items:baseline;gap:0 6px;min-width:0}
+.hm-g .row .bslot{flex:0 0 16px;align-self:center;display:flex}
+.hm-g .row>span:first-child>span:last-child{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-ball-inline{margin-left:6px}
+.hm-g .dd{font-size:.78rem;font-family:var(--f-mono);color:var(--ink)}
+.hm-g .dd.rz{color:#E5484D;font-weight:700}
 .hm-g .st{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 /* Home */
 .hm-install{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;background:var(--surface);border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08);padding:12px 14px;border-left:4px solid var(--gold)}
@@ -1741,10 +1753,16 @@ const ESB='https://site.api.espn.com/apis/site/v2/sports/football/nfl';
 const espnAb=a=>({WSH:'WAS'}[a]||a);
 // share of the game still to play (for "on pace for")
 function liveFrac(g){if(!g||g.state==='post')return 0;if(g.state!=='in')return 1;const p=g.period||1,c=g.clock==null?900:g.clock;if(p>4)return .02;return Math.max(0,1-((p-1)*900+(900-c))/3600);}
+// small football icon for the team with the ball (red in the red zone)
+const BALL_SVG='<svg viewBox="0 0 22 14" aria-hidden="true"><path d="M11 1C5 1 1.5 4.6 1 7c.5 2.4 4 6 10 6s9.5-3.6 10-6c-.5-2.4-4-6-10-6z" fill="currentColor"/><path d="M7 7h8M9 5.6v2.8M11 5.6v2.8M13 5.6v2.8" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/></svg>';
+const ballIcon=(rz,label,cls='')=>`<span class="ball${rz?' rz':''}${cls?' '+cls:''}" role="img" aria-label="${label}" title="${label}">${BALL_SVG}</span>`;
 async function liveScoreboard(){const d=await getJ(`${ESB}/scoreboard?seasontype=2&week=${SD.week}&dates=${lseason()}`);
   for(const ev of d.events||[]){const c=(ev.competitions||[])[0];if(!c)continue;const st=c.status||ev.status||{},ty=st.type||{};
-    const tm=(c.competitors||[]).map(x=>({ab:espnAb(x.team&&x.team.abbreviation),score:+x.score||0,home:x.homeAway==='home'}));
-    const g={id:ev.id,state:ty.state,short:ty.shortDetail||ty.detail||'',period:st.period,clock:st.clock,teams:tm,date:Date.parse(ev.date||c.date)};
+    const tm=(c.competitors||[]).map(x=>({id:String((x.team&&x.team.id)||x.id||''),ab:espnAb(x.team&&x.team.abbreviation),score:+x.score||0,home:x.homeAway==='home'}));
+    // who has the ball, and down & distance (ESPN leaves these out at halftime, between quarters and after scores)
+    const si=c.situation||{},pt=si.possession!=null?tm.find(t=>t.id===String(si.possession)):null;
+    const g={id:ev.id,state:ty.state,short:ty.shortDetail||ty.detail||'',period:st.period,clock:st.clock,teams:tm,date:Date.parse(ev.date||c.date),
+      poss:ty.state==='in'&&pt?pt.ab:null,down:ty.state==='in'&&pt?(si.downDistanceText||si.shortDownDistanceText||si.possessionText||''):'',rz:!!si.isRedZone};
     tm.forEach(t=>LIVE.games.set(t.ab,g));}}
 function parseBox(sum,g){const fresh=new Map(),T={};
   for(const tb of (sum.boxscore&&sum.boxscore.players)||[]){const ab=espnAb(tb.team&&tb.team.abbreviation);const t=T[ab]={sacks:0,int:0,fl:0,td:0};
@@ -1860,7 +1878,7 @@ function renderHome(){
     let close=null;for(const st of starters)for(const b of bench){if(b.proj<=0||!SLOT_OK[st.slot].includes(b.pos))continue;const gap=st.x.proj-b.proj;if(!close||gap<close.gap)close={a:st.x,b,gap,slot:st.slot};}
     const lvOn=live&&LIVE.games.size;
     const row=(r,slot)=>{const lv=lvOn?liveOf(r.p):null;
-      return `<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span>${lv?`<span class="lvp">${f1(lv.pts)}</span><br><span class="hm-sm">${lv.g.state==='in'?'<span class="livedot"></span>':''}${esc(lv.g.short)}</span>`:call(r)}</span>`;};
+      return `<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span>${lv?`<span class="lvp">${f1(lv.pts)}</span><br><span class="hm-sm">${lv.g.state==='in'?'<span class="livedot"></span>':''}${esc(lv.g.short)}${lv.g.poss&&lv.g.poss===r.p.team?ballIcon(lv.g.rz,`${r.p.team} has the ball${lv.g.rz?', red zone':''}`,'hm-ball-inline'):''}</span>`:call(r)}</span>`;};
     // live total for the starters, and where they're on pace to finish
     let lvTot=null;if(lvOn){let sofar=0,pace=0,any=false;for(const x of starters){const r=byKey.get(x.x.key),lv=liveOf(r.p);if(lv){any=true;sofar+=lv.pts;pace+=lv.pts+r.proj*liveFrac(lv.g);}else pace+=r.proj;}
       if(any)lvTot={sofar,pace,on:starters.some(x=>{const lv=liveOf(byKey.get(x.x.key).p);return lv&&lv.g.state==='in';})};}
@@ -1879,8 +1897,9 @@ function renderHome(){
     else{el.hidden=false;const tm=(g,home)=>g.teams.find(t=>t.home===home)||{ab:'',score:0};
       el.innerHTML=`<div class="hm-head"><h3>${gs.some(g=>g.state==='in')?'<span class="livedot"></span>Live games':'Games'}</h3><span class="hm-sm">${LIVE.slp?'Live points from Sleeper; stat corrections can still move them a little':'Live points are estimates until the next data update'}</span></div>
         <div class="hm-games">${gs.map(g=>{const a=tm(g,false),h=tm(g,true),st=g.state;
-          const ln=(t,o)=>`<div class="row${st!=='pre'&&t.score>o.score?' lead':''}"><span>${esc(t.ab)} <span class="hm-sm">${esc(TEAM_NAMES[t.ab]||'')}</span></span><b>${st==='pre'?'':t.score}</b></div>`;
-          return `<div class="hm-g ${st}">${ln(a,h)}${ln(h,a)}<span class="st">${st==='in'?'<span class="livedot"></span>':''}${esc(g.short)}</span></div>`;}).join('')}</div>`;}}
+          const anyBall=!!g.poss;
+          const ln=(t,o)=>{const has=g.poss===t.ab;return `<div class="row${st!=='pre'&&t.score>o.score?' lead':''}${has?' poss':''}"><span>${anyBall?`<span class="bslot">${has?ballIcon(g.rz,`${t.ab} has the ball${g.rz?', red zone':''}`):''}</span>`:''}<span>${esc(t.ab)} <span class="hm-sm">${esc(TEAM_NAMES[t.ab]||'')}</span></span></span><b>${st==='pre'?'':t.score}</b></div>`;};
+          return `<div class="hm-g ${st}">${ln(a,h)}${ln(h,a)}<span class="st">${st==='in'?'<span class="livedot"></span>':''}${esc(g.short)}</span>${g.down?`<span class="dd${g.rz?' rz':''}">${esc(g.down)}</span>`:''}</div>`;}).join('')}</div>`;}}
   // top projected
   const top=pos=>all.filter(r=>r.p.pos===pos&&r.proj>0).sort((a,b)=>b.proj-a.proj);
   $('#hmTop').innerHTML=`<div class="hm-head"><h3>Top projected, Week ${wk}</h3><button class="hm-link" data-go="sites">Full projections</button></div>
