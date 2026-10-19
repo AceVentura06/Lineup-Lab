@@ -285,8 +285,17 @@ table.sites .srange{min-width:96px}
 .ork{font-family:var(--f-mono);font-size:.8rem;font-weight:700}
 .ork.good{color:var(--good)}.ork.bad{color:var(--bad)}.ork.mid{color:var(--muted)}
 /* teams: index grid and team pages */
-.tm-divs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px 16px;margin-top:14px}
-.tm-div h3{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.tm-confs{display:flex;flex-direction:column;gap:22px;margin-top:16px}
+.tm-conf{--conf:#D50A0A;border:1px solid var(--line);border-top:5px solid var(--conf);border-radius:10px;background:color-mix(in srgb,var(--conf) 4%,var(--surface));padding:14px 16px 8px}
+.tm-conf.nfc{--conf:#013369}
+:root[data-theme="dark"] .tm-conf{background:color-mix(in srgb,var(--conf) 9%,var(--surface))}
+:root[data-theme="dark"] .tm-conf.afc{--conf:#F0474B}
+:root[data-theme="dark"] .tm-conf.nfc{--conf:#4F7FD1}
+.tm-conf-h{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.tm-conf-tag{font-family:var(--f-display);font-weight:800;font-style:italic;font-size:1.6rem;line-height:1;color:var(--conf);letter-spacing:.02em}
+.tm-conf-name{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tm-divs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 16px}
+.tm-div h3{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);margin:0 0 8px;padding-bottom:4px;border-bottom:2px solid color-mix(in srgb,var(--conf) 45%,transparent)}
 .tm-card{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;width:100%;padding:9px 12px;margin-bottom:8px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--team-tint);border-radius:8px;transition:background .15s,transform .15s}
 .tm-card:hover{background:color-mix(in srgb,var(--team-tint) 10%,var(--surface));transform:translateX(2px)}
 .tm-card:focus-visible{outline:2px solid var(--turf);outline-offset:2px}
@@ -1002,7 +1011,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
         <h2>Teams</h2>
         <p class="note" style="margin-top:4px;max-width:78ch">Pick a team to see who gets the ball, its schedule, and what its defense gives up to each position.</p>
       </div>
-      <div class="tm-divs" id="tmGrid"></div>
+      <div class="tm-confs" id="tmGrid"></div>
       <details class="card tm-all" id="tmAll">
         <summary><span class="tm-sum">Compare every defense</span><span class="note">Fantasy points allowed per game to each position</span></summary>
         <p class="note" id="dvpNote" style="margin:10px 0 0"></p>
@@ -1781,9 +1790,13 @@ function renderDvp(){const idx=$('#tmIndex'),pg=$('#tmPage'),el=$('#p-dvp');
   renderTeamGrid();renderDvpTable();}
 
 function renderTeamGrid(){const wk=S.week,TD=teamData();
-  $('#tmGrid').innerHTML=DIVS.map(([dv,ts])=>`<div class="tm-div"><h3>${dv}</h3>${ts.map(t=>{const o=(SCHED[t]||[])[wk-1],d=TD[t];
+  // two conference blocks, each with its four divisions
+  const card=([dv,ts])=>`<div class="tm-div"><h3>${dv.split(' ')[1]}</h3>${ts.map(t=>{const o=(SCHED[t]||[])[wk-1],d=TD[t];
     const line=!o?'':o==='BYE'?`Week ${wk}: bye`:`Week ${wk}: ${o.startsWith('@')?'at '+o.slice(1):'vs '+o}`;
-    return `<button class="tm-card" data-tm="${t}" style="${teamVars(t)}">${DARK_ALT.includes(t)?tmLogo(t,'lg-light')+tmLogo(t,'lg-dark',bannerLogo(t)):tmLogo(t)}<span><b>${esc(TEAM_NAMES[t])}</b><small>${esc(line)}${d&&d.ppg!=null?` · ${n1(d.ppg)} pts/game`:''}</small></span></button>`;}).join('')}</div>`).join('');}
+    return `<button class="tm-card" data-tm="${t}" style="${teamVars(t)}">${DARK_ALT.includes(t)?tmLogo(t,'lg-light')+tmLogo(t,'lg-dark',bannerLogo(t)):tmLogo(t)}<span><b>${esc(TEAM_NAMES[t])}</b><small>${esc(line)}${d&&d.ppg!=null?` · ${n1(d.ppg)} pts/game`:''}</small></span></button>`;}).join('')}</div>`;
+  $('#tmGrid').innerHTML=[['AFC','American Football Conference'],['NFC','National Football Conference']].map(([c,full])=>
+    `<section class="tm-conf ${c.toLowerCase()}" aria-label="${full}"><header class="tm-conf-h"><span class="tm-conf-tag">${c}</span><span class="tm-conf-name">${full}</span></header>
+     <div class="tm-divs">${DIVS.filter(([dv])=>dv.startsWith(c)).map(card).join('')}</div></section>`).join('');}
 
 function renderDvpTable(){const D=dvpData();
   $('#dvpNote').textContent=`Per game this season, ${scName()} scoring. The rank is out of 32: 1st allows the fewest points (a tough matchup), 32nd the most. Tap a column to sort, or a team to open its page.`;
