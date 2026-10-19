@@ -498,6 +498,27 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 }
 /* player banner stays on screen under the top bar, and slims down once the page scrolls past it */
 .team-hero{position:sticky;top:var(--tbh,0px);z-index:40}
+/* team pages: share donuts */
+:root{--pc1:#2a78d6;--pc2:#eb6834;--pc3:#1baf7a;--pc4:#eda100;--pc5:#e87ba4;--pc6:#6250d6;--pc7:#008300;--pc8:#e34948;--pc-oth:#C4CAD4}
+:root[data-theme="dark"]{--pc1:#3987e5;--pc2:#d95926;--pc3:#199e70;--pc4:#c98500;--pc5:#d55181;--pc6:#9085e9;--pc7:#008300;--pc8:#e66767;--pc-oth:#4A515E}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pc1:#3987e5;--pc2:#d95926;--pc3:#199e70;--pc4:#c98500;--pc5:#d55181;--pc6:#9085e9;--pc7:#008300;--pc8:#e66767;--pc-oth:#4A515E}}
+.pies{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px 28px;margin-top:14px}
+.pie{margin:0;display:grid;grid-template-columns:150px 1fr;gap:6px 18px;align-items:center}
+.pie figcaption{grid-column:1/-1;font-family:var(--f-display);font-weight:800;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.pie-w{position:relative;width:150px;height:150px}
+.pie svg{width:100%;height:100%;display:block}
+.pie path{stroke:var(--surface);stroke-width:2;stroke-linejoin:round;transition:opacity .15s,transform .15s;transform-origin:80px 80px;cursor:pointer}
+.teamed .pie path{stroke:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
+.pie-c{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center}
+.pie-c b{font-family:var(--f-mono);font-size:1.35rem;line-height:1}.pie-c span{font-size:.72rem;color:var(--muted)}
+.pie-leg{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.88rem;min-width:0;max-width:300px}
+.pie-leg li{display:grid;grid-template-columns:12px auto auto 1fr;gap:8px;align-items:center;border-radius:4px;transition:opacity .15s}
+.pie-leg li>b{text-align:right}
+.pie-leg i{width:12px;height:12px;border-radius:3px}
+.pie-pos{font-size:.75rem}
+.pies.hl path:not(.on),.pies.hl .pie-leg li:not(.on){opacity:.3}
+.pies.hl path.on{transform:scale(1.04)}
+@media (max-width:420px){.pie{grid-template-columns:120px 1fr}.pie-w{width:120px;height:120px}}
 /* measured with transitions paused, so sizes are read at their end values */
 .no-tr,.no-tr *{transition:none!important}
 /* D/ST pages look different from team pages: striped banner, shield badge */
@@ -1729,6 +1750,31 @@ function oppEase(o){const d=dvpData().by[o];if(!d)return null;return d.rank.slic
 const easeCls=r=>r==null?'':r>=21?'good':r<=12?'bad':'mid';
 const easeLbl=r=>r==null?'No data':r>=21?'Easy':r<=12?'Tough':'Neutral';
 
+// ---- team pages: target and carry share as donut charts (each player keeps one color in both) ----
+const PIE_C=['--pc1','--pc2','--pc3','--pc4','--pc5','--pc6','--pc7','--pc8'];
+function arcPath(cx,cy,r0,r1,a0,a1){const p=(r,a)=>[cx+r*Math.sin(a),cy-r*Math.cos(a)].map(v=>v.toFixed(2)).join(' ');const big=a1-a0>Math.PI?1:0;
+  if(a1-a0>=Math.PI*2-1e-6)a1=a0+Math.PI*2-1e-4;
+  return `M${p(r1,a0)}A${r1} ${r1} 0 ${big} 1 ${p(r1,a1)}L${p(r0,a1)}A${r0} ${r0} 0 ${big} 0 ${p(r0,a0)}Z`;}
+function sharePies(d){const tot={tgt:d.tgt,car:d.rush};if(!d.g||(!tot.tgt&&!tot.car))return '';
+  const pl=d.pl.filter(p=>['QB','RB','WR','TE'].includes(p.pos)&&p.gp>0);
+  const pick=k=>{const f=k==='tgt'?p=>p.s.rec_tgt||0:p=>p.s.rush_att||0;return pl.filter(p=>f(p)>0).sort((a,b)=>f(b)-f(a)).slice(0,4).map(p=>({p,n:f(p)}));};
+  const T=pick('tgt'),C=pick('car');
+  // color follows the player: assigned once, in order of total touches, so the same player is the same color in both
+  const ids=[...new Set([...T,...C].map(x=>x.p).sort((a,b)=>((b.s.rec_tgt||0)+(b.s.rush_att||0))-((a.s.rec_tgt||0)+(a.s.rush_att||0))).map(p=>p.key))];
+  const col=k=>`var(${PIE_C[ids.indexOf(k)]})`;
+  const pie=(rows,total,label,unit)=>{if(!total)return '';const sum=rows.reduce((a,x)=>a+x.n,0),oth=Math.max(0,total-sum);
+    const seg=[...rows.map(x=>({k:x.p.key,name:x.p.name,pos:x.p.pos,n:x.n,c:col(x.p.key)})),...(oth>0?[{k:'',name:'Everyone else',pos:'',n:oth,c:'var(--pc-oth)'}]:[])];
+    const all=seg.reduce((a,x)=>a+x.n,0);let a=0;
+    const arcs=seg.map(x=>{const a0=a/all*Math.PI*2;a+=x.n;const a1=a/all*Math.PI*2;
+      return `<path d="${arcPath(80,80,50,78,a0,a1)}" fill="${x.c}" data-k="${esc(x.k)}"><title>${esc(x.name)}: ${Math.round(x.n/all*100)}% (${x.n} ${unit})</title></path>`;}).join('');
+    return `<figure class="pie"><figcaption>${label}</figcaption><div class="pie-w"><svg viewBox="0 0 160 160" role="img" aria-label="${esc(label)}: ${seg.map(x=>`${x.name} ${Math.round(x.n/all*100)}%`).join(', ')}">${arcs}</svg>
+      <div class="pie-c"><b>${n1(total/d.g)}</b><span>${unit}/game</span></div></div>
+      <ul class="pie-leg">${seg.map(x=>`<li${x.k?` data-k="${esc(x.k)}"`:''}><i style="background:${x.c}"></i>${x.k?`<button class="plink" data-k="${esc(x.k)}">${esc(x.name)}</button>`:`<span class="muted">${x.name}</span>`}<span class="muted pie-pos">${x.pos}</span><b class="num">${Math.round(x.n/all*100)}%</b></li>`).join('')}</ul></figure>`;};
+  return `<div class="pies">${pie(T,tot.tgt,'Target share','targets')}${pie(C,tot.car,'Carry share','carries')}</div>`;}
+// hovering a slice or a legend row lights up that player in both charts
+document.addEventListener('mouseover',e=>{const w=e.target.closest&&e.target.closest('.pies');if(!w)return;const t=e.target.closest('[data-k]');const k=t&&t.dataset.k;
+  w.classList.toggle('hl',!!k);w.querySelectorAll('[data-k]').forEach(el=>el.classList.toggle('on',!!k&&el.dataset.k===k));});
+document.addEventListener('mouseout',e=>{const w=e.target.closest&&e.target.closest('.pies');if(w&&!w.contains(e.relatedTarget)){w.classList.remove('hl');w.querySelectorAll('.on').forEach(el=>el.classList.remove('on'));}});
 function renderDvp(){const idx=$('#tmIndex'),pg=$('#tmPage'),el=$('#p-dvp');
   const t=ui.dvpTeam&&TEAM_NAMES[ui.dvpTeam]?ui.dvpTeam:null;
   idx.hidden=!!t;pg.hidden=!t;
@@ -1776,7 +1822,7 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const sk=d.pl.filter(p=>['QB','RB','WR','TE'].includes(p.pos)&&p.gp>0).map(p=>({p,sn:dv(p.s.off_snp,p.s.tm_off_snp),ts:dv(p.s.rec_tgt,p.s.tm_tgt),cs:dv(p.s.rush_att,p.s.tm_rush_att),pg:ppg(p)}))
     .filter(x=>(x.sn||0)>=.15||(x.ts||0)>=.05||(x.cs||0)>=.08).sort((a,b)=>b.pg-a.pg);
   const bar=(v,cls)=>v==null||v<.005?'<span class="muted">—</span>':`<span class="tm-bar ${cls}" aria-hidden="true"><i style="width:${Math.min(100,v/.4*100)}%"></i></span><span class="num">${Math.round(v*100)}%</span>`;
-  const usage=sk.length?`<div class="card"><h3>Who gets the ball</h3><p class="note" style="margin:4px 0 0">Shares are of the team's snaps, targets and carries in the games each player played. Sorted by fantasy points per game.</p>
+  const usage=sk.length?`<div class="card"><h3>Who gets the ball</h3><p class="note" style="margin:4px 0 0">Shares of the team's targets and carries this season. Hover a slice to see that player in both charts.</p>${sharePies(d)}<p class="note" style="margin:14px 0 0">Below: shares in the games each player played, sorted by fantasy points per game.</p>
     <div class="tbl-wrap"><table class="tooltbl tm-use"><thead><tr><th>Player</th><th class="r">G</th><th class="r">Snaps</th><th>Target share</th><th>Carry share</th><th class="r">Pts/g</th></tr></thead><tbody>
     ${sk.map(x=>`<tr${isMine(x.p)?' class="mine"':''}><td style="white-space:nowrap"><span class="pos ${x.p.pos}">${x.p.pos}</span><button class="plink" data-k="${esc(x.p.key)}">${esc(x.p.name)}</button>${INJ[x.p.key]&&INJ[x.p.key]!=='Healthy'?` <span class="pill p-bad">${esc(INJ[x.p.key])}</span>`:''}</td>
       <td class="r num">${x.p.gp}</td><td class="r num">${x.sn!=null?Math.round(x.sn*100)+'%':'—'}</td><td class="tm-bc">${bar(x.ts,'tg')}</td><td class="tm-bc">${bar(x.cs,'cr')}</td><td class="r num"><b>${n1(x.pg)}</b></td></tr>`).join('')}
