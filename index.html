@@ -1693,7 +1693,7 @@ const DIVS=[['AFC East',['BUF','MIA','NE','NYJ']],['AFC North',['BAL','CIN','CLE
   ['NFC East',['DAL','NYG','PHI','WAS']],['NFC North',['CHI','DET','GB','MIN']],['NFC South',['ATL','CAR','NO','TB']],['NFC West',['ARI','LAR','SEA','SF']]];
 const divOf=t=>(DIVS.find(d=>d[1].includes(t))||[''])[0];
 const byeOf=t=>{const i=(SCHED[t]||[]).indexOf('BYE');return i<0?null:i+1;};
-const tmLogo=(t,cls='')=>`<img class="${cls}" src="${teamLogo(t)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+const tmLogo=(t,cls='')=>`<img class="${cls}" src="${teamLogo(t)}" alt="" loading="lazy" onerror="if(!logoFb(this))this.style.visibility='hidden'">`;
 // season-level numbers for every team, cached per scoring setting
 let _tm=null,_tmK=null;
 function teamData(){const k=JSON.stringify(SC());if(_tm&&_tmK===k)return _tm;
@@ -2717,11 +2717,16 @@ function teamVars(t){const [a,b]=TEAM_COLORS[t]||['#1f6b3a','#a87a0c'];const la=
   return `--team-tint:${blk?b:a};--team-stripe-ink:${stripeInk};--team:${a};--team2:${b};--team-ink:${ink};--team-lo:${lo};--team-lo-ink:${loInk};--team-hi:${hi};--team-hi-ink:${hiInk};--team-stripe:${stripe}`;}
 function mix(h1,h2,w){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(h1),y=p(h2);return '#'+x.map((v,i)=>Math.round(v*(1-w)+y[i]*w).toString(16).padStart(2,'0')).join('');}
 let HEADS=null;
-function headshotOf(p){if(p.pos==='DST')return p.team?`https://sleepercdn.com/images/team_logos/nfl/${p.team.toLowerCase()}.png`:null;
+function headshotOf(p){if(p.pos==='DST')return teamLogo(p.team);
   if(!HEADS){HEADS=new Map();(CX.ids||'').split('\n').forEach(l=>{const [n,ps,id]=l.split('|');if(id)HEADS.set(nkey(n,ps==='DEF'?'DST':ps),id);});}
   const id=HEADS.get(p.key);return id?`https://sleepercdn.com/content/nfl/players/${id}.jpg`:teamLogo(p.team);}
-const teamLogo=t=>t?`https://sleepercdn.com/images/team_logos/nfl/${t.toLowerCase()}.png`:null;
-const isLogo=u=>!!u&&u.includes('/team_logos/');
+// team logos: ESPN's, resized by its image server to 500x500 (sharp at any size, ~30KB each);
+// Sleeper's smaller ones are the fallback if ESPN fails to load
+const teamLogo=t=>t?`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/${t==='WAS'?'wsh':t.toLowerCase()}.png&w=500&h=500`:null;
+const slpLogo=t=>t?`https://sleepercdn.com/images/team_logos/nfl/${t.toLowerCase()}.png`:null;
+window.logoFb=img=>{const m=/teamlogos\/nfl\/500\/(\w+)\.png/.exec(img.src);if(!m||img.dataset.fb)return false;
+  img.dataset.fb='1';img.src=slpLogo(m[1]==='wsh'?'WAS':m[1].toUpperCase());return true;};
+const isLogo=u=>!!u&&(u.includes('/team_logos/')||u.includes('/teamlogos/'));
 function renderPlayer(){
   const p=PL.get(ui.player);const el=$('#p-player');
   if(!p){el.innerHTML='<p class="muted">Player not found.</p>';return;}
@@ -2777,7 +2782,7 @@ function renderPlayer(){
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
   const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${tr.share}</b> · `:''}${US.sub(p)}</span></div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
-   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg" src="${teamLogo(p.team)}" alt="" aria-hidden="true" onerror="this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
+   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg" src="${teamLogo(p.team)}" alt="" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
