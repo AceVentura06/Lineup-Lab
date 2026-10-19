@@ -666,11 +666,11 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .us-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .us-plot polyline{fill:none;stroke:var(--uc);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
 .us-grid{position:absolute;left:0;right:0;border-top:1px solid var(--line);pointer-events:none}
-.us-grid span{position:absolute;left:0;bottom:2px;font-size:.7rem;color:var(--muted);font-family:var(--f-mono)}
+.us-grid span{position:absolute;left:0;bottom:2px;z-index:1;text-shadow:0 0 3px var(--wkbg),0 0 3px var(--wkbg);font-size:.7rem;color:var(--muted);font-family:var(--f-mono)}
 .us-cols{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px}
 .us-col{position:relative;outline:none}
 .us-dot{position:absolute;left:50%;width:10px;height:10px;margin:0 0 -5px -5px;border-radius:50%;background:var(--uc);box-shadow:0 0 0 2px var(--wkbg);transition:transform .12s}
-.us-lbl{position:absolute;left:50%;transform:translateX(-50%);padding:0 4px;background:var(--wkbg);z-index:2;white-space:nowrap;font-family:var(--f-display);font-weight:800;font-size:1.05rem;opacity:0;transition:opacity .12s;pointer-events:none}
+.us-lbl{position:absolute;left:50%;transform:translateX(-50%);z-index:2;white-space:nowrap;text-shadow:0 0 3px var(--wkbg),0 0 3px var(--wkbg),0 0 6px var(--wkbg);font-family:var(--f-display);font-weight:800;font-size:1.05rem;opacity:0;transition:opacity .12s;pointer-events:none}
 .us-lbl.on,.us-col:hover .us-lbl,.us-col:focus .us-lbl{opacity:1}
 .us-col:hover .us-dot,.us-col:focus .us-dot{transform:scale(1.35)}
 .us-gap{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:var(--f-display);font-size:.8rem;text-transform:uppercase;color:var(--muted)}
@@ -2450,12 +2450,13 @@ function usageOf(pos){const RB={k:'csh',me:'rush_att',tm:'tm_rush_att',tile:'Tea
 function usageCard(p){
   const U=usageOf(p.pos);if(!U)return '';
   const cur=SD.week,sc=SCHED[p.team]||[],weeks=[];
-  for(let w=1;w<cur;w++){const e=p.weeks[w-1],opp=sc[w-1]||'';
+  const endW=p.weeks[cur-1]?cur:cur-1;
+  for(let w=1;w<=endW;w++){const e=p.weeks[w-1],opp=sc[w-1]||'';
     const o=opp==='BYE'?'':(opp.startsWith('@')?'at '+opp.slice(1):'vs '+opp);
     weeks.push({w,o,v:e&&e[U.k]!=null?e[U.k]:null,kind:e?'played':opp==='BYE'?'bye':'out'});}
   const pts=weeks.filter(x=>x.v!=null);if(pts.length<2)return '';
   const seas=dv(p.s[U.me],p.s[U.tm]),avg=seas!=null?seas*100:null;
-  const top=Math.max(10,Math.ceil(Math.max(...pts.map(x=>x.v),avg||0)*1.15/10)*10),H=180,y=v=>H*v/top,n=weeks.length;
+  const hiV=Math.max(...pts.map(x=>x.v),avg||0)*1.15,step=hiV>40?20:10,top=Math.max(20,Math.ceil(hiV/step)*step),H=180,y=v=>H*v/top,n=weeks.length;
   // line breaks at byes and missed games
   const runs=[];let run=[];weeks.forEach((x,i)=>{if(x.v!=null)run.push(`${i*100+50},${(H-y(x.v)).toFixed(1)}`);else{if(run.length)runs.push(run);run=[];}});if(run.length)runs.push(run);
   const hi=pts.reduce((a,b)=>b.v>a.v?b:a),last=pts[pts.length-1];
