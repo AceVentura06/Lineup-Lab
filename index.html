@@ -499,6 +499,18 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 /* player banner stays on screen under the top bar, and slims down once the page scrolls past it */
 .team-hero{position:sticky;top:var(--tbh,0px);z-index:40;transition:padding .2s}
 .team-hero h1{transition:font-size .2s}
+/* D/ST pages look different from team pages: striped banner, shield badge */
+.team-hero.dst-hero{background:repeating-linear-gradient(-45deg,var(--team) 0 26px,color-mix(in srgb,var(--team) 82%,#000) 26px 52px)}
+.dst-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:48px;flex:none;font-family:var(--f-display);font-weight:800;font-size:.72rem;letter-spacing:.02em;
+  background:var(--team2,var(--dst));color:var(--team-ink,#fff);clip-path:polygon(50% 0,100% 14%,100% 58%,50% 100%,0 58%,0 14%);padding-bottom:6px;box-sizing:border-box}
+.dst-hero .meta .dst-badge{width:38px;height:42px;font-size:.66rem}
+.dst-link{display:flex!important;gap:12px;align-items:center;margin-top:14px;padding:12px 14px;border:1px solid var(--line)!important;border-left:5px solid var(--team-tint)!important;border-radius:8px;background:var(--surface);width:100%;box-sizing:border-box}
+.dst-link .dst-badge{background:var(--team-tint);color:#fff}
+.dst-link b{display:block}.dst-link small{display:block;color:var(--muted);font-weight:600;font-size:.82rem}
+.dst-link>span:nth-child(2){flex:1;min-width:0}
+.dst-link .dst-go{font-weight:800;color:var(--t-accent,var(--turf));white-space:nowrap}
+.dst-link:hover{background:var(--surface-2)}
+.dst-opp tr.cur td{background:color-mix(in srgb,var(--t-accent,var(--gold)) 10%,transparent);font-weight:700}
 /* player pages: a big, faint team logo behind the headshot and name, clipped by the banner */
 .team-hero .hero-bg{position:absolute;right:40px;top:50%;height:420px;width:auto;transform:translateY(-50%) rotate(-10deg);opacity:.16;pointer-events:none;user-select:none;transition:opacity .2s}
 @media (max-width:900px){.team-hero .hero-bg{height:340px;right:-20px}}
@@ -1744,7 +1756,7 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const tlink=x=>`<button class="tlink" data-tm="${x}">${esc(x)}</button>`;
   // hero + top tiles
   const hero=`<div><button class="back" id="tmBack">← ${navDepth>0?'Back':'All teams'}</button></div>
-   <div class="ph team-hero tm-hero has-shot">${tmLogo(t,'shot logo tm-logo')}<div><div class="meta">${esc(divOf(t))}${bye?` · Bye in week ${bye}`:''}${d.g?` · ${d.g} games`:''}</div><h1>${esc(nm)}</h1></div>
+   <div class="ph team-hero tm-hero has-shot">${tmLogo(t,'shot logo tm-logo')}<div><div class="meta">${esc(divOf(t))}${bye?` · Bye in week ${bye}`:''}${d.g?` · ${d.g} games`:''}${d.dst?` · <button class="plink tlink tm-dst" data-k="${esc(d.dst.key)}">D/ST page →</button>`:''}</div><h1>${esc(nm)}</h1></div>
      ${o?`<div class="meta">Week ${wk}: ${o==='BYE'?'bye':`${o.startsWith('@')?'at':'vs'} ${tlink(opp)}`}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Points / game</span><span class="v">${d.ppg!=null?n1(d.ppg):'—'}</span><span class="s">${d.rk.ppg?`<b class="tr">${ord(d.rk.ppg)}</b> of 32 · real points`:'Not available'}</span></div>
@@ -1789,11 +1801,7 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
     <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${dd.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
     <tr><td colspan="2"><b>Rank</b></td>${dd.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
     </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p>
-    ${d.dst&&d.dst.d&&d.g?`<div class="tiles" style="margin-top:14px">
-      <div class="tile"><span class="label">D/ST pts / game</span><span class="v">${n1(ppg(d.dst))}</span><span class="s"><button class="plink" data-k="${esc(d.dst.key)}">Open D/ST page</button></span></div>
-      <div class="tile"><span class="label">Sacks</span><span class="v">${d.dst.d.sack}</span><span class="s">${n1(d.dst.d.sack/d.g)} per game</span></div>
-      <div class="tile"><span class="label">Takeaways</span><span class="v">${d.dst.d.int+d.dst.d.fr}</span><span class="s">${d.dst.d.int} INT · ${d.dst.d.fr} fumbles</span></div>
-      <div class="tile"><span class="label">Yards allowed / game</span><span class="v">${Math.round(d.dst.d.ya/d.g)}</span><span class="s">${d.dst.d.td} defensive TD${d.dst.d.td===1?'':'s'}</span></div></div>`:''}
+    ${d.dst?(()=>{const r=ppgRank(d.dst),x=d.dst;return `<button class="plink dst-link" data-k="${esc(x.key)}"><span class="dst-badge" aria-hidden="true">D/ST</span><span><b>${esc(nm.split(' ').pop())} D/ST for fantasy</b><small>${n1(ppg(x))} pts/game${r?` · DST${r.r} of ${r.n}`:''}${x.d?` · ${x.d.sack} sacks, ${x.d.int+x.d.fr} takeaways`:''}</small></span><span class="dst-go">Open →</span></button>`;})():''}
     </div>`:`<div class="card"><h3>Defense</h3><p class="note">No games played yet this season.</p></div>`;
   // injuries
   const ord2={Out:0,IR:1,Doubtful:2,Questionable:3};
@@ -2727,6 +2735,27 @@ const slpLogo=t=>t?`https://sleepercdn.com/images/team_logos/nfl/${t.toLowerCase
 window.logoFb=img=>{const m=/teamlogos\/nfl\/500\/(\w+)\.png/.exec(img.src);if(!m||img.dataset.fb)return false;
   img.dataset.fb='1';img.src=slpLogo(m[1]==='wsh'?'WAS':m[1].toUpperCase());return true;};
 const isLogo=u=>!!u&&(u.includes('/team_logos/')||u.includes('/teamlogos/'));
+// ---- D/ST pages: what each offense gives up to opposing defenses (sacks, turnovers, points), built from every D/ST's weekly line ----
+let _offA=null,_offAK=null;
+function offAllow(){const k=JSON.stringify(SC());if(_offA&&_offAK===k)return _offA;const O={};
+  for(const p of PL.values()){if(p.pos!=='DST')continue;const sc=SCHED[p.team]||[];
+    p.weeks.forEach((w,i)=>{if(!w||!w.d)return;const o=(sc[i]||'').replace('@','');if(!o||o==='BYE')return;
+      const a=O[o]=O[o]||{t:o,g:0,sack:0,to:0,pts:0,dst:0};a.g++;a.sack+=w.d.sack||0;a.to+=(w.d.int||0)+(w.d.fr||0);a.pts+=w.d.pa||0;a.dst+=wpts(w)||0;});}
+  const L=Object.values(O).filter(a=>a.g);L.forEach(a=>{a.sackG=a.sack/a.g;a.toG=a.to/a.g;a.ptsG=a.pts/a.g;a.dstG=a.dst/a.g;});
+  // rank 32 = gives the most to opposing D/STs (best matchup), like the rest of the site
+  [...L].sort((a,b)=>a.dstG-b.dstG).forEach((a,i)=>a.rk=i+1);
+  _offA=Object.fromEntries(L.map(a=>[a.t,a]));_offAK=k;return _offA;}
+function dstOppCard(p){const sc=SCHED[p.team]||[],A=offAllow(),from=S.week,rows=[];
+  for(let w=from;w<=Math.min(sc.length,from+3);w++){const x=sc[w-1];if(!x)continue;
+    if(x==='BYE'){rows.push(`<tr><td class="num">Wk ${w}</td><td colspan="5" class="muted">Bye</td><td></td></tr>`);continue;}
+    const o=x.replace('@',''),a=A[o],g=w===S.week&&advWeek()&&AD.games?AD.games[p.team]:null;
+    rows.push(`<tr${w===S.week?' class="cur"':''}><td class="num">Wk ${w}</td><td style="white-space:nowrap">${x.startsWith('@')?'at':'vs'} <button class="tlink" data-tm="${o}">${esc(o)}</button></td>
+      <td class="r num">${g&&g.implied!=null?n1(g.total-g.implied):'—'}</td><td class="r num">${a?n1(a.ptsG):'—'}</td><td class="r num">${a?n1(a.sackG):'—'}</td><td class="r num">${a?n1(a.toG):'—'}</td>
+      <td class="r" style="white-space:nowrap">${a?`<span class="num">${n1(a.dstG)}</span> <span class="ork ${rkCls(a.rk)}">${ord(a.rk)}</span>`:'—'}</td></tr>`);}
+  if(!rows.length)return '';
+  return `<div class="card"><h3>Upcoming opponents</h3><p class="note" style="margin:4px 0 0">D/ST points come from sacks, turnovers and holding the score down, so this grades the offenses ${esc(p.name.split(' ').pop())} face. Per game this season; the rank is out of 32 and 32nd gives opposing D/STs the most.</p>
+   <div class="tbl-wrap"><table class="tooltbl dst-opp" style="min-width:560px"><thead><tr><th>Week</th><th>Opponent</th><th class="r" title="The opponent's implied points from this week's betting line">Opp. implied</th><th class="r">Opp. pts/g</th><th class="r">Sacks allowed</th><th class="r">Turnovers</th><th class="r">D/ST pts allowed</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
+   <p class="note" style="margin-top:8px">Betting lines are only posted for the current week, so Opp. implied fills in one week at a time.</p></div>`;}
 function renderPlayer(){
   const p=PL.get(ui.player);const el=$('#p-player');
   if(!p){el.innerHTML='<p class="muted">Player not found.</p>';return;}
@@ -2782,7 +2811,8 @@ function renderPlayer(){
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
   const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${tr.share}</b> · `:''}${US.sub(p)}</span></div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
-   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg" src="${teamLogo(p.team)}" alt="" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
+   <div class="ph team-hero${p.pos==='DST'?' dst-hero':''}${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg" src="${teamLogo(p.team)}" alt="" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}${p.pos==='DST'?`<div><div class="meta"><span class="dst-badge" aria-hidden="true">D/ST</span> Fantasy D/ST · ${p.gp} games</div><h1>${esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())} D/ST</h1>${TEAM_NAMES[p.team]?`<div class="meta"><button class="tlink" data-tm="${esc(p.team)}">Team page →</button></div>`:''}</div>`
+     :`<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>`}
      ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
@@ -2795,6 +2825,7 @@ function renderPlayer(){
    </div>
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    ${thisWeek}
+   ${p.pos==='DST'?dstOppCard(p):''}
    ${weekCard(p,tr.projV)}
    ${usageCard(p)}
    ${poCard}
