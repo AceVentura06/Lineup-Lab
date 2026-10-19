@@ -351,7 +351,7 @@ tr.dvpdetail .card.teamed tr+tr td{border-top-color:color-mix(in srgb,var(--team
 /* sticky, joined top area: header + ticker + tabs, edge to edge; contents line up with the page */
 html{overflow-x:clip}body{overflow-x:clip}
 .topbar{--gut:max(16px,calc((100vw - 1408px) / 2));position:sticky;top:0;z-index:50;margin:-20px calc(50% - 50vw) 0;padding:0;background:var(--surface);display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(14,23,38,.10)}
-.topbar>.board{border-radius:0;box-shadow:none;padding:16px var(--gut);background:var(--surface);transition:padding .2s}
+.topbar>.board{border-radius:0;box-shadow:none;padding:16px var(--gut);background:var(--surface)}
 .topbar>.ticker{border-radius:0;border-bottom:1px solid var(--line);padding-left:var(--gut);padding-right:var(--gut);box-shadow:none;background:var(--surface)}
 .topbar>.tabs{background:var(--surface);padding:6px var(--gut);border-radius:0;box-shadow:none}
 .topbar>.tabs button{background:var(--surface-2);padding:8px 11px}
@@ -497,8 +497,9 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .pin2 td:nth-child(2)>.muted,.pin2 td:nth-child(2)>.pill,.pin2 td:nth-child(2) .ex{display:none}
 }
 /* player banner stays on screen under the top bar, and slims down once the page scrolls past it */
-.team-hero{position:sticky;top:var(--tbh,0px);z-index:40;transition:padding .2s}
-.team-hero h1{transition:font-size .2s}
+.team-hero{position:sticky;top:var(--tbh,0px);z-index:40}
+/* measured with transitions paused, so sizes are read at their end values */
+.no-tr,.no-tr *{transition:none!important}
 /* D/ST pages look different from team pages: striped banner, shield badge */
 .team-hero.dst-hero{background:repeating-linear-gradient(-45deg,var(--team) 0 26px,color-mix(in srgb,var(--team) 82%,#000) 26px 52px)}
 .dst-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:48px;flex:none;font-family:var(--f-display);font-weight:800;font-size:.72rem;letter-spacing:.02em;
@@ -2965,14 +2966,28 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   window.addEventListener('appinstalled',()=>{el.hidden=true;});})();
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
-  const pad=()=>{document.documentElement.style.scrollPaddingTop=(tb.offsetHeight+8)+'px';document.documentElement.style.setProperty('--tbh',tb.offsetHeight+'px');};
+  const pad=(h=tb.offsetHeight)=>{document.documentElement.style.scrollPaddingTop=(h+8)+'px';document.documentElement.style.setProperty('--tbh',h+'px');};
   // Slimming the bar would pull the page up by the height it loses, which can flip it back (the jitter on phones).
   // So the lost height is kept as space under the bar, and it only slims once that space has scrolled out of view:
   // the page never moves, and a small gap between the two thresholds keeps it from flickering at the edge.
-  let gap=40;
-  const measure=()=>{if(on)return;const full=tb.offsetHeight;tb.classList.add('scrolled');const slim=tb.offsetHeight;tb.classList.remove('scrolled');gap=Math.max(40,full-slim);};
-  const set=v=>{if(v===on)return;if(v){const full=tb.offsetHeight;tb.classList.add('scrolled');tb.style.marginBottom=Math.max(0,full-tb.offsetHeight)+'px';}
-    else{tb.classList.remove('scrolled');tb.style.marginBottom='';}on=v;pad();};
+  let gap=40,slimH=0;
+  const measure=()=>{if(on)return;const full=tb.offsetHeight;tb.classList.add('scrolled');const slim=tb.offsetHeight;tb.classList.remove('scrolled');gap=Math.max(40,full-slim);slimH=slim;};
+  // The switch glides: the header's height and the space under the bar animate together over the same
+  // timing, so their sum (where the page starts) never changes and nothing below the bar moves.
+  const brd=tb.querySelector('.board'),calm=matchMedia('(prefers-reduced-motion: reduce)');let anims=[];
+  // the browser's scroll anchoring would react to the size change before the space is put back; pause it for that moment
+  const R=document.documentElement,noAnchor=()=>{R.style.overflowAnchor='none';requestAnimationFrame(()=>requestAnimationFrame(()=>{R.style.overflowAnchor='';}));};
+  const set=v=>{if(v===on)return;
+    anims.forEach(a=>a.cancel());anims=[];brd.style.overflow='';
+    noAnchor();const t1=brd.querySelector('h1'),f0=getComputedStyle(t1).fontSize,full=tb.offsetHeight,h0=brd.offsetHeight,m0=parseFloat(tb.style.marginBottom)||0;
+    tb.classList.add('no-tr');tb.classList.toggle('scrolled',v);
+    const h1=brd.offsetHeight,end=tb.offsetHeight,m1=v?Math.max(0,full+m0-end):0,f1=getComputedStyle(t1).fontSize;tb.classList.remove('no-tr');
+    tb.style.marginBottom=m1?m1+'px':'';on=v;
+    if(!calm.matches&&h0!==h1){const t={duration:280,easing:'cubic-bezier(.2,.7,.2,1)'};brd.style.overflow='hidden';
+      anims=[brd.animate([{height:h0+'px',minHeight:0},{height:h1+'px',minHeight:0}],t),tb.animate([{marginBottom:m0+'px'},{marginBottom:m1+'px'}],t),t1.animate([{fontSize:f0},{fontSize:f1}],t),
+        ...[...brd.children].map(c=>c.animate([{opacity:0},{opacity:1}],{duration:220,easing:'ease-out'}))];
+      anims[0].onfinish=()=>{brd.style.overflow='';anims=[];pad();heroChk();};}
+    pad(end);};
   let ticking=false;
   const chk=()=>{if(ticking)return;ticking=true;requestAnimationFrame(()=>{ticking=false;const y=window.scrollY;
     if(!on&&y>gap+8)set(true);else if(on&&y<gap-24)set(false);heroChk();});};
@@ -2980,11 +2995,27 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   measure();
   // banner: slim once the page has scrolled past where it sits (measured unstuck, so no flicker at the edge)
   let heroAt=null,heroEl=null;
+  // Shrinking the banner used to make the page shorter, so the browser shifted the scroll to compensate, which
+  // unstuck the banner again: a flicker loop. Now the height it loses stays as space under it (like the bar above),
+  // and the change glides.
+  let hAnims=[];
   const heroChk=()=>{const h=(ui.tab==='player'&&document.querySelector('#p-player .team-hero'))||(ui.tab==='dvp'&&document.querySelector('#tmPage .team-hero'));if(!h){heroEl=null;return;}
-    if(h!==heroEl){heroEl=h;const ref=h.previousElementSibling;heroAt=(ref?ref.getBoundingClientRect().bottom:h.getBoundingClientRect().top)+window.scrollY;}
-    h.classList.toggle('stuck',window.scrollY+tb.offsetHeight>heroAt+12);};
+    if(h!==heroEl){heroEl=h;hAnims=[];const ref=h.previousElementSibling;heroAt=(ref?ref.getBoundingClientRect().bottom:h.getBoundingClientRect().top)+window.scrollY;}
+    // a fixed trigger: where the banner meets the bar in its slim state (the bar has always slimmed by then),
+    // so the bar changing size can't flip the banner back and forth
+    const at=heroAt-(slimH||tb.offsetHeight),was=h.classList.contains('stuck');
+    const v=was?window.scrollY>at-16:window.scrollY>at+16;if(v===was)return;
+    hAnims.forEach(a=>a.cancel());hAnims=[];
+    // the space goes in a spacer right after the banner (a margin would merge with the next box's margin)
+    let sp=h.nextElementSibling;if(!sp||!sp.classList.contains('hero-space')){sp=document.createElement('div');sp.className='hero-space';sp.setAttribute('aria-hidden','true');h.after(sp);
+      const pc=getComputedStyle(h.parentNode),g=/grid|flex/.test(pc.display)&&parseFloat(pc.rowGap)||0;if(g)sp.style.marginTop=-g+'px';}   // grid/flex panels add a gap per item; cancel the spacer's
+    noAnchor();const t2=h.querySelector('h1'),f0=t2&&getComputedStyle(t2).fontSize,h0=h.offsetHeight,m0=parseFloat(sp.style.height)||0;
+    h.classList.add('no-tr');h.classList.toggle('stuck',v);
+    const h1=h.offsetHeight,m1=v?Math.max(0,h0+m0-h1):0,f1=t2&&getComputedStyle(t2).fontSize;h.classList.remove('no-tr');sp.style.height=m1?m1+'px':'';
+    if(!calm.matches&&h0!==h1){const t={duration:260,easing:'cubic-bezier(.2,.7,.2,1)'};
+      hAnims=[h.animate([{height:h0+'px',minHeight:0},{height:h1+'px',minHeight:0}],t),sp.animate([{height:m0+'px'},{height:m1+'px'}],t)];if(t2&&f0!==f1)hAnims.push(t2.animate([{fontSize:f0},{fontSize:f1}],t));}};
   window.heroChk=heroChk;
-  window.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',pad);chk();pad();})();
+  window.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',()=>pad());chk();pad();})();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
 })();
 </script>
