@@ -290,7 +290,7 @@ table.sites .srange{min-width:96px}
 .tm-card{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;width:100%;padding:9px 12px;margin-bottom:8px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--team-tint);border-radius:8px;transition:background .15s,transform .15s}
 .tm-card:hover{background:color-mix(in srgb,var(--team-tint) 10%,var(--surface));transform:translateX(2px)}
 .tm-card:focus-visible{outline:2px solid var(--turf);outline-offset:2px}
-.tm-card img{width:34px;height:34px;object-fit:contain;flex:none}
+.tm-card img{width:44px;height:44px;object-fit:contain;flex:none}
 .tm-card b{display:block;font-size:.95rem;line-height:1.2}
 .tm-card small{display:block;color:var(--muted);font-size:.78rem;margin-top:1px}
 .tm-all{margin-top:22px}
@@ -499,6 +499,13 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 /* player banner stays on screen under the top bar, and slims down once the page scrolls past it */
 .team-hero{position:sticky;top:var(--tbh,0px);z-index:40;transition:padding .2s}
 .team-hero h1{transition:font-size .2s}
+/* team pages: a big team logo in the banner */
+.tm-hero{min-height:260px;align-items:center}
+.team-hero .shot.logo.tm-logo{height:230px;max-height:none;right:48px;bottom:50%;transform:translateY(50%) rotate(-4deg)}
+.tm-hero.has-shot>.meta{padding-right:320px}
+.tm-hero.has-shot>div:not(.meta){padding-right:320px}
+@media (max-width:900px){.team-hero .shot.logo.tm-logo{height:190px;right:24px}.tm-hero.has-shot>.meta,.tm-hero.has-shot>div:not(.meta){padding-right:220px}}
+@media (max-width:600px){.tm-hero{min-height:170px}.tm-hero h1{font-size:clamp(1.5rem,7.4vw,2rem)}.team-hero .shot.logo.tm-logo{height:120px;right:8px}.tm-hero.has-shot>.meta{padding-right:0}.tm-hero.has-shot>div:not(.meta){padding-right:130px}}
 .team-hero .shot{transition:max-height .2s,height .2s}
 .team-hero.stuck{padding-top:8px;padding-bottom:12px;box-shadow:inset 18px 0 0 var(--team-stripe),0 4px 10px rgba(14,23,38,.18)}
 .team-hero.stuck h1{font-size:2rem;line-height:1}
@@ -507,6 +514,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .team-hero.stuck .shot{max-height:74px}
 .team-hero.stuck .shot.logo{height:60px}
 .team-hero.stuck::after{display:none}
+.tm-hero.stuck{min-height:0}.team-hero.stuck .shot.logo.tm-logo{height:64px;transform:translateY(50%)}.tm-hero.stuck.has-shot>div:not(.meta),.tm-hero.stuck.has-shot>.meta{padding-right:90px}
+@media (max-width:600px){.team-hero.stuck .shot.logo.tm-logo{height:44px}.tm-hero.stuck.has-shot>div:not(.meta){padding-right:60px}}
 @media (max-width:600px){
   .team-hero.stuck h1{font-size:1.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .team-hero.stuck>div>.meta{display:none}
@@ -1730,7 +1739,7 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const tlink=x=>`<button class="tlink" data-tm="${x}">${esc(x)}</button>`;
   // hero + top tiles
   const hero=`<div><button class="back" id="tmBack">← ${navDepth>0?'Back':'All teams'}</button></div>
-   <div class="ph team-hero has-shot">${tmLogo(t,'shot logo')}<div><div class="meta">${esc(divOf(t))}${bye?` · Bye in week ${bye}`:''}${d.g?` · ${d.g} games`:''}</div><h1>${esc(nm)}</h1></div>
+   <div class="ph team-hero tm-hero has-shot">${tmLogo(t,'shot logo tm-logo')}<div><div class="meta">${esc(divOf(t))}${bye?` · Bye in week ${bye}`:''}${d.g?` · ${d.g} games`:''}</div><h1>${esc(nm)}</h1></div>
      ${o?`<div class="meta">Week ${wk}: ${o==='BYE'?'bye':`${o.startsWith('@')?'at':'vs'} ${tlink(opp)}`}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Points / game</span><span class="v">${d.ppg!=null?n1(d.ppg):'—'}</span><span class="s">${d.rk.ppg?`<b class="tr">${ord(d.rk.ppg)}</b> of 32 · real points`:'Not available'}</span></div>
