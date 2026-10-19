@@ -284,6 +284,55 @@ table.sites .srange{min-width:96px}
 #setPlayoffs,#setTheme{margin-top:16px}
 .ork{font-family:var(--f-mono);font-size:.8rem;font-weight:700}
 .ork.good{color:var(--good)}.ork.bad{color:var(--bad)}.ork.mid{color:var(--muted)}
+/* teams: index grid and team pages */
+.tm-divs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px 16px;margin-top:14px}
+.tm-div h3{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.tm-card{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:10px;align-items:center;width:100%;padding:9px 12px;margin-bottom:8px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--team-tint);border-radius:8px;transition:background .15s,transform .15s}
+.tm-card:hover{background:color-mix(in srgb,var(--team-tint) 10%,var(--surface));transform:translateX(2px)}
+.tm-card:focus-visible{outline:2px solid var(--turf);outline-offset:2px}
+.tm-card img{width:34px;height:34px;object-fit:contain;flex:none}
+.tm-card b{display:block;font-size:.95rem;line-height:1.2}
+.tm-card small{display:block;color:var(--muted);font-size:.78rem;margin-top:1px}
+.tm-all{margin-top:22px}
+.tm-all>summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;list-style:none}
+.tm-all>summary::-webkit-details-marker{display:none}
+.tm-all>summary::before{content:"▸";color:var(--muted);transition:transform .15s;display:inline-block}
+.tm-all[open]>summary::before{transform:rotate(90deg)}
+.tm-sum{font-family:var(--f-display);font-weight:800;font-size:1.15rem}
+.tlink{all:unset;cursor:pointer;font-weight:700;border-bottom:1px dotted currentColor}
+.tlink:hover{opacity:.8}.tlink:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+#tmPage>.card,#tmPage>.split,#tmPage>.tiles{margin-top:16px}
+#tmPage .split.one{grid-template-columns:1fr}
+#tmPage .split>.card{margin:0}
+.tm-use td,.tm-use th{white-space:nowrap}
+.tm-bc{min-width:130px}
+.tm-bar{display:inline-block;width:70px;height:8px;border-radius:4px;background:var(--surface-2);vertical-align:middle;margin-right:6px;overflow:hidden}
+.tm-bar>i{display:block;height:100%;border-radius:4px;background:var(--t-accent,var(--turf))}
+.tm-bar.cr>i{background:var(--rb)}.tm-bar.tg>i{background:var(--wr)}
+.tm-use tr.mine td{background:color-mix(in srgb,var(--gold) 9%,transparent)}
+.tm-mix{display:flex;height:30px;border-radius:6px;overflow:hidden;gap:2px}
+.tm-mix>i{display:flex;align-items:center;justify-content:center;color:#fff;font-style:normal;font-weight:800;font-size:.75rem;letter-spacing:.04em;min-width:3px}
+.tm-leg{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:.88rem}
+.tm-sched{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:8px}
+.tm-wk{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:1px;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);border-top:4px solid var(--line)}
+.tm-wk b{font-family:var(--f-mono);font-size:.95rem}
+.tm-wk small{font-size:.75rem;font-weight:700;color:var(--muted)}
+.tm-wk.good{border-top-color:var(--good)}.tm-wk.good small{color:var(--good)}
+.tm-wk.bad{border-top-color:var(--bad)}.tm-wk.bad small{color:var(--bad)}
+.tm-wk.mid{border-top-color:var(--muted)}
+.tm-wk.past{opacity:.55}
+.tm-wk.bye{cursor:default;background:var(--surface-2)}
+.tm-wk.po{box-shadow:0 0 0 2px var(--gold)}
+.tm-wk.cur{background:color-mix(in srgb,var(--t-accent,var(--turf)) 12%,var(--surface))}
+.tm-wk:not(.bye):hover{background:var(--surface-2)}
+.tm-wk:focus-visible{outline:2px solid var(--turf);outline-offset:2px}
+.dvp-bars{display:flex;flex-direction:column;gap:8px}
+.dvp-b{display:grid;grid-template-columns:48px 1fr 48px 42px;gap:10px;align-items:center}
+.dvp-track{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.dvp-track>i{display:block;height:100%;border-radius:6px;background:var(--muted)}
+.dvp-track>i.good{background:var(--good)}.dvp-track>i.bad{background:var(--bad)}
+.dvp-b .num{text-align:right}
+.tm-inj{display:flex;flex-direction:column;gap:8px;margin-top:10px}
 tr.dvprow{cursor:pointer}tr.dvprow:hover td{background:var(--surface-2)}tr.dvprow.sel td{background:color-mix(in srgb,var(--gold) 10%,transparent)}
 td.scol{background:color-mix(in srgb,var(--gold) 6%,transparent)}
 .olink{all:unset;cursor:pointer;font-family:var(--f-mono);font-size:.8rem;font-weight:700;border-bottom:1px dotted currentColor}
@@ -728,7 +777,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
     <button role="tab" data-tab="lineup" id="t-lineup">Suggested Lineup</button>
     <button role="tab" data-tab="trade" id="t-trade" hidden>Trades</button>
-    <button role="tab" data-tab="dvp" id="t-dvp">Defense vs Position</button>
+    <button role="tab" data-tab="dvp" id="t-dvp">Teams</button>
     <button role="tab" data-tab="acc" id="t-acc">Accuracy</button>
     <button role="tab" data-tab="model" id="t-model">How It Works</button>
     <button role="tab" data-tab="settings" id="t-settings" class="t-set"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</button>
@@ -745,7 +794,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   </nav>
   <div class="bmore" id="bmore" hidden>
     <button data-tab="stats">Player Stats</button><button data-tab="ros">Rest of Season</button><button data-tab="trade">Trades</button>
-    <button data-tab="dvp">Defense vs Position</button><button data-tab="acc">Accuracy</button><button data-tab="model">How It Works</button><button data-tab="settings">Settings</button>
+    <button data-tab="dvp">Teams</button><button data-tab="acc">Accuracy</button><button data-tab="model">How It Works</button><button data-tab="settings">Settings</button>
   </div>
 
   <!-- HOME -->
@@ -902,15 +951,23 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 
   <!-- DEFENSE VS POSITION -->
   <section class="panel" id="p-dvp" role="tabpanel" hidden>
-    <div>
-      <h2>Defense vs position</h2>
-      <p class="note" id="dvpNote" style="margin-top:4px"></p>
+    <div id="tmIndex">
+      <div>
+        <h2>Teams</h2>
+        <p class="note" style="margin-top:4px;max-width:78ch">Pick a team to see who gets the ball, its schedule, and what its defense gives up to each position.</p>
+      </div>
+      <div class="tm-divs" id="tmGrid"></div>
+      <details class="card tm-all" id="tmAll">
+        <summary><span class="tm-sum">Compare every defense</span><span class="note">Fantasy points allowed per game to each position</span></summary>
+        <p class="note" id="dvpNote" style="margin:10px 0 0"></p>
+        <div class="tbl-wrap bigtbl" style="margin-top:10px"><table class="dvp pin1" style="min-width:760px">
+          <thead><tr><th class="sortable" data-sort="team">Team</th><th class="r">Games</th>
+            <th class="r sortable" data-sort="0">vs QB</th><th class="r sortable" data-sort="1">vs RB</th><th class="r sortable" data-sort="2">vs WR</th><th class="r sortable" data-sort="3">vs TE</th><th class="r sortable" data-sort="4">vs K</th><th class="r sortable" data-sort="5">vs DST</th></tr></thead>
+          <tbody id="dvpBody"></tbody>
+        </table></div>
+      </details>
     </div>
-    <div class="tbl-wrap bigtbl"><table class="dvp pin1" style="min-width:760px">
-      <thead><tr><th class="sortable" data-sort="team">Team</th><th class="r">Games</th>
-        <th class="r sortable" data-sort="0">vs QB</th><th class="r sortable" data-sort="1">vs RB</th><th class="r sortable" data-sort="2">vs WR</th><th class="r sortable" data-sort="3">vs TE</th><th class="r sortable" data-sort="4">vs K</th><th class="r sortable" data-sort="5">vs DST</th></tr></thead>
-      <tbody id="dvpBody"></tbody>
-    </table></div>
+    <div id="tmPage" hidden></div>
   </section>
 
   <!-- TRADE -->
@@ -1177,7 +1234,7 @@ function nameCell(p,star){
   const sub=p.team?`<span class="nm-sub">${esc(p.team)}${SCHED[p.team]?' · '+(onBye(p)?'Bye':oppText(p,S.week)):''}</span>`:'';
   return `${st}<span class="pos ${p.pos}">${p.pos}</span> ${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}${p.team?` <span class="muted" style="font-size:.85rem">${esc(p.team)}</span>`:''}${sub}`;
 }
-// Opponent with home/away, the defense's rank against this position (links to Defense vs Position) and points it allows
+// Opponent with home/away, the defense's rank against this position (links to the team page) and points it allows
 function matchPill(p,detail=false){   // detail: also show points allowed (head-to-head only)
   if(!p.opp&&!p.team)return '<span class="muted">—</span>';
   const sc=(SCHED[p.team]||[])[S.week-1],d=sc&&sc!=='BYE'?dvpData().by[sc.replace('@','')]:null,i=DPOS.indexOf(p.pos);
@@ -1617,28 +1674,125 @@ const rkCls=r=>r>=22?'good':r<=10?'bad':'mid';
 // "(22nd)" after the opponent on the Projections tab
 function oppRankTag(r,wk){const sc=(SCHED[r.team]||[])[wk-1];if(!sc||sc==='BYE')return '';const d=dvpData().by[sc.replace('@','')];const i=DPOS.indexOf(r.pos);
   if(!d||i<0)return '';const rk=d.rank[i];return ` <button class="ork olink ${rkCls(rk)}" data-dvp="${esc(d.t)}" title="${esc(TEAM_NAMES[d.t]||d.t)} allow ${n1(d.avg[i])} pts/game to ${r.pos}s (${ord(rk)} fewest of 32). Tap to see them week by week.">(${ord(rk)})</button>`;}
-function renderDvp(){const D=dvpData(),sc=scName();
-  $('#dvpNote').textContent=`Fantasy points each defense has allowed per game to each position this season. Tap a column to sort, or a team to see it week by week.`;
-  const k=ui.dvpSort??'team';
-  const dir=ui.dvpDir||1;   // 1 = default order (A→Z for team, most allowed first for positions); -1 = reversed
+// ---- teams: an index of all 32, and a page per team (offense usage, schedule, and what its defense allows) ----
+const DIVS=[['AFC East',['BUF','MIA','NE','NYJ']],['AFC North',['BAL','CIN','CLE','PIT']],['AFC South',['HOU','IND','JAX','TEN']],['AFC West',['DEN','KC','LAC','LV']],
+  ['NFC East',['DAL','NYG','PHI','WAS']],['NFC North',['CHI','DET','GB','MIN']],['NFC South',['ATL','CAR','NO','TB']],['NFC West',['ARI','LAR','SEA','SF']]];
+const divOf=t=>(DIVS.find(d=>d[1].includes(t))||[''])[0];
+const byeOf=t=>{const i=(SCHED[t]||[]).indexOf('BYE');return i<0?null:i+1;};
+const tmLogo=(t,cls='')=>`<img class="${cls}" src="${teamLogo(t)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">`;
+// season-level numbers for every team, cached per scoring setting
+let _tm=null,_tmK=null;
+function teamData(){const k=JSON.stringify(SC());if(_tm&&_tmK===k)return _tm;
+  const D=dvpData(),T={};
+  Object.keys(TEAM_NAMES).forEach(t=>T[t]={t,pl:[],pass:0,rush:0,tgt:0,pts:{QB:0,RB:0,WR:0,TE:0,K:0},g:(D.by[t]||{}).g||0,dst:null});
+  for(const p of PL.values()){const d=T[p.team];if(!d)continue;
+    if(p.pos==='DST'){d.dst=p;continue;}
+    d.pl.push(p);if(d.pts[p.pos]!=null)d.pts[p.pos]+=tot(p);
+    d.pass=Math.max(d.pass,p.s.tm_pass_att||0);d.rush=Math.max(d.rush,p.s.tm_rush_att||0);d.tgt=Math.max(d.tgt,p.s.tm_tgt||0);}
+  const list=Object.values(T);
+  list.forEach(d=>{d.passRate=d.pass+d.rush?d.pass/(d.pass+d.rush):null;d.fpg=d.g?Object.values(d.pts).reduce((a,b)=>a+b,0)/d.g:null;
+    d.ppg=AD.teamPts&&AD.teamPts[d.t]!=null?AD.teamPts[d.t]:null;const v=D.by[d.t];d.allow=v?v.avg.slice(0,4).reduce((a,b)=>a+b,0):null;});
+  // rank 1 = most (for offense numbers) or fewest allowed (defense)
+  const rk=(f,asc)=>{const ok=list.filter(d=>f(d)!=null).sort((a,b)=>asc?f(a)-f(b):f(b)-f(a));return d=>{const i=ok.indexOf(d);return i<0?null:i+1;};};
+  const rP=rk(d=>d.ppg),rR=rk(d=>d.passRate),rF=rk(d=>d.fpg),rA=rk(d=>d.allow,true);
+  list.forEach(d=>{d.rk={ppg:rP(d),pass:rR(d),fpg:rF(d),allow:rA(d)};});
+  _tm=Object.fromEntries(list.map(d=>[d.t,d]));_tmK=k;return _tm;}
+// how friendly an opponent's defense is to an offense: its average rank across QB/RB/WR/TE (32 = gives up the most)
+function oppEase(o){const d=dvpData().by[o];if(!d)return null;return d.rank.slice(0,4).reduce((a,b)=>a+b,0)/4;}
+const easeCls=r=>r==null?'':r>=21?'good':r<=12?'bad':'mid';
+const easeLbl=r=>r==null?'No data':r>=21?'Easy':r<=12?'Tough':'Neutral';
+
+function renderDvp(){const idx=$('#tmIndex'),pg=$('#tmPage'),el=$('#p-dvp');
+  const t=ui.dvpTeam&&TEAM_NAMES[ui.dvpTeam]?ui.dvpTeam:null;
+  idx.hidden=!!t;pg.hidden=!t;
+  if(t){el.className='panel teamed';el.setAttribute('style',teamVars(t));renderTeam(t);return;}
+  el.className='panel';el.removeAttribute('style');pg.innerHTML='';
+  renderTeamGrid();renderDvpTable();}
+
+function renderTeamGrid(){const wk=S.week,TD=teamData();
+  $('#tmGrid').innerHTML=DIVS.map(([dv,ts])=>`<div class="tm-div"><h3>${dv}</h3>${ts.map(t=>{const o=(SCHED[t]||[])[wk-1],d=TD[t];
+    const line=!o?'':o==='BYE'?`Week ${wk}: bye`:`Week ${wk}: ${o.startsWith('@')?'at '+o.slice(1):'vs '+o}`;
+    return `<button class="tm-card" data-tm="${t}" style="${teamVars(t)}">${tmLogo(t)}<span><b>${esc(TEAM_NAMES[t])}</b><small>${esc(line)}${d&&d.ppg!=null?` · ${n1(d.ppg)} pts/game`:''}</small></span></button>`;}).join('')}</div>`).join('');}
+
+function renderDvpTable(){const D=dvpData();
+  $('#dvpNote').textContent=`Per game this season, ${scName()} scoring. The rank is out of 32: 1st allows the fewest points (a tough matchup), 32nd the most. Tap a column to sort, or a team to open its page.`;
+  const k=ui.dvpSort??'team',dir=ui.dvpDir||1;
   const rows=[...D.list].sort((a,b)=>dir*(k==='team'?a.t.localeCompare(b.t):b.avg[+k]-a.avg[+k]));
   document.querySelectorAll('table.dvp th.sortable').forEach(th=>String(th.dataset.sort)===String(k)?th.setAttribute('aria-sort',(k==='team')===(dir===1)?'ascending':'descending'):th.removeAttribute('aria-sort'));
-  const t=ui.dvpTeam&&D.by[ui.dvpTeam];
-  const detail=t=>`<tr class="dvpdetail"><td colspan="8" class="dvp-team" style="${teamVars(t.t)}"><div class="card teamed" style="${teamVars(t.t)}"><div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center">
-      <h3>${esc(TEAM_NAMES[t.t]||t.t)}: points allowed by week</h3><button class="btn sm" id="dvpClose" type="button">Close</button></div>
-    <div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl" style="min-width:640px"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
-    ${t.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${esc(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=t.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=t.avg[i]*.75?'color:var(--bad)':''}">${n1(x)}</td>`).join('')}</tr>`).join('')}
-    <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${t.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
-    <tr><td colspan="2"><b>Rank</b></td>${t.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
-    </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p></div></td></tr>`;
-  $('#dvpBody').innerHTML=rows.length?rows.map(d=>`<tr class="dvprow${ui.dvpTeam===d.t?' sel':''}" data-t="${esc(d.t)}" tabindex="0" aria-expanded="${ui.dvpTeam===d.t}" >
+  $('#dvpBody').innerHTML=rows.length?rows.map(d=>`<tr class="dvprow" data-t="${esc(d.t)}" tabindex="0">
     <td style="white-space:nowrap"><b>${esc(d.t)}</b> <span class="muted" style="font-size:.85rem">${esc(TEAM_NAMES[d.t]||'')}</span></td><td class="r num">${d.g}</td>
-    ${DPOS.map((p,i)=>`<td class="r${String(k)===String(i)?' scol':''}"><span class="num">${n1(d.avg[i])}</span> <span class="ork ${rkCls(d.rank[i])}">${ord(d.rank[i])}</span></td>`).join('')}</tr>${t&&t.t===d.t?detail(t):''}`).join('')
-    :'<tr><td colspan="8" class="muted">No games played yet this season.</td></tr>';
-  if(!t)return;
-  $('#dvpClose').onclick=()=>{ui._dvpScroll=true;go('dvp',null);};}
-document.addEventListener('click',e=>{const th=e.target.closest('table.dvp th.sortable');if(th){const k=th.dataset.sort;if(String(ui.dvpSort??'team')===k)ui.dvpDir=-(ui.dvpDir||1);else{ui.dvpSort=k;ui.dvpDir=1;}renderDvp();return;}
-  const tr=e.target.closest('tr.dvprow');if(tr){lastDvp=tr.dataset.t;ui._dvpScroll=true;go('dvp',ui.dvpTeam===tr.dataset.t?null:tr.dataset.t);return;}
+    ${DPOS.map((p,i)=>`<td class="r${String(k)===String(i)?' scol':''}"><span class="num">${n1(d.avg[i])}</span> <span class="ork ${rkCls(d.rank[i])}">${ord(d.rank[i])}</span></td>`).join('')}</tr>`).join('')
+    :'<tr><td colspan="8" class="muted">No games played yet this season.</td></tr>';}
+
+function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(),d=TD[t],nm=TEAM_NAMES[t],wk=S.week;
+  const sched=SCHED[t]||[],o=sched[wk-1],bye=byeOf(t),g=advWeek()&&AD.games?AD.games[t]:null;
+  const opp=o&&o!=='BYE'?o.replace('@',''):null;
+  const tlink=x=>`<button class="tlink" data-tm="${x}">${esc(x)}</button>`;
+  // hero + top tiles
+  const hero=`<div><button class="back" id="tmBack">← ${navDepth>0?'Back':'All teams'}</button></div>
+   <div class="ph team-hero has-shot">${tmLogo(t,'shot logo')}<div><div class="meta">${esc(divOf(t))}${bye?` · Bye in week ${bye}`:''}${d.g?` · ${d.g} games`:''}</div><h1>${esc(nm)}</h1></div>
+     ${o?`<div class="meta">Week ${wk}: ${o==='BYE'?'bye':`${o.startsWith('@')?'at':'vs'} ${tlink(opp)}`}</div>`:''}</div>
+   <div class="tiles">
+     <div class="tile"><span class="label">Points / game</span><span class="v">${d.ppg!=null?n1(d.ppg):'—'}</span><span class="s">${d.rk.ppg?`<b class="tr">${ord(d.rk.ppg)}</b> of 32 · real points`:'Not available'}</span></div>
+     <div class="tile"><span class="label">Fantasy pts / game</span><span class="v">${d.fpg!=null?n1(d.fpg):'—'}</span><span class="s">${d.rk.fpg?`<b class="tr">${ord(d.rk.fpg)}</b> · whole offense, ${scName(true)}`:''}</span></div>
+     <div class="tile"><span class="label">Pass rate</span><span class="v">${d.passRate!=null?Math.round(d.passRate*100)+'%':'—'}</span><span class="s">${d.rk.pass?`<b class="tr">${ord(d.rk.pass)}</b> most pass-heavy`:''}</span></div>
+     <div class="tile"><span class="label">Defense allows</span><span class="v">${d.allow!=null?n1(d.allow):'—'}</span><span class="s">${d.rk.allow?`<b class="tr">${ord(d.rk.allow)}</b> of 32 (1st is stingiest) · to QB, RB, WR, TE`:''}</span></div>
+   </div>`;
+  // this week's game
+  const game=o==='BYE'?`<div class="card"><h3>Week ${wk}</h3><p class="note" style="margin-top:4px">${esc(nm)} are on bye. Bench or replace their players this week.</p></div>`
+   :g?`<div class="card"><h3 style="margin-bottom:12px">Week ${wk}: ${g.home?'vs':'at'} ${tlink(g.opp)}</h3><div class="kv">
+     ${g.implied!=null?`<div><span class="label">Vegas</span><b>${n1(g.implied)} implied pts</b><span class="note">${esc(t)} ${g.spread>0?'+':''}${g.spread} · total ${g.total} · league avg ${n1(AD.avgImplied||0)}</span></div>`:''}
+     <div><span class="label">Kickoff and conditions</span><b>${esc(kickText(g))}</b><span class="note">${g.weather?esc(weatherText(g.weather)):({dome:'Dome',closed:'Roof closed'})[g.roof]||'Forecast not available yet'}${g.stadium?' · '+esc(g.stadium):''}</span></div>
+     ${(()=>{const e=oppEase(g.opp);return e==null?'':`<div><span class="label">Matchup for this offense</span><b class="ork ${easeCls(e)}" style="font-size:1.05rem">${easeLbl(e)}</b><span class="note">${esc(g.opp)}'s defense ranks ${ord(Math.round(e))} on average vs QB, RB, WR and TE</span></div>`;})()}
+   </div></div>`:'';
+  // who gets the ball
+  const sk=d.pl.filter(p=>['QB','RB','WR','TE'].includes(p.pos)&&p.gp>0).map(p=>({p,sn:dv(p.s.off_snp,p.s.tm_off_snp),ts:dv(p.s.rec_tgt,p.s.tm_tgt),cs:dv(p.s.rush_att,p.s.tm_rush_att),pg:ppg(p)}))
+    .filter(x=>(x.sn||0)>=.15||(x.ts||0)>=.05||(x.cs||0)>=.08).sort((a,b)=>b.pg-a.pg);
+  const bar=(v,cls)=>v==null||v<.005?'<span class="muted">—</span>':`<span class="tm-bar ${cls}" aria-hidden="true"><i style="width:${Math.min(100,v/.4*100)}%"></i></span><span class="num">${Math.round(v*100)}%</span>`;
+  const usage=sk.length?`<div class="card"><h3>Who gets the ball</h3><p class="note" style="margin:4px 0 0">Shares are of the team's snaps, targets and carries in the games each player played. Sorted by fantasy points per game.</p>
+    <div class="tbl-wrap"><table class="tooltbl tm-use"><thead><tr><th>Player</th><th class="r">G</th><th class="r">Snaps</th><th>Target share</th><th>Carry share</th><th class="r">Pts/g</th></tr></thead><tbody>
+    ${sk.map(x=>`<tr${isMine(x.p)?' class="mine"':''}><td style="white-space:nowrap"><span class="pos ${x.p.pos}">${x.p.pos}</span><button class="plink" data-k="${esc(x.p.key)}">${esc(x.p.name)}</button>${INJ[x.p.key]&&INJ[x.p.key]!=='Healthy'?` <span class="pill p-bad">${esc(INJ[x.p.key])}</span>`:''}</td>
+      <td class="r num">${x.p.gp}</td><td class="r num">${x.sn!=null?Math.round(x.sn*100)+'%':'—'}</td><td class="tm-bc">${bar(x.ts,'tg')}</td><td class="tm-bc">${bar(x.cs,'cr')}</td><td class="r num"><b>${n1(x.pg)}</b></td></tr>`).join('')}
+    </tbody></table></div></div>`:'';
+  // where the fantasy points come from
+  const mixTot=['QB','RB','WR','TE','K'].reduce((a,p)=>a+Math.max(0,d.pts[p]),0);
+  const mix=mixTot>0?`<div class="card"><h3>Where the fantasy points come from</h3><p class="note" style="margin:4px 0 12px">Share of this offense's ${scName()} points by position, this season.</p>
+    <div class="tm-mix" role="img" aria-label="${['QB','RB','WR','TE','K'].map(p=>`${p} ${Math.round(Math.max(0,d.pts[p])/mixTot*100)}%`).join(', ')}">${['QB','RB','WR','TE','K'].map(p=>{const f=Math.max(0,d.pts[p])/mixTot;return f<.005?'':`<i style="width:${f*100}%;background:var(--${p.toLowerCase()})">${f>=.09?p:''}</i>`;}).join('')}</div>
+    <div class="tm-leg">${['QB','RB','WR','TE','K'].map(p=>{const f=Math.max(0,d.pts[p])/mixTot,lg=Object.values(TD).filter(x=>x.g).map(x=>{const s=['QB','RB','WR','TE','K'].reduce((a,q)=>a+Math.max(0,x.pts[q]),0);return s?Math.max(0,x.pts[p])/s:0;});const avg=lg.reduce((a,b)=>a+b,0)/(lg.length||1);
+      return `<span><span class="pos ${p}">${p}</span> <b class="num">${Math.round(f*100)}%</b> <span class="muted">· ${n1(d.g?d.pts[p]/d.g:0)}/g · league ${Math.round(avg*100)}%</span></span>`;}).join('')}</div></div>`:'';
+  // schedule strip
+  const poS=poStart(),played=new Map((dd?dd.weeks:[]).map(w=>[w.w,w]));
+  const schedCard=sched.length?`<div class="card"><h3>Schedule</h3><p class="note" style="margin:4px 0 12px">Upcoming games are graded by how many fantasy points the opponent's defense gives up (average rank vs QB, RB, WR and TE). Fantasy playoffs (${poWeeks()}) are outlined.</p>
+    <div class="tm-sched">${sched.map((x,i)=>{const w=i+1,po=w>=poS&&w<=poS+2,cur=w===wk;
+      if(x==='BYE')return `<div class="tm-wk bye${po?' po':''}${cur?' cur':''}"><span class="label">Wk ${w}</span><b>Bye</b><small>No game</small></div>`;
+      const ot=x.replace('@',''),pl=played.has(w)&&w<SD.week,e=oppEase(ot);
+      return `<button class="tm-wk${pl?' past':' '+easeCls(e)}${po?' po':''}${cur?' cur':''}" data-tm="${ot}"><span class="label">Wk ${w}</span><b>${x.startsWith('@')?'@':'vs'} ${esc(ot)}</b><small>${pl?'Played':easeLbl(e)}</small></button>`;}).join('')}</div></div>`:'';
+  // defense: the defense-vs-position chart
+  const defCard=dd?`<div class="card"><h3>What the ${esc(nm.split(' ').pop())} defense allows</h3><p class="note" style="margin:4px 0 12px">Fantasy points given up per game to each position, ${scName()} scoring. Longer bars give up more; rank 1st allows the fewest of 32.</p>
+    <div class="dvp-bars">${DPOS.map((p,i)=>`<div class="dvp-b"><span class="pos ${p}">${p}</span><span class="dvp-track" aria-hidden="true"><i class="${rkCls(dd.rank[i])}" style="width:${Math.max(4,(dd.rank[i]/32)*100)}%"></i></span><span class="num"><b>${n1(dd.avg[i])}</b></span><span class="ork ${rkCls(dd.rank[i])}">${ord(dd.rank[i])}</span></div>`).join('')}</div>
+    <div class="tbl-wrap" style="margin-top:14px"><table class="tooltbl" style="min-width:600px"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
+    ${dd.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${tlink(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=dd.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=dd.avg[i]*.75?'color:var(--bad)':''}">${n1(x)}</td>`).join('')}</tr>`).join('')}
+    <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${dd.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
+    <tr><td colspan="2"><b>Rank</b></td>${dd.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
+    </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p>
+    ${d.dst&&d.dst.d&&d.g?`<div class="tiles" style="margin-top:14px">
+      <div class="tile"><span class="label">D/ST pts / game</span><span class="v">${n1(ppg(d.dst))}</span><span class="s"><button class="plink" data-k="${esc(d.dst.key)}">Open D/ST page</button></span></div>
+      <div class="tile"><span class="label">Sacks</span><span class="v">${d.dst.d.sack}</span><span class="s">${n1(d.dst.d.sack/d.g)} per game</span></div>
+      <div class="tile"><span class="label">Takeaways</span><span class="v">${d.dst.d.int+d.dst.d.fr}</span><span class="s">${d.dst.d.int} INT · ${d.dst.d.fr} fumbles</span></div>
+      <div class="tile"><span class="label">Yards allowed / game</span><span class="v">${Math.round(d.dst.d.ya/d.g)}</span><span class="s">${d.dst.d.td} defensive TD${d.dst.d.td===1?'':'s'}</span></div></div>`:''}
+    </div>`:`<div class="card"><h3>Defense</h3><p class="note">No games played yet this season.</p></div>`;
+  // injuries
+  const ord2={Out:0,IR:1,Doubtful:2,Questionable:3};
+  const hurt=d.pl.filter(p=>INJ[p.key]&&INJ[p.key]!=='Healthy'&&(p.gp>0||p.pos==='K')).sort((a,b)=>(ord2[INJ[a.key]]??9)-(ord2[INJ[b.key]]??9)||ppg(b)-ppg(a));
+  const injCard=hurt.length?`<div class="card"><h3>Injury report</h3><div class="tm-inj">${hurt.map(p=>`<span><span class="pos ${p.pos}">${p.pos}</span><button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button> <span class="pill ${INJ[p.key]==='Questionable'?'p-gold':'p-bad'}">${esc(INJ[p.key])}</span></span>`).join('')}</div></div>`:'';
+  el.innerHTML=hero+game+usage+'<div class="split">'+mix+injCard+'</div>'+schedCard+defCard;
+  if(!injCard&&mix)el.querySelector('.split').classList.add('one');
+  $('#tmBack').onclick=()=>{if(navDepth>0)history.back();else go('dvp',null);};
+  if(window.heroChk)setTimeout(window.heroChk,0);}
+
+document.addEventListener('click',e=>{const th=e.target.closest('table.dvp th.sortable');if(th){const k=th.dataset.sort;if(String(ui.dvpSort??'team')===k)ui.dvpDir=-(ui.dvpDir||1);else{ui.dvpSort=k;ui.dvpDir=1;}renderDvpTable();return;}
+  const tr=e.target.closest('tr.dvprow');if(tr){go('dvp',tr.dataset.t);return;}
+  const tm=e.target.closest('[data-tm]');if(tm){if(ui.tab!=='dvp')ui.prev=ui.tab;go('dvp',tm.dataset.tm);return;}
   const ol=e.target.closest('.olink');if(ol){if(ui.tab!=='dvp')ui.prev=ui.tab;go('dvp',ol.dataset.dvp);}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.target.matches('tr.dvprow'))e.target.click();});
 // ---- ticker: last week's standouts, most accurate source, latest headlines ----
@@ -2609,7 +2763,7 @@ function renderPlayer(){
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
   const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${tr.share}</b> · `:''}${US.sub(p)}</span></div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
-   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${esc(TEAM_NAMES[p.team]||p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
+   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
@@ -2666,27 +2820,29 @@ const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
-const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):t==='dvp'&&k?'#dvp='+k:'#'+t;
+const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):t==='dvp'?(k?'#team='+k:'#teams'):'#'+t;
 function readHash(){const h=decodeURIComponent(location.hash.slice(1));
   if(h.startsWith('player=')){const raw=h.slice(7);const k=[raw,raw.replace(/-/g,' ')].find(x=>PL.has(x));if(k)return {tab:'player',player:k};}
-  if(h.startsWith('dvp=')){const t=h.slice(4).toUpperCase();return {tab:'dvp',player:TEAM_NAMES[t]?t:null};}
+  // #team=KC and #teams; older #dvp=KC and #dvp links still work
+  const tm=/^(team|dvp)=(.+)$/.exec(h);if(tm){const t=tm[2].toUpperCase();return {tab:'dvp',player:TEAM_NAMES[t]?t:null};}
+  if(h==='teams')return {tab:'dvp'};
   return TABS.includes(h)?{tab:h}:{tab:'home'};}
-// go to a tab; "sub" is the player on a player page, or the team on Defense vs Position
+// go to a tab; "sub" is the player on a player page, or the team on a team page
 function cur(){return ui.tab==='player'?ui.player:ui.tab==='dvp'?ui.dvpTeam||null:null;}
 function apply(tab,sub){ui.tab=tab;if(tab==='player'&&sub)ui.player=sub;if(tab==='dvp')ui.dvpTeam=sub||null;}
 function go(tab,sub,push=true){
   if(tab===ui.tab&&(sub||null)===cur())push=false;   // same page: no extra Back step
   apply(tab,sub);
   if(push){try{history.pushState({tab,player:sub||null},'',hashFor(tab,sub));navDepth++;}catch(_){}}
-  const keep=tab==='dvp'&&ui._dvpScroll;ui._dvpScroll=false;
   render();
-  const row=tab==='dvp'&&document.querySelector(`tr.dvprow[data-t="${sub||lastDvp}"]`);
-  if(row&&row.scrollIntoView)row.scrollIntoView({block:keep?'nearest':'start'});else window.scrollTo(0,0);
+  // back to the team list: keep the team you just left in view
+  const card=tab==='dvp'&&!sub&&lastDvp&&document.querySelector(`.tm-card[data-tm="${lastDvp}"]`);
+  if(card&&card.scrollIntoView)card.scrollIntoView({block:'center'});else window.scrollTo(0,0);
   if(tab==='dvp'&&sub)lastDvp=sub;}
 let lastDvp=null;
 window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Math.max(0,navDepth-1);
   if(st.tab==='player'&&!PL.has(st.player))st.tab='home';apply(st.tab,st.player);render();
-  const row=st.tab==='dvp'&&st.player&&document.querySelector(`tr.dvprow[data-t="${st.player}"]`);if(row)row.scrollIntoView({block:'start'});else window.scrollTo(0,0);});
+  const card=st.tab==='dvp'&&!st.player&&lastDvp&&document.querySelector(`.tm-card[data-tm="${lastDvp}"]`);if(card)card.scrollIntoView({block:'center'});else window.scrollTo(0,0);});
 (function(){const st=readHash();if(location.hash&&(st.tab!=='home'||location.hash==='#home')){apply(st.tab,st.player);render();}
   try{history.replaceState({tab:ui.tab,player:cur()},'',hashFor(ui.tab,cur()));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);if(k==='blend')S.blendAuto=false;save();renderModel();});
@@ -2774,7 +2930,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   measure();
   // banner: slim once the page has scrolled past where it sits (measured unstuck, so no flicker at the edge)
   let heroAt=null,heroEl=null;
-  const heroChk=()=>{const h=ui.tab==='player'&&document.querySelector('#p-player .team-hero');if(!h){heroEl=null;return;}
+  const heroChk=()=>{const h=(ui.tab==='player'&&document.querySelector('#p-player .team-hero'))||(ui.tab==='dvp'&&document.querySelector('#tmPage .team-hero'));if(!h){heroEl=null;return;}
     if(h!==heroEl){heroEl=h;const ref=h.previousElementSibling;heroAt=(ref?ref.getBoundingClientRect().bottom:h.getBoundingClientRect().top)+window.scrollY;}
     h.classList.toggle('stuck',window.scrollY+tb.offsetHeight>heroAt+12);};
   window.heroChk=heroChk;
