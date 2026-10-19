@@ -525,11 +525,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 /* measured with transitions paused, so sizes are read at their end values */
 .no-tr,.no-tr *{transition:none!important}
 /* D/ST pages look different from team pages: striped banner, shield badge */
-.dst-badge{display:inline-flex;align-items:center;justify-content:center;width:44px;height:48px;flex:none;font-family:var(--f-display);font-weight:800;font-size:.72rem;letter-spacing:.02em;
-  background:var(--team2,var(--dst));color:var(--team-ink,#fff);clip-path:polygon(50% 0,100% 14%,100% 58%,50% 100%,0 58%,0 14%);padding-bottom:6px;box-sizing:border-box}
 .dst-link{display:flex!important;gap:12px;align-items:center;margin-top:14px;padding:12px 14px;border:1px solid var(--line)!important;border-left:5px solid var(--team-tint)!important;border-radius:8px;background:var(--surface);width:100%;box-sizing:border-box}
-.dst-link .dst-badge{background:var(--team-tint);color:#fff}
-.dst-link b{display:block}.dst-link small{display:block;color:var(--muted);font-weight:600;font-size:.82rem}
+.dst-link .dst-link b{display:block}.dst-link small{display:block;color:var(--muted);font-weight:600;font-size:.82rem}
 .dst-link>span:nth-child(2){flex:1;min-width:0}
 .dst-link .dst-go{font-weight:800;color:var(--t-accent,var(--turf));white-space:nowrap}
 .dst-link:hover{background:var(--surface-2)}
@@ -1849,7 +1846,7 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
     <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${dd.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
     <tr><td colspan="2"><b>Rank</b></td>${dd.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
     </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p>
-    ${d.dst?(()=>{const r=ppgRank(d.dst),x=d.dst;return `<button class="plink dst-link" data-k="${esc(x.key)}"><span class="dst-badge" aria-hidden="true">D/ST</span><span><b>${esc(nm.split(' ').pop())} D/ST for fantasy</b><small>${n1(ppg(x))} pts/game${r?` · DST${r.r} of ${r.n}`:''}${x.d?` · ${x.d.sack} sacks, ${x.d.int+x.d.fr} takeaways`:''}</small></span><span class="dst-go">Open →</span></button>`;})():''}
+    ${d.dst?(()=>{const r=ppgRank(d.dst),x=d.dst;return `<button class="plink dst-link" data-k="${esc(x.key)}"><span class="pos DST">DST</span><span><b>${esc(nm.split(' ').pop())} D/ST for fantasy</b><small>${n1(ppg(x))} pts/game${r?` · DST${r.r} of ${r.n}`:''}${x.d?` · ${x.d.sack} sacks, ${x.d.int+x.d.fr} takeaways`:''}</small></span><span class="dst-go">Open →</span></button>`;})():''}
     </div>`:`<div class="card"><h3>Defense</h3><p class="note">No games played yet this season.</p></div>`;
   // injuries
   const ord2={Out:0,IR:1,Doubtful:2,Questionable:3};
