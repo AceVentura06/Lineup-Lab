@@ -519,9 +519,9 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .pies.hl path:not(.on),.pies.hl .pie-leg li:not(.on){opacity:.3}
 .pies.hl path.on{transform:scale(1.04)}
 @media (max-width:420px){.pie{grid-template-columns:120px 1fr}.pie-w{width:120px;height:120px}}
-/* Rams logo tinted Rams gold on banners (white source, so the result is a solid gold mark) */
-.team-hero .alt-gold{filter:brightness(0) saturate(100%) invert(81%) sepia(36%) saturate(7179%) hue-rotate(1deg) brightness(103%) contrast(102%)}
-.team-hero .shot.logo.alt-gold{filter:brightness(0) saturate(100%) invert(81%) sepia(36%) saturate(7179%) hue-rotate(1deg) brightness(103%) contrast(102%) drop-shadow(0 4px 14px rgba(0,0,0,.5))}
+/* team list: Giants and Rams swap to their white logos in dark mode */
+.lg-dark{display:none}
+:root[data-theme="dark"] .lg-dark{display:block}:root[data-theme="dark"] .lg-light{display:none}
 /* measured with transitions paused, so sizes are read at their end values */
 .no-tr,.no-tr *{transition:none!important}
 /* D/ST pages look different from team pages: striped banner, shield badge */
@@ -1788,7 +1788,7 @@ function renderDvp(){const idx=$('#tmIndex'),pg=$('#tmPage'),el=$('#p-dvp');
 function renderTeamGrid(){const wk=S.week,TD=teamData();
   $('#tmGrid').innerHTML=DIVS.map(([dv,ts])=>`<div class="tm-div"><h3>${dv}</h3>${ts.map(t=>{const o=(SCHED[t]||[])[wk-1],d=TD[t];
     const line=!o?'':o==='BYE'?`Week ${wk}: bye`:`Week ${wk}: ${o.startsWith('@')?'at '+o.slice(1):'vs '+o}`;
-    return `<button class="tm-card" data-tm="${t}" style="${teamVars(t)}">${tmLogo(t)}<span><b>${esc(TEAM_NAMES[t])}</b><small>${esc(line)}${d&&d.ppg!=null?` · ${n1(d.ppg)} pts/game`:''}</small></span></button>`;}).join('')}</div>`).join('');}
+    return `<button class="tm-card" data-tm="${t}" style="${teamVars(t)}">${DARK_ALT.includes(t)?tmLogo(t,'lg-light')+tmLogo(t,'lg-dark',bannerLogo(t)):tmLogo(t)}<span><b>${esc(TEAM_NAMES[t])}</b><small>${esc(line)}${d&&d.ppg!=null?` · ${n1(d.ppg)} pts/game`:''}</small></span></button>`;}).join('')}</div>`).join('');}
 
 function renderDvpTable(){const D=dvpData();
   $('#dvpNote').textContent=`Per game this season, ${scName()} scoring. The rank is out of 32: 1st allows the fewest points (a tough matchup), 32nd the most. Tap a column to sort, or a team to open its page.`;
@@ -2783,8 +2783,10 @@ function headshotOf(p){if(p.pos==='DST')return teamLogo(p.team);
 const teamLogo=t=>t?`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/${t==='WAS'?'wsh':t.toLowerCase()}.png&w=500&h=500`:null;
 const slpLogo=t=>t?`https://sleepercdn.com/images/team_logos/nfl/${t.toLowerCase()}.png`:null;
 // on the colored banners some logos disappear into their own team color, so those use ESPN's
-// light versions: white Jets, white Giants (red trim), and the white Rams logo tinted Rams gold
-const BANNER_ALT={NYJ:'',NYG:'',LAR:'alt-gold'};
+// light versions: white Jets, white Giants (red trim) and white Rams
+const BANNER_ALT={NYJ:'',NYG:'',LAR:''};
+// in dark mode the Giants' and Rams' dark-blue logos vanish on the team list too, so they switch there as well
+const DARK_ALT=['NYG','LAR'];
 const bannerLogo=t=>t&&t in BANNER_ALT?`https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500-dark/${t.toLowerCase()}.png&w=500&h=500`:teamLogo(t);
 const bannerCls=t=>(t&&BANNER_ALT[t])||'';
 window.logoFb=img=>{const m=/teamlogos\/nfl\/500(?:-dark)?\/(\w+)\.png/.exec(img.src);if(!m||img.dataset.fb)return false;
