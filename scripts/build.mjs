@@ -120,6 +120,10 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
       p.w[w].push(fg39, s.fgm_40_49 || 0, fg50, fg60, miss, s.xpm || 0, xpMiss);
     } else if (pl.position === 'DEF') {
       p.w[w].push(s.sack || 0, s.int || 0, s.fum_rec || 0, (s.def_td || 0) + (s.st_td || 0), s.safe || 0, s.blk_kick || 0, s.pts_allow ?? '', s.yds_allow ?? '');
+    } else {
+      // share of the team's targets and carries that week, in percent
+      const sh = (a, t) => t ? +(100 * (a || 0) / t).toFixed(1) : '';
+      p.w[w].push(sh(s.rec_tgt, tt.rec_tgt), sh(s.rush_att, tt.rush_att));
     }
   }
   const rows = Object.values(P).filter(p => p.t.pts_ppr >= 3 || p.pos === 'K' || p.pos === 'DEF')

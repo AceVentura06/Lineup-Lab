@@ -662,6 +662,19 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .wkb.proj{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--t-accent,var(--gold)) 30%,transparent) 0 6px,color-mix(in srgb,var(--t-accent,var(--gold)) 12%,transparent) 6px 12px),var(--wkbg);color:var(--t-accent,var(--gold))}
 .wkb.empty{height:44px;clip-path:none;border:2px dashed var(--line);border-bottom:0;justify-content:center;padding:0;color:var(--muted);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
 .wkv{align-self:center;padding:0 5px;background:var(--wkbg);text-align:center;font-family:var(--f-display);font-weight:800;font-size:1.2rem}
+.us-plot{position:relative;margin-top:22px;border-bottom:2px solid var(--ink)}
+.us-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.us-plot polyline{fill:none;stroke:var(--uc);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.us-grid{position:absolute;left:0;right:0;border-top:1px solid var(--line);pointer-events:none}
+.us-grid span{position:absolute;left:0;bottom:2px;font-size:.7rem;color:var(--muted);font-family:var(--f-mono)}
+.us-cols{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px}
+.us-col{position:relative;outline:none}
+.us-dot{position:absolute;left:50%;width:10px;height:10px;margin:0 0 -5px -5px;border-radius:50%;background:var(--uc);box-shadow:0 0 0 2px var(--wkbg);transition:transform .12s}
+.us-lbl{position:absolute;left:50%;transform:translateX(-50%);padding:0 4px;background:var(--wkbg);z-index:2;white-space:nowrap;font-family:var(--f-display);font-weight:800;font-size:1.05rem;opacity:0;transition:opacity .12s;pointer-events:none}
+.us-lbl.on,.us-col:hover .us-lbl,.us-col:focus .us-lbl{opacity:1}
+.us-col:hover .us-dot,.us-col:focus .us-dot{transform:scale(1.35)}
+.us-gap{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:var(--f-display);font-size:.8rem;text-transform:uppercase;color:var(--muted)}
+@media (max-width:600px){.us-cols{gap:6px}.us-lbl{font-size:.9rem}}
 .wkline{position:absolute;left:0;right:0;border-top:2px dashed var(--team-stripe,var(--gold));z-index:0;pointer-events:none}
 .wkseg{position:absolute;left:0;right:0;border-top:2px dashed var(--team-stripe,var(--gold));z-index:2;pointer-events:none}
 .wklabs{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px;margin-top:8px;text-align:center;font-family:var(--f-display);text-transform:uppercase}
@@ -672,7 +685,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 
 /* Sharp corners on every box; dots and markers stay round */
 *,*::before,*::after{border-radius:0!important}
-.range .dot,.sw,.sd,.lc-dot,.livedot,.tk-i::after,.tabs button.live::after,.team-hero::after{border-radius:50%!important}
+.range .dot,.sw,.sd,.lc-dot,.livedot,.us-dot,.tk-i::after,.tabs button.live::after,.team-hero::after{border-radius:50%!important}
 .pos{border-radius:5px!important}
 </style>
 </head>
@@ -2290,6 +2303,7 @@ const PL=new Map();
     const weeks=a[a.length-1].split(';').map(w=>{if(w==='-')return null;const f=w.split(':'),[p,r,t,sn,py,pi,ry,rt,cy,ct,fl]=f,x=f.slice(11).map(v=>v===''?null:+v);
       const o={ppr:+p,rec:+r,ptd:+t,snap:sn===''?null:+sn,py:+py||0,pint:+pi||0,ry:+ry||0,rtd:+rt||0,recy:+cy||0,rectd:+ct||0,fl:+fl||0,pos:wpos};
       if(wpos==='K'&&x.length>=7)o.k={k39:x[0],k40:x[1],k50:x[2],k60:x[3],kmiss:x[4],xp:x[5],xpmiss:x[6]};
+      if(wpos!=='K'&&wpos!=='DST'&&x.length>=2){o.tsh=x[0];o.csh=x[1];}
       if(wpos==='DST'&&x.length>=7)o.d={sack:x[0],int:x[1],fr:x[2],td:x[3],safe:x[4],blk:x[5],pa:x[6]};
       return o;});
     const pos=a[1]==='DEF'?'DST':a[1];
@@ -2430,6 +2444,32 @@ $('#statSearch').oninput=e=>{ui.qT=e.target.value;renderStats();};
 document.querySelector('table.dir thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if(ui.sortT===th.dataset.sort)ui.dirT=-(ui.dirT||1);else{ui.sortT=th.dataset.sort;ui.dirT=1;}renderStats();};
 
 // Points by week, broadcast style: bars with the score inside, missed weeks marked, this week's projection as a striped bar
+// the usage stat that matters most for each position: target share for pass catchers, share of team carries for backs
+function usageOf(pos){const RB={k:'csh',me:'rush_att',tm:'tm_rush_att',tile:'Team carry share',title:'Share of team carries',unit:'carries'},
+  WR={k:'tsh',me:'rec_tgt',tm:'tm_tgt',tile:'Target share',title:'Target share',unit:'targets'};return {RB,WR,TE:WR}[pos]||null;}
+function usageCard(p){
+  const U=usageOf(p.pos);if(!U)return '';
+  const cur=SD.week,sc=SCHED[p.team]||[],weeks=[];
+  for(let w=1;w<cur;w++){const e=p.weeks[w-1],opp=sc[w-1]||'';
+    const o=opp==='BYE'?'':(opp.startsWith('@')?'at '+opp.slice(1):'vs '+opp);
+    weeks.push({w,o,v:e&&e[U.k]!=null?e[U.k]:null,kind:e?'played':opp==='BYE'?'bye':'out'});}
+  const pts=weeks.filter(x=>x.v!=null);if(pts.length<2)return '';
+  const seas=dv(p.s[U.me],p.s[U.tm]),avg=seas!=null?seas*100:null;
+  const top=Math.max(10,Math.ceil(Math.max(...pts.map(x=>x.v),avg||0)*1.15/10)*10),H=180,y=v=>H*v/top,n=weeks.length;
+  // line breaks at byes and missed games
+  const runs=[];let run=[];weeks.forEach((x,i)=>{if(x.v!=null)run.push(`${i*100+50},${(H-y(x.v)).toFixed(1)}`);else{if(run.length)runs.push(run);run=[];}});if(run.length)runs.push(run);
+  const hi=pts.reduce((a,b)=>b.v>a.v?b:a),last=pts[pts.length-1];
+  const grid=[top/2,top].map(g=>`<div class="us-grid" style="bottom:${y(g)}px"><span>${g}%</span></div>`).join('');
+  const col=x=>x.v==null?`<div class="us-col"><span class="us-gap">${x.kind==='bye'?'Bye':'Out'}</span></div>`
+    :`<div class="us-col" tabindex="0" title="Week ${x.w}${x.o?' '+x.o:''}: ${x.v.toFixed(1)}% ${U.title.toLowerCase()}"><i class="us-dot" style="bottom:${y(x.v)}px"></i><b class="us-lbl${x===hi||x===last?' on':''}" style="bottom:${y(x.v)+10}px">${Math.round(x.v)}%</b></div>`;
+  const lab=x=>`<div class="wkl"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span></div>`;
+  return `<div class="card wkcard uscard" style="--uc:var(--${p.pos.toLowerCase()})"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><h3>${U.title} by week</h3>${avg!=null?`<span class="wkavg">Season <b>${avg.toFixed(1)}%</b></span>`:''}</div>
+    <div class="wkscroll"><div class="wkgrid" style="--n:${n}">
+      <div class="us-plot" style="height:${H}px">${grid}${avg!=null?`<div class="wkline" style="bottom:${y(avg)}px"></div>`:''}
+        <svg viewBox="0 0 ${n*100} ${H}" preserveAspectRatio="none" aria-hidden="true">${runs.map(r=>r.length>1?`<polyline points="${r.join(' ')}"/>`:'').join('')}</svg>
+        <div class="us-cols" style="--n:${n}">${weeks.map(col).join('')}</div></div>
+      <div class="wklabs">${weeks.map(lab).join('')}</div>
+    </div></div></div>`;}
 function weekCard(p,projV){
   const cur=SD.week,sc=SCHED[p.team]||[],weeks=[];
   for(let w=1;w<=cur;w++){const e=p.weeks[w-1],opp=sc[w-1]||'';
@@ -2554,14 +2594,19 @@ function renderPlayer(){
     const cvF=q=>{const v=q.weeks.map(wpts).filter(x=>x!=null);if(v.length<3)return null;const m=v.reduce((a,b)=>a+b,0)/v.length;if(m<=0)return null;
       const rate=v.filter(x=>x>=startLine).length/v.length,cv=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length)/m;return rate*10-Math.min(cv,9.9);};
     const cons=rk(peers.filter(q=>q.gp>=3&&ppg(q)>=startLine/2&&cvF(q)!=null),cvF);
-    return {cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
+    const us=usageOf(p.pos);
+    const share=us?rk(peers.filter(q=>q.gp>=2&&q.s[us.tm]>0),q=>dv(q.s[us.me],q.s[us.tm])):null;
+    return {share,cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
+  const US=usageOf(p.pos),shV=US?dv(p.s[US.me],p.s[US.tm]):null;
+  const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${tr.share}</b> · `:''}${p.s[US.me]} of ${p.s[US.tm]} team ${US.unit}</span></div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
    <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${esc(TEAM_NAMES[p.team]||p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
      <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${tr.tot}</b> · `:''}${scName()}</span></div>
-     ${sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${tr.snap}</b> · `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
+     ${shareTile||''}
+     ${!shareTile&&sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${tr.snap}</b> · `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
      ${(()=>{const me=realPlayers().find(x=>x.key===p.key),bye=me&&onBye(me),st=me?effStatus(me):null,out=!bye&&(st==='Out'||st==='IR');
        return `<div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${bye?'Bye':out?(st==='IR'?'IR':'Out'):tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${bye?`${esc(TEAM_NAMES[p.team]||p.team)} are off this week`:out?(st==='IR'?'On injured reserve':'Ruled out this week'):tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection yet'}</span></div>`;})()}
      <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${tr.cons}</b> · `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
@@ -2569,6 +2614,7 @@ function renderPlayer(){
    <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    ${thisWeek}
    ${weekCard(p,tr.projV)}
+   ${usageCard(p)}
    ${poCard}
    <div id="pNews"></div>${toolsCard}${xfpCard}
    <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
