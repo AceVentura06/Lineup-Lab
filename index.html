@@ -499,6 +499,11 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 /* player banner stays on screen under the top bar, and slims down once the page scrolls past it */
 .team-hero{position:sticky;top:var(--tbh,0px);z-index:40;transition:padding .2s}
 .team-hero h1{transition:font-size .2s}
+/* player pages: a big, faint team logo behind the headshot and name, clipped by the banner */
+.team-hero .hero-bg{position:absolute;right:40px;top:50%;height:420px;width:auto;transform:translateY(-50%) rotate(-10deg);opacity:.16;pointer-events:none;user-select:none;transition:opacity .2s}
+@media (max-width:900px){.team-hero .hero-bg{height:340px;right:-20px}}
+@media (max-width:600px){.team-hero .hero-bg{height:250px;right:-50px}}
+.team-hero.stuck .hero-bg{opacity:.1;height:200px}
 /* team pages: a big team logo in the banner */
 .tm-hero{min-height:260px;align-items:center}
 .team-hero .shot.logo.tm-logo{height:230px;max-height:none;right:48px;bottom:50%;transform:translateY(50%) rotate(-4deg)}
@@ -2772,7 +2777,7 @@ function renderPlayer(){
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
   const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${tr.share}</b> · `:''}${US.sub(p)}</span></div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
-   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
+   <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg" src="${teamLogo(p.team)}" alt="" aria-hidden="true" onerror="this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
