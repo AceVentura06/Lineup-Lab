@@ -2445,17 +2445,25 @@ document.querySelector('table.dir thead').onclick=e=>{const th=e.target.closest(
 
 // Points by week, broadcast style: bars with the score inside, missed weeks marked, this week's projection as a striped bar
 // the usage stat that matters most for each position: target share for pass catchers, share of team carries for backs
-function usageOf(pos){const RB={k:'csh',me:'rush_att',tm:'tm_rush_att',tile:'Team carry share',title:'Share of team carries',unit:'carries'},
-  WR={k:'tsh',me:'rec_tgt',tm:'tm_tgt',tile:'Target share',title:'Target share',unit:'targets'};return {RB,WR,TE:WR}[pos]||null;}
+function usageOf(pos){
+  const share=(k,me,tm,tile,title,unit)=>({tile,title,wk:e=>e[k]!=null?e[k]:null,seas:q=>dv(q.s[me],q.s[tm]),pool:q=>q.gp>=2&&q.s[tm]>0,sub:q=>`${q.s[me]} of ${q.s[tm]} team ${unit}`});
+  const rushPts=q=>q.s.rush_yd*.1+q.s.rush_td*6;
+  const QB={tile:'Pts from rushing',title:'Share of points from rushing',
+    wk:e=>{const t=wpts(e);return t>0?Math.max(0,Math.min(100,100*((e.ry||0)*.1+(e.rtd||0)*6)/t)):null;},
+    seas:q=>{const t=tot(q);return t>0?Math.max(0,rushPts(q)/t):null;},pool:q=>q.gp>=2&&QUAL.QB(q),
+    sub:q=>`${n1(rushPts(q))} of ${n1(tot(q))} pts`};
+  const RB=share('csh','rush_att','tm_rush_att','Team carry share','Share of team carries','carries'),
+    WR=share('tsh','rec_tgt','tm_tgt','Target share','Target share','targets');
+  return {QB,RB,WR,TE:WR}[pos]||null;}
 function usageCard(p){
   const U=usageOf(p.pos);if(!U)return '';
   const cur=SD.week,sc=SCHED[p.team]||[],weeks=[];
   const endW=p.weeks[cur-1]?cur:cur-1;
   for(let w=1;w<=endW;w++){const e=p.weeks[w-1],opp=sc[w-1]||'';
     const o=opp==='BYE'?'':(opp.startsWith('@')?'at '+opp.slice(1):'vs '+opp);
-    weeks.push({w,o,v:e&&e[U.k]!=null?e[U.k]:null,kind:e?'played':opp==='BYE'?'bye':'out'});}
+    weeks.push({w,o,v:e?U.wk(e):null,kind:e?'played':opp==='BYE'?'bye':'out'});}
   const pts=weeks.filter(x=>x.v!=null);if(pts.length<2)return '';
-  const seas=dv(p.s[U.me],p.s[U.tm]),avg=seas!=null?seas*100:null;
+  const seas=U.seas(p),avg=seas!=null?seas*100:null;
   const hiV=Math.max(...pts.map(x=>x.v),avg||0)*1.15,step=hiV>40?20:10,top=Math.max(20,Math.ceil(hiV/step)*step),H=180,y=v=>H*v/top,n=weeks.length;
   // line breaks at byes and missed games
   const runs=[];let run=[];weeks.forEach((x,i)=>{if(x.v!=null)run.push(`${i*100+50},${(H-y(x.v)).toFixed(1)}`);else{if(run.length)runs.push(run);run=[];}});if(run.length)runs.push(run);
@@ -2596,10 +2604,10 @@ function renderPlayer(){
       const rate=v.filter(x=>x>=startLine).length/v.length,cv=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length)/m;return rate*10-Math.min(cv,9.9);};
     const cons=rk(peers.filter(q=>q.gp>=3&&ppg(q)>=startLine/2&&cvF(q)!=null),cvF);
     const us=usageOf(p.pos);
-    const share=us?rk(peers.filter(q=>q.gp>=2&&q.s[us.tm]>0),q=>dv(q.s[us.me],q.s[us.tm])):null;
+    const share=us?rk(peers.filter(us.pool),us.seas):null;
     return {share,cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
-  const US=usageOf(p.pos),shV=US?dv(p.s[US.me],p.s[US.tm]):null;
-  const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${tr.share}</b> · `:''}${p.s[US.me]} of ${p.s[US.tm]} team ${US.unit}</span></div>`:'';
+  const US=usageOf(p.pos),shV=US?US.seas(p):null;
+  const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${tr.share}</b> · `:''}${US.sub(p)}</span></div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
    <div class="ph team-hero${headshotOf(p)?' has-shot':''}">${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo':''}" src="${headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${esc(TEAM_NAMES[p.team]||p.team)} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>
      ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
