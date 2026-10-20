@@ -1,6 +1,6 @@
 {
-  "hash": "26bb742f3202d83e",
-  "updated": "2026-10-19T20:37:07.358Z",
+  "hash": "f1e5c3f7f21f3448",
+  "updated": "2026-10-20T00:24:08.580Z",
   "season": 2026,
   "week": 6,
   "through": "Weeks 1–5 plus 13 of 14 week 6 games",
@@ -39,7 +39,7 @@
     },
     "Weather": {
       "ok": true,
-      "detail": "1 outdoor games forecast"
+      "detail": "0 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "203 players with news, 395 of 409 stories with photos (ESPN 1647 articles scanned; ESPN 517, CBS Sports 25, Yahoo Sports 28, ProFootballTalk 16)"
+      "detail": "207 players with news, 400 of 411 stories with photos (ESPN 1645 articles scanned; ESPN 527, CBS Sports 24, Yahoo Sports 28, ProFootballTalk 16)"
     }
   }
 }
