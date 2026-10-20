@@ -1,21 +1,21 @@
 {
-  "hash": "f1e5c3f7f21f3448",
-  "updated": "2026-10-20T00:24:08.580Z",
+  "hash": "8d43dc478229f30a",
+  "updated": "2026-10-20T08:37:22.899Z",
   "season": 2026,
-  "week": 6,
-  "through": "Weeks 1–5 plus 13 of 14 week 6 games",
+  "week": 7,
+  "through": "Weeks 1–6",
   "sources": {
     "nflverse stats": {
       "ok": true,
-      "detail": "6417 player-weeks"
+      "detail": "6488 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "123 players"
+      "detail": "125 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "49 players"
+      "detail": "50 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -23,7 +23,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "5894 targets, 4740 carries"
+      "detail": "5958 targets, 4785 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -31,19 +31,19 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "376 entries for week 6"
+      "detail": "no week 7 report yet (comes out Wednesday)"
     },
     "Betting lines": {
       "ok": true,
-      "detail": "14 week 6 games, 14 with lines"
+      "detail": "14 week 7 games, 14 with lines"
     },
     "Weather": {
       "ok": true,
-      "detail": "0 outdoor games forecast"
+      "detail": "7 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "462 players"
+      "detail": "462 players (last week's rankings; this week's not posted yet)"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "387 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "413 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "207 players with news, 400 of 411 stories with photos (ESPN 1645 articles scanned; ESPN 527, CBS Sports 24, Yahoo Sports 28, ProFootballTalk 16)"
+      "detail": "206 players with news, 404 of 415 stories with photos (ESPN 1645 articles scanned; ESPN 532, CBS Sports 23, Yahoo Sports 26, ProFootballTalk 12)"
     }
   }
 }
