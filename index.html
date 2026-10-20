@@ -830,7 +830,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <button role="tab" data-tab="stats" id="t-stats">Player Stats</button>
     <button role="tab" data-tab="ros" id="t-ros">Rest of Season</button>
     <button role="tab" data-tab="week" id="t-week">Start / Sit</button>
-    <button role="tab" data-tab="lineup" id="t-lineup">Suggested Lineup</button>
+    <button role="tab" data-tab="lineup" id="t-lineup">My Lineup</button>
     <button role="tab" data-tab="trade" id="t-trade" hidden>Trades</button>
     <button role="tab" data-tab="dvp" id="t-dvp">Teams</button>
     <button role="tab" data-tab="acc" id="t-acc">Accuracy</button>
@@ -862,7 +862,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
         <h1 class="hm-h1" id="hmTitle"></h1>
         <p class="hm-sub" id="hmSub"></p>
         <div class="hm-find"><label class="label" for="homeSearch">Find a player</label><input id="homeSearch" type="search" list="hSearchList" placeholder="Name, then pick from the list" autocomplete="off" spellcheck="false"></div>
-        <div class="hm-btns"><button class="hm-go hm-pri" data-go="week">Start / Sit</button><button class="hm-go" data-go="lineup">Suggested lineup</button><button class="hm-go" data-go="sites">All projections</button></div>
+        <div class="hm-btns"><button class="hm-go hm-pri" data-go="week">Start / Sit</button><button class="hm-go" data-go="lineup">My lineup</button><button class="hm-go" data-go="sites">All projections</button></div>
       </div>
       <div class="card hm-team" id="hmTeam"></div>
     </div>
@@ -925,10 +925,10 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <p class="note">Average uses whichever sites have a projection for that player. "Split" means the sites are 4+ points apart: worth reading the news before you decide. Click a column header to sort.</p>
   </section>
 
-  <!-- SUGGESTED LINEUP -->
+  <!-- MY LINEUP -->
   <section class="panel" id="p-lineup" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h2>Suggested lineup · Week <span id="luWk"></span></h2><p class="note">Add your players and the model fills your lineup with the highest projections. It also scans for players most leagues haven't picked up who would beat one of your starters.</p></div>
+      <div><h2>My lineup · Week <span id="luWk"></span></h2><p class="note">Add your players and the model fills your lineup with the highest projections. It also scans for players most leagues haven't picked up who would beat one of your starters.</p></div>
     </div>
     <div class="card lc" id="luConnect"></div>
     <div class="split">
@@ -1654,7 +1654,7 @@ function findTrades(){const rep=replacementPpg(),all=realPlayers(),RP=new Map(al
   _tf={list:pick,league:!!LG};_tfK=k;return _tf;}
 function renderTradeFinder(){const el=$('#tFinder');if(!el)return;const f=findTrades();
   const head=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Trade finder</h3><span class="note">${f.league?`Real rosters from ${esc(S.league.leagueName)}`:'Connect your league on Suggested Lineup to trade with real teams'}</span></div>`;
-  if(f.need){el.innerHTML=head+`<p class="muted" style="margin-top:6px">Star your players or connect your league on Suggested Lineup, and the finder will look for trades that improve your starting lineup.</p>`;return;}
+  if(f.need){el.innerHTML=head+`<p class="muted" style="margin-top:6px">Star your players or connect your league on My Lineup, and the finder will look for trades that improve your starting lineup.</p>`;return;}
   const nm=p=>`<span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`;
   el.innerHTML=head+(f.list.length?`<ul class="tfind">${f.list.map((o,i)=>`<li><div class="tf-d"><div><span class="tf-l">Give</span> ${o.give.map(nm).join(' + ')}</div><div><span class="tf-l">Get</span> ${nm(o.get)}${o.team?` <span class="muted">from ${esc(o.team.name)}</span>`:''}</div>
       <div class="note">Your lineup <b style="color:var(--good)">+${f1(o.gain)} pts a week</b> · value ${f1(o.gv)} for ${f1(o.tv)}${o.pg!=null?` · ${o.pg>0.3?'helps their lineup too':o.pg>=-0.3?'about even for their lineup':'small cost to their lineup'}`:''}</div></div>
@@ -1967,7 +1967,7 @@ function checkHTML(c,max){const L=S.league,src=SRC_NAME[L.src];
   if(!c.moves.length)return `<div class="lc-ok">Your ${src} lineup matches the best projected lineup.</div>`;
   const nm=x=>x.real&&PL.has(x.key)?`<button class="plink" data-k="${esc(x.key)}">${esc(x.name)}</button>`:esc(x.name);
   return `<div class="lc-chk">${c.moves.slice(0,max||99).map(m=>`<div class="lc-mv"><span>Start <span class="pos ${m.inP.pos}">${m.inP.pos}</span> ${nm(m.inP)} <span class="muted">${f1(m.inP.proj)}</span></span><span>${m.outP?`over ${nm(m.outP)} <span class="muted">${f1(m.outP.proj)}${m.outP.proj<=0?' · not playing':''}</span>`:'in an empty slot'}</span><span class="gain">+${f1(m.gain)}</span></div>`).join('')}
-    ${max&&c.moves.length>max?`<span class="note">+${c.moves.length-max} more on Suggested Lineup</span>`:''}<p class="note">Make the swap${c.moves.length>1?'s':''} in the ${src} app: outside sites can read lineups but can't change them.</p></div>`;}
+    ${max&&c.moves.length>max?`<span class="note">+${c.moves.length-max} more on My Lineup</span>`:''}<p class="note">Make the swap${c.moves.length>1?'s':''} in the ${src} app: outside sites can read lineups but can't change them.</p></div>`;}
 // each service's own icon, via Google's favicon service; hidden if it doesn't load
 const lcLogo=d=>`<img class="lc-logo" src="https://www.google.com/s2/favicons?domain=${d}&sz=64" alt="" width="20" height="20" referrerpolicy="no-referrer" onerror="this.remove()">`;
 function renderConnect(){const el=$('#luConnect');if(!el)return;const L=S.league;
@@ -2363,7 +2363,7 @@ function renderSites(){
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
 document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if(ui.sortS===th.dataset.sort)ui.dirS=-(ui.dirS||1);else{ui.sortS=th.dataset.sort;ui.dirS=1;}renderSites();};
 
-// ---- suggested lineup ----
+// ---- my lineup ----
 const DEF_SLOTS={QB:1,RB:2,WR:2,TE:1,FLEX:1,SFLEX:0,K:1,DST:1};
 const SLOT_LBL={QB:'QB',RB:'RB',WR:'WR',TE:'TE',FLEX:'Flex',SFLEX:'Superflex',K:'K',DST:'D/ST'};
 const SLOT_OK={QB:['QB'],RB:['RB'],WR:['WR'],TE:['TE'],FLEX:['RB','WR','TE'],SFLEX:['QB','RB','WR','TE'],K:['K'],DST:['DST']};
