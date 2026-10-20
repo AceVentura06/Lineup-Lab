@@ -1058,6 +1058,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   <!-- SETTINGS -->
   <section class="panel" id="p-settings" role="tabpanel" hidden>
     <div><h2>Settings</h2><p class="note">Saved on this device. Everything on the site updates as you change these.</p></div>
+    <div class="card myteams" id="setTeam"></div>
     <div class="split">
       <div class="card sc-card" id="setScoring"></div>
       <div class="card" style="display:flex;flex-direction:column;gap:18px">
@@ -1159,11 +1160,17 @@ function stashTeam(){
   if(!S.teams.length){if(!S.mine.length&&!S.league)return;S.teams=[{id:'t'+Date.now(),name:(S.league&&S.league.teamName)||'My team'}];S.tid=S.teams[0].id;}
   const t=curTeam();if(!t)return;
   if(t.name==='My team'&&S.league&&S.league.teamName)t.name=S.league.teamName;
-  t.mine=S.mine.slice();t.league=S.league||null;t.sc=S.sc?{...S.sc}:null;t.slots=S.slots?{...S.slots}:null;}
-function loadTeam(t){S.tid=t.id;S.mine=(t.mine||[]).slice();S.league=t.league||null;if(t.sc){S.sc={...t.sc};syncFmt();}if(t.slots)S.slots={...t.slots};
+  t.mine=S.mine.slice();t.league=S.league||null;t.set={};for(const k of TEAM_SET)t.set[k]=S[k]==null?null:clone(S[k]);delete t.sc;delete t.slots;}
+// settings each team keeps for itself: scoring, lineup slots, playoff weeks, model tuning
+const TEAM_SET=['sc','slots','po','w','blendAuto'];
+const clone=v=>v&&typeof v==='object'?JSON.parse(JSON.stringify(v)):v;
+const freshSet=()=>({sc:clone(DEF_SC),slots:null,po:15,w:{...DEF_W},blendAuto:true});
+function loadTeam(t){S.tid=t.id;S.mine=(t.mine||[]).slice();S.league=t.league||null;
+  const set=t.set||(t.sc||t.slots?{sc:t.sc,slots:t.slots}:null);
+  if(set){for(const k of TEAM_SET)if(k in set&&!(k==='sc'&&!set.sc))S[k]=clone(set[k]);if(!S.w)S.w={...DEF_W};else S.w=Object.assign({...DEF_W},S.w);syncFmt();}
   if(S.trade){S.trade.give=[];S.trade.get=[];}_lp=null;}
 function switchTeam(id){if(id===S.tid)return;stashTeam();const t=S.teams.find(x=>x.id===id);if(!t)return;loadTeam(t);save();render();toast('Now showing '+t.name);}
-function newTeam(name){stashTeam();const t={id:'t'+Date.now(),name:(name||'').trim()||('Team '+(S.teams.length+1)),mine:[],league:null};
+function newTeam(name){stashTeam();const t={id:'t'+Date.now(),name:(name||'').trim()||('Team '+(S.teams.length+1)),mine:[],league:null,set:freshSet()};
   S.teams.push(t);loadTeam(t);save();render();toast('Created '+t.name);}
 function renderTeamCtl(){const el=$('#teamCtl');if(!el)return;
   el.innerHTML=!S.teams.length?`<span class="label">My team</span><button class="tm-go" data-go="lineup" title="Set up your team on My Lineup">Set up →</button>`
@@ -3031,7 +3038,11 @@ function scFields(){return [
   ['Kicker',[['k39','FG 0–39 yds','',1],['k40','FG 40–49 yds','',1],['k50','FG 50–59 yds','',1],['k60','FG 60+ yds','',1],['kmiss','Missed FG','',1],['xp','Extra point (XP)','',1],['xpmiss','Missed XP','',1]]],
   ['Defense / special teams',[['dsack','Sack','',1],['dint','Interception','',1],['dfr','Fumble rec.','',1],['dtd','Touchdown','Return or defensive',1],['dsafe','Safety','',1],['dblk','Blocked kick','',1]]],
   ['Points allowed (D/ST)',[['pa0','0 points','',1],['pa1','1–6','',1],['pa7','7–13','',1],['pa14','14–17','',1],['pa18','18–27','',1],['pa28','28–34','',1],['pa35','35–45','',1],['pa46','46+','',1]]]];}
-function renderSettings(){const el=$('#setScoring');if(!el)return;const c=SC(),pre=scPreset(),dflt=JSON.stringify(c)===JSON.stringify(DEF_SC);
+function renderSetTeam(){const el=$('#setTeam');if(!el)return;const t=curTeam();
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Settings for ${t?esc(t.name):'your team'}</h3><span class="note">Scoring, lineup slots, playoff weeks and model tuning are saved separately for each team. Appearance applies to all.</span></div>
+   ${S.teams.length>1?`<div class="chips">${S.teams.map(x=>`<button class="chip" aria-pressed="${x.id===S.tid}" data-team="${esc(x.id)}">${esc(x.name)}</button>`).join('')}</div>`:''}
+   <div><button class="hm-link" data-go="lineup">${S.teams.length?'Add or rename teams on My Lineup':'Set up a team on My Lineup'}</button></div>`;}
+function renderSettings(){renderSetTeam();syncPo();const el=$('#setScoring');if(!el)return;const c=SC(),pre=scPreset(),dflt=JSON.stringify(c)===JSON.stringify(DEF_SC);
   if(el.contains(document.activeElement)&&document.activeElement.tagName==='INPUT'){   // typing: refresh only the labels
     el.querySelector('.sc-name').textContent=scName()+' scoring';el.querySelectorAll('[data-pre]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pre===pre));
     el.querySelector('[data-screset]').disabled=dflt;return;}
