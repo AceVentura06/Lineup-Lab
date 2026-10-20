@@ -1,6 +1,6 @@
 {
-  "hash": "8d43dc478229f30a",
-  "updated": "2026-10-20T08:37:22.899Z",
+  "hash": "b999a5a169394f6d",
+  "updated": "2026-10-20T12:56:16.401Z",
   "season": 2026,
   "week": 7,
   "through": "Weeks 1–6",
@@ -27,7 +27,7 @@
     },
     "FTN charting": {
       "ok": true,
-      "detail": "13585 charted plays"
+      "detail": "15861 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "206 players with news, 404 of 415 stories with photos (ESPN 1645 articles scanned; ESPN 532, CBS Sports 23, Yahoo Sports 26, ProFootballTalk 12)"
+      "detail": "204 players with news, 413 of 415 stories with photos (ESPN 1646 articles scanned; ESPN 529, CBS Sports 21, Yahoo Sports 15, ProFootballTalk 14)"
     }
   }
 }
