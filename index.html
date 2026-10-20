@@ -389,6 +389,12 @@ html{overflow-x:clip}body{overflow-x:clip}
 @keyframes tk{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media (prefers-reduced-motion:reduce){.tk-track{animation:none}.tk-view{overflow-x:auto;mask-image:none}.tk-run[aria-hidden]{display:none}}
 
+.board .tm-go{all:unset;cursor:pointer;box-sizing:border-box;font-family:var(--f-display);font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:.95rem;padding:7px 10px;background:var(--surface-2);color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;display:block;height:36.5px;line-height:22.5px}
+.board .tm-go:hover{color:var(--gold)}.board .tm-go:focus-visible{outline:2px solid var(--gold)}
+.board .ctl-tm select{height:36.5px;box-sizing:border-box;font-family:var(--f-display);font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:.95rem;padding:6px 8px;border:0;background:var(--surface-2);color:var(--ink);max-width:200px}
+.myteams{display:flex;flex-direction:column;gap:10px}
+.tm-row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
+.tm-row .field{flex:1 1 220px}
 .board .hsearch input{width:220px;border:0;background:var(--surface-2);color:var(--ink);border-radius:4px;padding:7px 10px;font:inherit}
 @media (max-width:600px){.board .hsearch{flex:1 1 100%}.board .hsearch input{width:100%}}
 
@@ -719,7 +725,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .bmore button[aria-current="page"]{color:var(--gold)}
 }
 @media (max-width:600px){
-  .board .ctl-sc,.board .ctl-th,.board .tb-hide{display:none}
+  .board .ctl-sc,.board .tb-hide{display:none}
+  .board .ctl-tm{flex:0 1 auto;min-width:0}.board .ctl-tm select,.board .tm-go{max-width:150px;font-size:.85rem;height:36.5px;box-sizing:border-box}.board .tm-go{line-height:22.5px;padding-top:7px;padding-bottom:7px}
   .board .controls{flex-wrap:nowrap;align-items:end}
   .board .hsearch{flex:1 1 auto;min-width:0}
 }
@@ -811,11 +818,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
         </div>
       </div>
       <div class="ctl"><label class="label" for="weekIn">Week</label><input id="weekIn" type="number" min="1" max="18" style="width:64px"></div>
-      <div class="ctl ctl-th"><span class="label">Theme</span>
-        <div class="seg" id="themeSeg" role="group" aria-label="Color theme">
-          <button data-v="auto" title="Match this device"><span>Auto</span></button><button data-v="light"><span>Light</span></button><button data-v="dark"><span>Dark</span></button>
-        </div>
-      </div>
+      <div class="ctl ctl-tm" id="teamCtl"></div>
     </div>
   </header>
 
@@ -930,6 +933,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
       <div><h2>My lineup · Week <span id="luWk"></span></h2><p class="note">Add your players and the model fills your lineup with the highest projections. It also scans for players most leagues haven't picked up who would beat one of your starters.</p></div>
     </div>
+    <div class="card myteams" id="luTeams"></div>
     <div class="card lc" id="luConnect"></div>
     <div class="split">
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
@@ -939,7 +943,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
           <button class="btn primary" id="luAddBtn" type="button">Add</button>
         </div>
         <div id="luRoster"></div>
-        <p class="note">Your roster is the same list as the ☆ stars on Start / Sit, so starring a player there adds him here too.</p>
+        <p class="note">Your roster is the same list as the ☆ stars on Start / Sit, so starring a player there adds him to the team picked under My team.</p>
         <div class="btns"><button class="btn sm danger" id="luClear" type="button">Clear roster</button></div>
       </div>
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
@@ -1141,10 +1145,46 @@ const VOL={QB:.22,RB:.30,WR:.35,TE:.38,K:.35,DST:.45};
 let S={players:[],mine:[],scoring:'ppr',week:5,passTD:4,w:{...DEF_W}};
 try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});}}catch(e){}
 S.players=[];if(!Array.isArray(S.mine))S.mine=[];
+// several fantasy teams: S.mine / S.league / S.sc / S.slots always hold the picked team; the others wait in S.teams
+if(!Array.isArray(S.teams))S.teams=[];
+if(!S.teams.length&&(S.mine.length||S.league))S.teams=[{id:'t1',name:(S.league&&S.league.teamName)||'My team'}];
+if(S.teams.length&&!S.teams.some(t=>t.id===S.tid))S.tid=S.teams[0].id;
 if(typeof SITE_DATA!=='undefined'&&SITE_DATA.week)S.week=SITE_DATA.week;
 let ui={tab:'home',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
 
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){stashTeam();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function curTeam(){return S.teams.find(t=>t.id===S.tid)||null;}
+// copy the picked team's roster and league into its slot (starring with no team yet makes one)
+function stashTeam(){
+  if(!S.teams.length){if(!S.mine.length&&!S.league)return;S.teams=[{id:'t'+Date.now(),name:(S.league&&S.league.teamName)||'My team'}];S.tid=S.teams[0].id;}
+  const t=curTeam();if(!t)return;
+  if(t.name==='My team'&&S.league&&S.league.teamName)t.name=S.league.teamName;
+  t.mine=S.mine.slice();t.league=S.league||null;t.sc=S.sc?{...S.sc}:null;t.slots=S.slots?{...S.slots}:null;}
+function loadTeam(t){S.tid=t.id;S.mine=(t.mine||[]).slice();S.league=t.league||null;if(t.sc){S.sc={...t.sc};syncFmt();}if(t.slots)S.slots={...t.slots};
+  if(S.trade){S.trade.give=[];S.trade.get=[];}_lp=null;}
+function switchTeam(id){if(id===S.tid)return;stashTeam();const t=S.teams.find(x=>x.id===id);if(!t)return;loadTeam(t);save();render();toast('Now showing '+t.name);}
+function newTeam(name){stashTeam();const t={id:'t'+Date.now(),name:(name||'').trim()||('Team '+(S.teams.length+1)),mine:[],league:null};
+  S.teams.push(t);loadTeam(t);save();render();toast('Created '+t.name);}
+function renderTeamCtl(){const el=$('#teamCtl');if(!el)return;
+  el.innerHTML=!S.teams.length?`<span class="label">My team</span><button class="tm-go" data-go="lineup" title="Set up your team on My Lineup">Set up →</button>`
+   :S.teams.length===1?`<span class="label">My team</span><button class="tm-go" data-go="lineup" title="Open My Lineup">${esc(S.teams[0].name)}</button>`
+   :`<span class="label">My team</span><select id="teamSel" aria-label="My team">${S.teams.map(t=>`<option value="${esc(t.id)}"${t.id===S.tid?' selected':''}>${esc(t.name)}</option>`).join('')}</select>`;}
+function renderTeams(){const el=$('#luTeams');if(!el)return;const t=curTeam();
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>My teams</h3><span class="note">Each team keeps its own roster, stars and league.</span></div>
+   ${S.teams.length>1?`<div class="chips">${S.teams.map(x=>`<button class="chip" aria-pressed="${x.id===S.tid}" data-team="${esc(x.id)}">${esc(x.name)}</button>`).join('')}</div>`:''}
+   <div class="tm-row">${t?`<div class="field"><label class="label" for="tmName">Team name</label><input id="tmName" class="pick" maxlength="40" value="${esc(t.name)}" placeholder="Name this team" autocomplete="off"></div>`:''}
+    <div class="field"><label class="label" for="tmNew">${t?'Add another team':'Name your team'}</label><input id="tmNew" class="pick" maxlength="40" placeholder="e.g. Work League" autocomplete="off"></div>
+    <button class="btn primary" id="tmAdd" type="button">${t?'New team':'Create team'}</button>
+    ${t&&S.teams.length>1?`<button class="btn sm danger" id="tmDel" type="button">Delete this team</button>`:''}</div>`;}
+document.addEventListener('change',e=>{const id=e.target.id;
+  if(id==='teamSel')switchTeam(e.target.value);
+  if(id==='tmName'){const t=curTeam();if(!t)return;const v=e.target.value.trim();if(!v){e.target.value=t.name;return;}t.name=v;save();renderTeamCtl();renderTeams();toast('Renamed to '+v);}});
+document.addEventListener('click',e=>{const c=e.target.closest('[data-team]');if(c){switchTeam(c.dataset.team);return;}
+  if(e.target.id==='tmAdd'){newTeam($('#tmNew').value);return;}
+  if(e.target.id==='tmDel'){const b=e.target;if(!b.dataset.confirm){b.dataset.confirm=1;b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){delete b.dataset.confirm;b.textContent='Delete this team';}},4000);return;}
+    const gone=curTeam();S.teams=S.teams.filter(x=>x.id!==S.tid);loadTeam(S.teams[0]);save();render();toast('Deleted '+gone.name);}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='tmNew'){e.preventDefault();newTeam(e.target.value);}
+  if(e.key==='Enter'&&e.target.id==='tmName'){e.preventDefault();e.target.blur();}});
 
 const $=s=>document.querySelector(s);
 const n=v=>{v=parseFloat(v);return isFinite(v)?v:0};
@@ -2239,7 +2279,7 @@ function sortCmp(A,B,dir){const na=A==null||!Number.isFinite(A),nb=B==null||!Num
 function render(){
   document.querySelectorAll('.mine-cb').forEach(c=>c.checked=!!ui.mineOnly);document.querySelectorAll('.mine-n').forEach(n=>n.textContent=S.mine.length?`(${S.mine.length})`:'');
   document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',{ppr:1,half:.5,std:0}[b.dataset.v]===SC().rec));
-  $('#weekIn').value=S.week;
+  $('#weekIn').value=S.week;renderTeamCtl();if(ui.tab==='lineup')renderTeams();
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));syncBnav();
   ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model','settings'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
   // only the open tab is drawn; the others are drawn fresh when you switch to them (go() calls render())
