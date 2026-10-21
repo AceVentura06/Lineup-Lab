@@ -393,6 +393,8 @@ html{overflow-x:clip}body{overflow-x:clip}
 .board .tm-go:hover{color:var(--gold)}.board .tm-go:focus-visible{outline:2px solid var(--gold)}
 .board .ctl-tm select{height:36.5px;box-sizing:border-box;font-family:var(--f-display);font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:.95rem;padding:6px 8px;border:0;background:var(--surface-2);color:var(--ink);max-width:200px}
 .myteams{display:flex;flex-direction:column;gap:10px}
+#p-settings .split{align-items:start}
+.set-col{display:flex;flex-direction:column;gap:16px;min-width:0}
 .tm-row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:end}
 .tm-row .field{flex:1 1 220px}
 .board .hsearch input{width:220px;border:0;background:var(--surface-2);color:var(--ink);border-radius:4px;padding:7px 10px;font:inherit}
@@ -1058,9 +1060,12 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   <!-- SETTINGS -->
   <section class="panel" id="p-settings" role="tabpanel" hidden>
     <div><h2>Settings</h2><p class="note">Saved on this device. Everything on the site updates as you change these.</p></div>
+    <div class="card" id="setTheme"><h2>Appearance</h2><p class="muted">Auto follows your phone or computer's light/dark setting.</p>
+      <div class="seg" id="themeSeg2" role="group" aria-label="Color theme"><button data-v="auto"><span>Auto</span></button><button data-v="light"><span>Light</span></button><button data-v="dark"><span>Dark</span></button></div></div>
     <div class="card myteams" id="setTeam"></div>
     <div class="split">
       <div class="card sc-card" id="setScoring"></div>
+      <div class="set-col">
       <div class="card" style="display:flex;flex-direction:column;gap:18px">
         <div><h2>Tune the model</h2><p class="muted">Decide how much each factor should matter. Every table updates live.</p></div>
         <div class="slider"><div class="top"><label class="label" for="w-match">Matchup impact</label><span class="mono" id="w-match-v"></span></div><input type="range" id="w-match" min="0" max="0.35" step="0.01"><small class="note">How far the best/worst matchup moves a projection.</small></div>
@@ -1072,11 +1077,10 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
           <label class="mine-toggle" style="margin-top:8px"><input type="checkbox" id="blendAuto"> <span>Tune automatically from past accuracy</span></label><small class="note" id="blendNote"></small></div>
         <div class="btns"><button class="btn sm" id="resetW">Reset to defaults</button></div>
       </div>
-    </div>
-    <div class="card" id="setTheme"><h2>Appearance</h2><p class="muted">Auto follows your phone or computer's light/dark setting.</p>
-      <div class="seg" id="themeSeg2" role="group" aria-label="Color theme"><button data-v="auto"><span>Auto</span></button><button data-v="light"><span>Light</span></button><button data-v="dark"><span>Dark</span></button></div></div>
-    <div class="card" id="setPlayoffs"><h2>Fantasy playoffs</h2><p class="muted">The weeks your league's playoffs run. The Playoffs column on Rest of Season grades each player's matchups in these weeks.</p>
+      <div class="card" id="setPlayoffs"><h2>Fantasy playoffs</h2><p class="muted">The weeks your league's playoffs run. The Playoffs column on Rest of Season grades each player's matchups in these weeks.</p>
       <div class="chips" role="group" aria-label="Playoff weeks" id="poSeg"><button class="chip" data-po="14">Weeks 14–16</button><button class="chip" data-po="15">Weeks 15–17</button><button class="chip" data-po="16">Weeks 16–18</button></div></div>
+      </div>
+    </div>
   </section>
 
   <!-- MODEL -->
