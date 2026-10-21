@@ -13,38 +13,27 @@ jobs:
                curl -s -o out/$n.body -D out/$n.hdr -w 'status=%{http_code} size=%{size_download} time=%{time_total}\n' -H "$O" "$@" >> out/report.txt;
                grep -i '^access-control\|^content-encoding\|^cache-control\|^content-type' out/$n.hdr >> out/report.txt;
                head -c 1500 out/$n.body > out/$n.sample; rm -f out/$n.body; }
-          p inj_gz 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries' -H 'Accept-Encoding: gzip'
-          LD='https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/segments/0/leaguedefaults/3?scoringPeriodId=7&view=kona_player_info'
-          PW='https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/players?scoringPeriodId=7&view=players_wl'
-          S='"sortPercOwned":{"sortPriority":1,"sortAsc":false}'
-          for v in "kinj|$LD|{\"players\":{\"filterInjured\":{\"value\":true},$S,\"limit\":1000}}" \
-                   "kinjst|$LD|{\"players\":{\"filterInjuryStatus\":{\"value\":[\"OUT\",\"INJURY_RESERVE\",\"DOUBTFUL\",\"QUESTIONABLE\",\"SUSPENSION\"]},$S,\"limit\":1000}}" \
-                   "ktop|$LD|{\"players\":{\"filterSlotIds\":{\"value\":[0,2,4,6,16,17]},$S,\"limit\":500}}" \
-                   "pwinj|$PW|{\"filterInjured\":{\"value\":true},$S,\"limit\":1000}" \
-                   "pwtop|$PW|{\"filterActive\":{\"value\":true},$S,\"limit\":600}" ; do
-            n=${v%%|*}; r=${v#*|}; u=${r%%|*}; f=${r#*|}
-            echo "=== $n" >> out/report.txt
-            curl -s -o out/$n.json -w 'status=%{http_code} gz=%{size_download}\n' -H "$O" -H 'Accept-Encoding: gzip' -H "x-fantasy-filter: $f" "$u" >> out/report.txt
-            gunzip -c out/$n.json > out/$n.raw 2>/dev/null || cp out/$n.json out/$n.raw
-            wc -c < out/$n.raw >> out/$n.raw.size
-            python3 -c "
-          import json,sys,collections
-          d=json.load(open('out/$n.raw'))
-          L=d.get('players',d) if isinstance(d,dict) else d
-          print('count',len(L))
-          c=collections.Counter()
-          for e in L:
-            p=e.get('player',e); c[str(p.get('injuryStatus'))+'/'+str(p.get('injured'))]+=1
-          print(c.most_common(12))
-          e=L[0]; p=e.get('player',e); print(sorted(p.keys())); print({k:p.get(k) for k in ['fullName','defaultPositionId','proTeamId','injuryStatus','injured','lastNewsDate']})
-          " >> out/report.txt 2>&1
-            cat out/$n.raw.size >> out/report.txt; rm -f out/$n.json out/$n.raw out/$n.raw.size
-          done
-          echo "=== news athletes" >> out/report.txt
-          curl -s 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=50' | python3 -c "
-          import json,sys;d=json.load(sys.stdin)
-          a=d['articles'][0];print(a['headline']);print([ (c.get('type'),c.get('description'),c.get('athleteId') or (c.get('athlete') or {}).get('id')) for c in a['categories']][:8])
-          print(len(d['articles']), [x.get('type') for x in d['articles']][:10])" >> out/report.txt 2>&1
+          python3 - <<'PY'
+          import json,urllib.request,collections
+          d=json.load(urllib.request.urlopen('https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries'))
+          out=open('out/report.txt','w')
+          print('top',list(d.keys()),file=out)
+          g=d['injuries'][0];print('group keys',[k for k in g.keys()],file=out)
+          e=g['injuries'][0];print('entry keys',list(e.keys()),file=out)
+          a=e['athlete'];print('athlete keys',list(a.keys()),file=out)
+          print('position',json.dumps(a.get('position'))[:300],file=out)
+          print('team',json.dumps(a.get('team'))[:300],file=out)
+          for k in e:
+            if k!='athlete':print('entry',k,json.dumps(e[k])[:300],file=out)
+          c=collections.Counter(x.get('status') for g in d['injuries'] for x in g['injuries']);print('statuses',c.most_common(),file=out)
+          c=collections.Counter((x.get('type') or {}).get('name') if isinstance(x.get('type'),dict) else x.get('type') for g in d['injuries'] for x in g['injuries']);print('types',c.most_common(),file=out)
+          c=collections.Counter(json.dumps(x.get('details',{}).get('fantasyStatus')) for g in d['injuries'] for x in g['injuries']);print('fantasyStatus',c.most_common(10),file=out)
+          print('n',sum(len(g['injuries']) for g in d['injuries']),'groups',len(d['injuries']),file=out)
+          old=[x['date'] for g in d['injuries'] for x in g['injuries']];print('dates',min(old),max(old),file=out)
+          n=json.load(urllib.request.urlopen('https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=50'))
+          a=n['articles'][0];print('article keys',list(a.keys()),file=out);print('links',json.dumps(a.get('links'))[:400],file=out)
+          print('cat',json.dumps([c for c in a['categories'] if c.get('type')=='athlete'][:1])[:600],file=out)
+          PY
       - name: Push results to probe branch
         run: |
           cd out && git init -q && git checkout -q -b probe && git add . && git -c user.name=probe -c user.email=p@p commit -qm probe
