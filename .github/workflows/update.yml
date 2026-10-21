@@ -2,11 +2,11 @@ name: Update data
 
 on:
   schedule:
-    # Times are UTC. Every 3 hours, all week.
-    - cron: '17 */3 * * *'
-    # Sundays, hourly from noon to midnight Eastern (16:00–04:00 UTC).
-    - cron: '47 16-23 * * 0'
-    - cron: '47 0-4 * * 1'
+    # Times are UTC. Every 30 minutes, all week (off the hour: GitHub delays and drops top-of-hour runs most).
+    - cron: '17,47 * * * *'
+    # Sundays from noon to midnight Eastern (16:00–04:00 UTC): two more runs an hour, so every 15 minutes.
+    - cron: '2,32 16-23 * * 0'
+    - cron: '2,32 0-4 * * 1'
     # Sunday late morning, after teams announce inactives (about 90 minutes before the 1 PM games):
     # 11:45 AM and 12:15 PM Eastern in summer time; the 12:15 PM run also covers winter time (17:15 UTC).
     - cron: '45 15 * * 0'
