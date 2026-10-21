@@ -1,0 +1,36 @@
+name: Probe endpoints (temporary)
+on: { workflow_dispatch: {} }
+permissions: { contents: write }
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe
+        run: |
+          O='Origin: https://aceventura06.github.io'
+          mkdir out
+          p(){ n=$1; shift; echo "=== $n" >> out/report.txt;
+               curl -s -o out/$n.body -D out/$n.hdr -w 'status=%{http_code} size=%{size_download} time=%{time_total}\n' -H "$O" "$@" >> out/report.txt;
+               grep -i '^access-control\|^content-encoding\|^cache-control\|^content-type' out/$n.hdr >> out/report.txt;
+               head -c 1500 out/$n.body > out/$n.sample; rm -f out/$n.body; }
+          p espn_inj 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries'
+          p espn_news 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/news?limit=50'
+          p espn_fnews 'https://site.api.espn.com/apis/fantasy/v2/games/ffl/news/players?limit=50'
+          p core_inj 'https://sports.core.api.espn.com/v2/sports/football/leagues/nfl/teams/1/injuries'
+          p slp_players 'https://api.sleeper.app/v1/players/nfl' -H 'Accept-Encoding: gzip' --compressed
+          p espn_wl 'https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/players?scoringPeriodId=0&view=players_wl' -H 'Accept-Encoding: gzip' --compressed
+          echo "=== preflight x-fantasy-filter" >> out/report.txt
+          curl -s -o /dev/null -D - -X OPTIONS -H "$O" -H 'Access-Control-Request-Method: GET' -H 'Access-Control-Request-Headers: x-fantasy-filter' 'https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/players?view=kona_player_info' | grep -i '^HTTP\|^access-control' >> out/report.txt
+          F='{"players":{"filterInjured":{"value":true},"limit":2000}}'
+          p espn_kona_inj 'https://lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/2026/segments/0/leaguedefaults/3?scoringPeriodId=7&view=kona_player_info' -H "x-fantasy-filter: $F" --compressed
+          # gzip size of sleeper players
+          curl -s -H 'Accept-Encoding: gzip' 'https://api.sleeper.app/v1/players/nfl' | wc -c >> out/report.txt
+          python3 - <<'PY'
+          import json,urllib.request
+          d=json.load(urllib.request.urlopen('https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries'))
+          open('out/espn_inj_shape.txt','w').write(json.dumps(d,indent=0)[:6000])
+          PY
+      - name: Push results to probe branch
+        run: |
+          cd out && git init -q && git checkout -q -b probe && git add . && git -c user.name=probe -c user.email=p@p commit -qm probe
+          git push -fq "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" probe
