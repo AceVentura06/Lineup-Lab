@@ -1,0 +1,22 @@
+top ['timestamp', 'status', 'season', 'injuries']
+group keys ['id', 'displayName', 'injuries']
+entry keys ['id', 'longComment', 'shortComment', 'status', 'date', 'athlete', 'source', 'type', 'details']
+athlete keys ['firstName', 'lastName', 'displayName', 'shortName', 'links', 'headshot', 'position', 'team', 'notes', 'status']
+position {"id": "9", "name": "Running Back", "displayName": "Running Back", "abbreviation": "RB", "leaf": true}
+team {"id": "22", "uid": "s:20~l:28~t:22", "slug": "arizona-cardinals", "name": "Cardinals", "abbreviation": "ARI", "displayName": "Arizona Cardinals", "logos": [{"href": "https://a.espncdn.com/i/teamlogos/nfl/500/ari.png", "width": 500, "height": 500, "alt": "", "rel": ["full", "default"], "lastUpdated"
+entry id "643596"
+entry longComment "Love is working his way back from an ankle injury that kept him out for Week 6 but is still not ready to ramp up to practice participation. He'll have a chance to get back in the mix Thursday or Friday but if Love is unable to do so, it'll be a mix of Tyler Allgeier and Bam Knight on Sunday against
+entry shortComment "Love (ankle) will not practice Wednesday, per Dani Sureck of the Cardinals' official site."
+entry status "Questionable"
+entry date "2026-10-21T19:11Z"
+entry source {"id": "1", "description": "basic/manual", "state": "basic"}
+entry type {"id": "2", "name": "INJURY_STATUS_QUESTIONABLE", "description": "questionable", "abbreviation": "Q"}
+entry details {"fantasyStatus": {"description": "QUESTIONABLE", "abbreviation": "QUESTIONABLE"}, "type": "Ankle", "location": "Leg", "detail": "Not Specified", "side": "Not Specified", "returnDate": "2026-10-25"}
+statuses [('Active', 570), ('Questionable', 151), ('Injured Reserve', 50), ('Out', 18), ('Doubtful', 8), ('Suspension', 3)]
+types [('INJURY_STATUS_ACTIVE', 570), ('INJURY_STATUS_QUESTIONABLE', 151), ('INJURY_STATUS_IR', 50), ('INJURY_STATUS_OUT', 18), ('INJURY_STATUS_DOUBTFUL', 8), ('INJURY_STATUS_SUSPENSION', 3)]
+fantasyStatus [('null', 568), ('{"description": "QUESTIONABLE", "abbreviation": "QUESTIONABLE"}', 153), ('{"description": "IR", "abbreviation": "IR"}', 31), ('{"description": "IR-R", "abbreviation": "IR-R"}', 19), ('{"description": "OUT", "abbreviation": "OUT"}', 13), ('{"description": "DOUBTFUL", "abbreviation": "DOUBTFUL"}', 8), ('{"description": "PUP-R", "abbreviation": "PUP-R"}', 5), ('{"description": "RESERVE-SUS", "abbreviation": "RESERVE-SUS"}', 3)]
+n 800 groups 32
+dates 2026-09-30T00:20Z 2026-10-21T21:34Z
+article keys ['id', 'nowId', 'contentKey', 'dataSourceIdentifier', 'type', 'headline', 'description', 'lastModified', 'published', 'images', 'categories', 'byline', 'links', 'premium']
+links {"api": {"self": {"href": "https://content.core.api.espn.com/v1/sports/news/50241195"}}, "app": {"sportscenter": {"href": "sportscenter://x-callback-url/showStory?uid=50241195"}}, "mobile": {"href": "http://m.espn.go.com/nfl/story?storyId=50241195"}, "web": {"href": "https://www.espn.com/nfl/story/_/id/50241195/lamar-jackson-practice-unclear-vs-bengals-week-7"}}
+cat [{"id": 184545, "type": "athlete", "uid": "s:20~l:28~a:3916387", "guid": "7d76fbb1-1c5e-d9f4-954f-cad43f720ae2", "description": "Lamar Jackson", "sportId": 28, "athleteId": 3916387, "athlete": {"id": 3916387, "description": "Lamar Jackson", "links": {"mobile": {"athletes": {"href": "https://www.espn.com/nfl/player/_/id/3916387/lamar-jackson"}}, "web": {"athletes": {"href": "https://www.espn.com/nfl/player/_/id/3916387/lamar-jackson"}}}}}]
