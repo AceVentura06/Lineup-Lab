@@ -1,6 +1,6 @@
 {
-  "hash": "c251faff55c089d4",
-  "updated": "2026-10-21T04:54:54.387Z",
+  "hash": "06e5ac3fef59b00c",
+  "updated": "2026-10-21T11:56:02.227Z",
   "season": 2026,
   "week": 7,
   "through": "Weeks 1–6",
@@ -31,7 +31,7 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "no week 7 report yet (comes out Wednesday)"
+      "detail": "23 entries for week 7"
     },
     "Betting lines": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "374 players"
+      "detail": "394 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "414 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "415 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "190 players with news, 377 of 385 stories with photos (ESPN 1632 articles scanned; ESPN 512, CBS Sports 17, Yahoo Sports 22, ProFootballTalk 9)"
+      "detail": "190 players with news, 382 of 388 stories with photos (ESPN 1634 articles scanned; ESPN 512, CBS Sports 16, Yahoo Sports 19, ProFootballTalk 9)"
     }
   }
 }
