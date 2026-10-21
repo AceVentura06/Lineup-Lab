@@ -291,7 +291,9 @@ table.sites .srange{min-width:96px}
 :root[data-theme="dark"] .tm-conf{background:color-mix(in srgb,var(--conf) 9%,var(--surface))}
 :root[data-theme="dark"] .tm-conf.afc{--conf:#F0474B}
 :root[data-theme="dark"] .tm-conf.nfc{--conf:#4F7FD1}
-.tm-conf-h{display:flex;align-items:baseline;gap:12px;margin-bottom:12px}
+.tm-conf-h{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.tm-conf-logo{width:48px;height:48px;object-fit:contain;flex:none}
+@media (max-width:600px){.tm-conf-logo{width:38px;height:38px}}
 .tm-conf-tag{font-family:var(--f-display);font-weight:800;font-style:italic;font-size:1.6rem;line-height:1;color:var(--conf);letter-spacing:.02em}
 .tm-conf-name{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .tm-divs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px 16px}
@@ -2060,7 +2062,7 @@ function renderTeamGrid(){const wk=S.week,TD=teamData();
     const line=!o?'':o==='BYE'?`Week ${wk}: bye`:`Week ${wk}: ${o.startsWith('@')?'at '+o.slice(1):'vs '+o}`;
     return `<button class="tm-card" data-tm="${t}" style="${teamVars(t)}">${DARK_ALT.includes(t)?tmLogo(t,'lg-light')+tmLogo(t,'lg-dark',bannerLogo(t)):tmLogo(t)}<span><b>${esc(TEAM_NAMES[t])}</b><small>${esc(line)}${d&&d.ppg!=null?` · ${n1(d.ppg)} pts/game`:''}</small></span></button>`;}).join('')}</div>`;
   $('#tmGrid').innerHTML=[['AFC','American Football Conference'],['NFC','National Football Conference']].map(([c,full])=>
-    `<section class="tm-conf ${c.toLowerCase()}" aria-label="${full}"><header class="tm-conf-h"><span class="tm-conf-tag">${c}</span><span class="tm-conf-name">${full}</span></header>
+    `<section class="tm-conf ${c.toLowerCase()}" aria-label="${full}"><header class="tm-conf-h"><img class="tm-conf-logo" src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/${c.toLowerCase()}.png&w=200&h=200" alt="" width="48" height="48" loading="lazy" onerror="this.remove()"><span class="tm-conf-tag">${c}</span><span class="tm-conf-name">${full}</span></header>
      <div class="tm-divs">${DIVS.filter(([dv])=>dv.startsWith(c)).map(card).join('')}</div></section>`).join('');}
 
 function renderDvpTable(){const D=dvpData();
