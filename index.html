@@ -1095,7 +1095,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 Matchup    = 1 + weight × (oppRank − 16.5) / 15.5
 Vegas      = 1 + weight × (team implied pts − team's usual pts) / team's usual pts
 Weather    = wind 15+ mph: passing −5%, kickers −10% (20+ mph: −10% / −18%)
-Health     = injury status, adjusted by Wed–Fri practice (DNP / limited / full)
+Health     = injury status (live from ESPN every 3 minutes), adjusted by Wed–Fri practice (DNP / limited / full)
 Projection = (1 − w) × Model + w × average(ESPN, Sleeper, CBS, FantasyPros)
              w is tuned by position from past accuracy (see Accuracy), unless set in Settings
 On bye, Out, or IR → 0</div>
@@ -1229,15 +1229,20 @@ function scDelta(c,pos,skipRec){if(!c||pos==='K'||pos==='DST'||pos==='DEF')retur
 
 // ---- real players for start/sit ----
 const CX=(typeof CTX_DATA!=='undefined'&&CTX_DATA)||{sched:'',ranks:'',inj:''};
-const SCHED={},RANKS={},INJ={};
+const SCHED={},RANKS={},INJ={},LIVEINJ={map:{},at:0};
+const TEAM_ALIAS={WSH:'WAS',JAC:'JAX',LA:'LAR'};
 (CX.sched||'').split('\n').filter(Boolean).forEach(l=>{const [t,s]=l.split('|');SCHED[t]=s.split(',');});
 (CX.ranks||'').split('\n').filter(Boolean).forEach(l=>{const [t,s]=l.split('|');RANKS[t]=s.split(',').map(x=>{const [r,v]=x.split(':');return {r:+r,v:+v};});});
 const PIDX={QB:0,RB:1,WR:2,TE:3,K:4,DST:5};
 const INJMAP={Questionable:'Questionable',Doubtful:'Doubtful',Out:'Out',IR:'IR',PUP:'IR',NA:'IR',DNR:'IR',Sus:'Out'};
-let _real=null,_realWk=null;
+let _real=null,_realWk=null,_injBase=false;
+// injury tags from the last scheduled update (the backup); live ESPN statuses are laid on top of these
+function baseInj(){if(_injBase)return;_injBase=true;
+  (CX.inj||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,,st]=l.split('|');INJ[nkey(nm,ps)]=INJMAP[st]||'Healthy';});
+  for(const k in LIVEINJ.map)INJ[k]=LIVEINJ.map[k].st;}
 function realPlayers(){
   if(_real&&_realWk===S.week)return _real;
-  if(!Object.keys(INJ).length)(CX.inj||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,,st]=l.split('|');INJ[nkey(nm,ps)]=INJMAP[st]||'Healthy';});
+  baseInj();
   const out=[];
   for(const p of PL.values()){
     if(p.gp<1)continue;
@@ -1271,7 +1276,10 @@ function base(p){
 const trendM=p=>1+({Rising:1,Steady:0,Falling:-1}[p.trend]||0)*S.w.trend;
 const schedM=p=>1+({Easy:1,Average:0,Hard:-1}[p.sched]||0)*S.w.sched;
 const matchM=p=>1+S.w.match*((Math.min(32,Math.max(1,n(p.oppRank)||16))-16.5)/15.5);
-function effStatus(p){const pr=p.real?practiceOf(p):null;return pr&&pr[1]?pr[1]:p.status;}
+const SEV={Healthy:0,Questionable:1,Doubtful:2,Out:3,IR:4};
+function effStatus(p){const pr=p.real?practiceOf(p):null,lv=p.real?LIVEINJ.map[p.key]:null;
+  if(lv){const ps=pr&&pr[1];return ps&&(SEV[ps]||0)>(SEV[lv.st]||0)?ps:lv.st;}
+  return pr&&pr[1]?pr[1]:p.status;}
 const healthWk=p=>{const pr=p.real?practiceOf(p):null,st=effStatus(p),pc=pr?pr[0]:'';
   if(st==='Out'||st==='IR')return 0;if(st==='Doubtful')return .35;
   if(st==='Questionable')return Math.max(0,1-S.w.q*(pc==='DNP'?1.6:pc==='FP'?.5:1));
@@ -2128,6 +2136,51 @@ async function liveTick(){clearTimeout(LIVE.timer);
   const wait=LIVE.any||liveDue()?6e4:next?Math.min(next-now+5e3,6*36e5):null;
   if(wait!=null)LIVE.timer=setTimeout(liveTick,Math.max(3e4,wait));}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-LIVE.at>6e4)liveTick();});
+// ---- live injuries and news: pulled straight from ESPN every few minutes while the page is open ----
+// The scheduled data (Sleeper's injury tags, the practice reports, the news feeds) stays underneath as the backup,
+// so if ESPN is slow or down nothing changes. A player ESPN lists as Out or on IR is projected at 0.0 right away.
+const ESPN_INJ='https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries';
+function liveInjSt(e){const t=String((e.type&&e.type.name)||'').toUpperCase(),s=String(e.status||'').toLowerCase(),f=String((e.details&&e.details.fantasyStatus&&e.details.fantasyStatus.abbreviation)||'').toUpperCase();
+  if(t.endsWith('_ACTIVE')||s==='active')return 'Healthy';
+  if(t.endsWith('_IR')||s.includes('reserve')||/^(IR|PUP|NFI)/.test(f))return 'IR';
+  if(t.endsWith('_OUT')||t.endsWith('_SUSPENSION')||s==='out'||s.includes('suspen'))return 'Out';
+  if(t.endsWith('_DOUBTFUL')||s==='doubtful')return 'Doubtful';
+  if(t.endsWith('_QUESTIONABLE')||s==='questionable'||s.includes('day-to-day'))return 'Questionable';
+  return null;}
+function injCaches(){_real=null;_wp.clear();_tvK='';_tvmK='';_bsK='';_tfK='';_lp=null;_lpKey='';_toolsKey='';_curveK='';}
+async function liveInjuries(){
+  const d=await getJ(ESPN_INJ),map={},abOf={};for(const t in TEAM_NAMES)abOf[TEAM_NAMES[t]]=t;
+  for(const g of d.injuries||[])for(const e of g.injuries||[]){const a=e.athlete||{},st=liveInjSt(e);if(!st||!a.displayName)continue;
+    const pos=a.position&&a.position.abbreviation,key=nkey(a.displayName,pos),pl=PL.get(key);if(!pl)continue;
+    const tm=(a.team&&a.team.abbreviation)||abOf[g.displayName];if(tm&&pl.team&&tm!==pl.team&&!(TEAM_ALIAS[tm]===pl.team))continue;
+    const t=Date.parse(e.date)||0;if(map[key]&&map[key].t>t)continue;
+    map[key]={st,t,note:e.shortComment||'',ret:e.details&&e.details.returnDate||''};}
+  baseInj();const before=JSON.stringify(Object.fromEntries(Object.entries(LIVEINJ.map).map(([k,v])=>[k,v.st])));
+  LIVEINJ.map=map;LIVEINJ.at=Date.now();for(const k in map)INJ[k]=map[k].st;
+  return before!==JSON.stringify(Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v.st])));}
+async function liveNews(){
+  const d=await getJ(ESB+'/news?limit=50');const arts=(d.articles||[]).filter(a=>a.headline&&a.links&&a.links.web&&a.links.web.href);
+  if(!arts.length)return false;
+  await new Promise(r=>loadNews(r));if(!NEWS.news)NEWS.news={};let changed=false;
+  const T=window.TICKER_DATA=window.TICKER_DATA||{};T.latest=T.latest||[];const seen=new Set(T.latest.map(x=>x[2]));
+  for(const a of arts){const url=a.links.web.href,iso=a.published||a.lastModified,img=(a.images||[]).find(i=>i.url)?.url||'',txt=a.description||'';
+    for(const c of a.categories||[]){if(c.type!=='athlete'||!c.description)continue;const k=nkey(c.description);if(!PL.has(k))continue;
+      const l=NEWS.news[k]=NEWS.news[k]||[];if(l.some(x=>x[2]===url))continue;l.push([a.headline,'ESPN',url,iso,txt,img]);
+      l.sort((x,y)=>Date.parse(y[3])-Date.parse(x[3]));l.length=Math.min(l.length,3);changed=true;}
+    if(!seen.has(url)&&a.type!=='Media'){T.latest.push([a.headline,'ESPN',url,iso,img]);seen.add(url);changed=true;}}
+  T.latest.sort((x,y)=>Date.parse(y[3])-Date.parse(x[3]));T.latest.length=Math.min(T.latest.length,15);
+  return changed;}
+const LIVEINJ_EVERY=3*6e4;let _injPend=false;
+const typing=()=>{const a=document.activeElement;return a&&(/^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName))&&a.type!=='checkbox'&&a.type!=='range';};
+function liveRedraw(){if(typing()){_injPend=true;return;}_injPend=false;injCaches();render();}
+document.addEventListener('focusout',()=>{if(_injPend)setTimeout(()=>{if(_injPend&&!typing())liveRedraw();},50);});
+async function liveFeedTick(){clearTimeout(LIVEINJ.timer);
+  if(!document.hidden&&S.week===SD.week){let ch=false;
+    try{ch=await liveInjuries()||ch;}catch(_){}
+    try{ch=await liveNews()||ch;}catch(_){}
+    LIVEINJ.tried=Date.now();if(ch)liveRedraw();}
+  LIVEINJ.timer=setTimeout(liveFeedTick,LIVEINJ_EVERY);}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now()-(LIVEINJ.tried||0)>6e4)liveFeedTick();});
 // ---- home: this week at a glance ----
 ui.homePos='QB';
 // "Since your last visit": your players' injury tags, practice reports, projections and news,
@@ -2260,8 +2313,9 @@ function renderHome(){
     .sort((a,b)=>(b.mine-a.mine)||(a.o-b.o)||(b.r.b-a.r.b)).slice(0,6);
   const recent=p=>{const l=NEWS&&(NEWS.news||{})[p.key];if(!l)return null;const last=p.name.split(' ').filter(w=>!/^(jr|sr|ii|iii|iv)\.?$/i.test(w)).pop().toLowerCase();
     return l.find(x=>Date.now()-Date.parse(x[3])<4*864e5&&x[0].toLowerCase().includes(last))||null;};
-  $('#hmInj').innerHTML=`<div class="hm-head"><h3>Injury watch</h3></div>${inj.length?`<div class="hm-list">${inj.map(x=>{const p=x.r.p,pr=practiceOf(p),pc=pr?pr[0]:'',nw=recent(p);
-      const note=pc?{DNP:'Did not practice',LP:'Limited in practice',FP:'Full practice'}[pc]+(pr[2]?` (${esc(pr[2])})`:''):{Out:'Not expected to play',Doubtful:'Doubtful to play',Questionable:'Questionable to play',IR:'On injured reserve'}[x.st]||'';
+  $('#hmInj').innerHTML=`<div class="hm-head"><h3>Injury watch</h3>${LIVEINJ.at?`<span class="hm-sm"><span class="livedot"></span>Live from ESPN · ${Date.now()-LIVEINJ.at<9e4?'just now':ago(new Date(LIVEINJ.at).toISOString())}</span>`:''}</div>${inj.length?`<div class="hm-list">${inj.map(x=>{const p=x.r.p,pr=practiceOf(p),pc=pr?pr[0]:'',nw=recent(p);
+      const lv=LIVEINJ.map[p.key];
+      const note=lv&&lv.note&&(!pc||lv.t>Date.now()-864e5)?esc(lv.note):pc?{DNP:'Did not practice',LP:'Limited in practice',FP:'Full practice'}[pc]+(pr[2]?` (${esc(pr[2])})`:''):{Out:'Not expected to play',Doubtful:'Doubtful to play',Questionable:'Questionable to play',IR:'On injured reserve'}[x.st]||'';
       return `<div style="display:flex;gap:10px;align-items:flex-start"><span style="flex:0 0 66px">${statusPill(p)||'<span class="pill p-warn">LP</span>'}</span><span>${pname(p)} <span class="hm-sm">${esc(p.team)} ${p.pos}${x.mine?' · your team':''}</span><br>
         <span class="hm-sm">${note}</span>${nw?`<br><a class="hm-sm" href="${esc(nw[2])}" target="_blank" rel="noopener noreferrer">${esc(nw[1])}: ${esc(nw[0])} ↗</a>`:''}</span></div>`;}).join('')}</div>`
     :'<p class="hm-empty">No injury tags on fantasy starters right now.</p>'}`;
@@ -3034,7 +3088,7 @@ document.addEventListener('keydown',e=>{const th=e.target.closest&&e.target.clos
 render();
 renderTicker();
 autoSync();
-liveTick();
+liveTick();liveFeedTick();
 // ---- settings: scoring rules ----
 function scFields(){return [
   ['Offense',[['rec','Per catch','',.5],['te','TE catch bonus','TE premium',.25],['ptd','Passing TD','',1],['int','Interception','',1],
