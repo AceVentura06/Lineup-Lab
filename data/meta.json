@@ -1,6 +1,6 @@
 {
-  "hash": "06e5ac3fef59b00c",
-  "updated": "2026-10-21T11:56:02.227Z",
+  "hash": "2434c7fb9decb519",
+  "updated": "2026-10-21T17:16:21.715Z",
   "season": 2026,
   "week": 7,
   "through": "Weeks 1–6",
@@ -11,15 +11,15 @@
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "125 players"
+      "detail": "111 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "50 players"
+      "detail": "44 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
-      "detail": "39 players"
+      "detail": "36 players"
     },
     "Play-by-play": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "190 players with news, 382 of 388 stories with photos (ESPN 1634 articles scanned; ESPN 512, CBS Sports 16, Yahoo Sports 19, ProFootballTalk 9)"
+      "detail": "193 players with news, 387 of 390 stories with photos (ESPN 1635 articles scanned; ESPN 520, CBS Sports 20, Yahoo Sports 15, ProFootballTalk 18)"
     }
   }
 }
