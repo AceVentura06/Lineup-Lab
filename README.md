@@ -39,6 +39,8 @@ If any single source fails, the rest still update. If nothing changed, it skips 
 | `scripts/adv.mjs` | Every other source |
 | `scripts/cbs.mjs` | CBS Sports pages |
 | `scripts/update.mjs` | Runs the build and writes `data/` |
+| `charts/` | Source for the React charts (Bklit UI components) — see below |
+| `assets/charts/` | The built chart bundle — generated, don't edit by hand |
 
 ## One-time setup
 
@@ -50,3 +52,24 @@ If any single source fails, the rest still update. If nothing changed, it skips 
 - ESPN's data comes from an unofficial endpoint. If ESPN changes it, the site keeps working with Sleeper only.
 - Yahoo requires a signed-in league member, so it isn't included.
 - Your starred players are saved in your own browser, not in this repository.
+
+## Charts (Bklit UI)
+
+The site itself is plain HTML. A few charts are "islands": small React components from
+[Bklit UI](https://github.com/bklit/bklit-ui) (MIT) that drop into the page.
+
+- `index.html` renders each chart's spot as `<div class="ll-island" data-island="week" data-props='…'>`,
+  with the hand-built HTML chart beside it as a fallback.
+- The first time a page shows an island, the page loads `assets/charts/islands.js` and `.css`
+  (React + the charts). The home page and tables never download them.
+- `charts/` is a small Vite + React + Tailwind project. Bklit components were installed with
+  `npx shadcn add @bklit/bar-chart` into `charts/src/components/charts/`. Everything its CSS
+  produces is scoped under `.ll-island`, so it can't restyle the rest of the site.
+- Chart colours come from the site's own tokens (`--line`, `--ink`, team colours…), so light/dark
+  mode and team pages just work.
+- One local change to Bklit's `bar-chart.tsx`, marked "Lineup Lab patch": tapping a bar on a phone
+  opens its tooltip.
+
+**Changing a chart:** edit `charts/src/islands/`, then `cd charts && npm install && npm run build`
+(or just push to `main` — `.github/workflows/charts.yml` rebuilds and commits the bundle).
+The build stamps a new `?v=` into `index.html` so visitors get the update.

@@ -1,0 +1,150 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* the site switches themes with data-theme on <html>, not a .dark class */
+@custom-variant dark (&:is(:root[data-theme="dark"] *));
+
+@theme inline {
+    --color-chart-line-primary: var(--chart-line-primary);
+    --color-chart-line-secondary: var(--chart-line-secondary);
+    --color-chart-brush-border: var(--chart-brush-border);
+    --color-chart-tooltip-background: var(--chart-tooltip-background);
+    --color-chart-tooltip-foreground: var(--chart-tooltip-foreground);
+    --color-chart-tooltip-muted: var(--chart-tooltip-muted);
+    --color-chart-scale-02: var(--chart-scale-02);
+    --color-chart-scale-03: var(--chart-scale-03);
+    --color-chart-scale-04: var(--chart-scale-04);
+    --color-chart-scale-05: var(--chart-scale-05);
+    --color-chart-segment-line: var(--chart-segment-line);
+    --color-chart-segment-background: var(--chart-segment-background);
+    --color-chart-marker-badge-foreground: var(--chart-marker-badge-foreground);
+    --color-chart-marker-badge-background: var(--chart-marker-badge-background);
+    --color-chart-indicator-secondary-color: var(--chart-indicator-secondary-color);
+    --color-chart-indicator-color: var(--chart-indicator-color);
+    --color-chart-scale-pattern-color: var(--chart-scale-pattern-color);
+    --chart-scale-05: var(--chart-scale-05);
+    --chart-scale-04: var(--chart-scale-04);
+    --chart-scale-03: var(--chart-scale-03);
+    --chart-scale-02: var(--chart-scale-02);
+    --color-chart-scale-01: var(--chart-scale-01);
+    --color-chart-scale-mix: var(--chart-scale-mix);
+    --color-chart-label: var(--chart-label);
+    --color-chart-marker-foreground: var(--chart-marker-foreground);
+    --color-chart-marker-border: var(--chart-marker-border);
+    --color-chart-marker-background: var(--chart-marker-background);
+    --chart-tooltip-muted: var(--chart-tooltip-muted);
+    --chart-tooltip-foreground: var(--chart-tooltip-foreground);
+    --chart-tooltip-background: var(--chart-tooltip-background);
+    --chart-brush-border: var(--chart-brush-border);
+    --color-chart-grid: var(--chart-grid);
+    --color-chart-crosshair: var(--chart-crosshair);
+    --chart-line-secondary: var(--chart-line-secondary);
+    --chart-line-primary: var(--chart-line-primary);
+    --color-chart-foreground-muted: var(--chart-foreground-muted);
+    --color-chart-foreground: var(--chart-foreground);
+    --color-chart-background: var(--chart-background);
+    --color-chart-negative: var(--chart-negative);
+    --color-chart-positive: var(--chart-positive);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+}
+
+:root {
+    --chart-1: oklch(0.585 0.233 277.117);
+    --chart-2: oklch(0.852 0.199 91.936);
+    --chart-3: oklch(0.667 0.295 322.15);
+    --chart-4: oklch(0.56 0.021 213.5);
+    --chart-5: oklch(0 0 0);
+    --chart-positive: oklch(0.696 0.17 162.48);
+    --chart-negative: oklch(0.637 0.237 25.331);
+    --chart-background: oklch(1 0 0);
+    --chart-foreground: oklch(0.145 0.004 285);
+    --chart-foreground-muted: oklch(0.55 0.014 260);
+    --chart-line-primary: var(--chart-1);
+    --chart-line-secondary: var(--chart-2);
+    --chart-crosshair: oklch(0.4 0.1828 274.34);
+    --chart-grid: oklch(0.9 0 0);
+    --chart-brush-border: var(--chart-grid);
+    --chart-tooltip-background: var(--popover);
+    --chart-tooltip-foreground: var(--popover-foreground);
+    --chart-tooltip-muted: var(--muted-foreground);
+    --chart-marker-background: oklch(0.97 0.005 260);
+    --chart-marker-border: oklch(0.85 0.01 260);
+    --chart-marker-foreground: oklch(0.3 0.01 260);
+    --chart-label: oklch(0.45 0.01 260);
+    --chart-scale-mix: oklch(1 0 0);
+    --chart-scale-01: oklch(0.922 0 0);
+    --chart-scale-02: color-mix(in oklab, var(--chart-1) 35%, var(--chart-scale-mix));
+    --chart-scale-03: color-mix(in oklab, var(--chart-1) 55%, var(--chart-scale-mix));
+    --chart-scale-04: color-mix(in oklab, var(--chart-1) 78%, var(--chart-scale-mix));
+    --chart-scale-05: var(--chart-1);
+    --chart-scale-pattern-color: oklch(1 0 0);
+    --chart-indicator-color: oklch(0.21 0.006 285);
+    --chart-indicator-secondary-color: oklch(0.913 0 0);
+    --chart-marker-badge-background: oklch(0 0 0);
+    --chart-marker-badge-foreground: oklch(0.84 0 0);
+    --chart-segment-background: oklch(0.756 0 0 / 0.06);
+    --chart-segment-line: oklch(0.5 0 0 / 0.25);
+}
+
+/* (Bklit's default .dark palette removed: chart tokens below follow the site's own light/dark tokens) */
+
+/* ---- Ace Lineup Lab theme: chart tokens follow the site's own tokens, so light/dark and team colours flip with the page ---- */
+.ll-island {
+    --chart-1: var(--wkc, var(--gold));
+    --chart-line-primary: var(--chart-1);
+    --chart-background: var(--wkbg, var(--surface));
+    --chart-foreground: var(--ink);
+    --chart-foreground-muted: var(--muted);
+    --chart-label: var(--muted);
+    --chart-grid: var(--line);
+    --chart-crosshair: var(--muted);
+    --chart-tooltip-background: color-mix(in srgb, var(--surface) 88%, transparent);
+    --chart-tooltip-foreground: var(--ink);
+    --chart-tooltip-muted: var(--muted);
+    --chart-positive: var(--good);
+    --chart-negative: var(--bad);
+    --foreground: var(--ink);
+    --border: var(--line);
+    --popover: var(--surface);
+    --popover-foreground: var(--ink);
+    --muted-foreground: var(--muted);
+    --radius: 0.625rem;
+    display: block;
+    color: var(--ink);
+}
+.ll-island * { border-color: var(--line); }
+
+/* ---- Points by week island ---- */
+.ll-wk-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.ll-wk-chart { height: 270px; }
+.ll-wk-chart svg text { font-family: var(--f-display); }
+.ll-val { font-family: var(--f-mono) !important; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--chart-background); stroke-width: 4px; stroke-linejoin: round; }
+.ll-gap { font-family: var(--f-display-cond) !important; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
+.ll-wk { fill: var(--chart-foreground); font-size: 14px; text-transform: uppercase; }
+.ll-opp { fill: var(--chart-label); font-family: var(--f-display-cond) !important; font-size: 14px; letter-spacing: .03em; text-transform: uppercase; }
+.ll-axis.now .ll-wk, .ll-axis.now .ll-opp { fill: var(--chart-1); }
+.ll-tip { min-width: 150px; }
+.ll-tip-h { padding: 8px 12px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: .92rem; white-space: nowrap; }
+.ll-tip-r { display: flex; flex-direction: column; gap: 6px; padding: 9px 12px 10px; }
+.ll-tip-r div { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: .88rem; }
+.ll-tip-r span { display: flex; align-items: center; gap: 7px; color: var(--chart-tooltip-muted); }
+.ll-tip-r i { width: 8px; height: 8px; border-radius: 50%; background: var(--chart-1); flex: none; }
+.ll-tip-r i.hatch { border-radius: 2px; background: repeating-linear-gradient(135deg, var(--chart-1) 0 1.5px, transparent 1.5px 3.5px); box-shadow: inset 0 0 0 1px var(--chart-1); }
+.ll-tip-r b { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.ll-tip-r b.up { color: var(--chart-positive); }
+.ll-tip-r b.dn { color: var(--chart-negative); }
+@media (max-width: 600px) {
+  .ll-wk-inner { --ll-col: 46px; }
+  .ll-wk-chart { height: 240px; }
+  .ll-val { font-size: 12px; }
+  .ll-wk { font-size: 11px; }
+  .ll-opp { font-size: 11.5px; letter-spacing: 0; }
+  .ll-gap { font-size: 10.5px; }
+}
+
+/* touch: the chart is a control, not text — no long-press selection or gray tap flash */
+.ll-island svg { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }

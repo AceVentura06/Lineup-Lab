@@ -812,6 +812,11 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .wkplot.anim .wkv{animation:wkfade .25s ease-out both;animation-delay:calc(var(--i) * var(--st) + .45s)}
 }
 @keyframes wkgrow{from{transform:scaleY(0)}}
+/* chart islands: once the chart bundle has loaded, the React chart replaces the hand-built one */
+.ll-island:empty{display:none}
+html.ll-ready .has-island>.wkscroll,html.ll-ready .has-island>.wktip{display:none}
+html.ll-ready .has-island>.ll-island{display:block;min-height:270px}
+@media (max-width:600px){html.ll-ready .has-island>.ll-island{min-height:240px}}
 @keyframes wkfade{from{opacity:0;transform:translateY(4px)}}
 @media (max-width:600px){.wkplot,.wklabs{gap:6px}.wkgrid{min-width:calc(var(--n) * 44px)}.wkv{font-size:.8rem}.wkavg{font-size:.78rem}.wkavg b{font-size:1.05rem}
   .wkl b{font-size:.78rem}.wkl span{font-size:.76rem;letter-spacing:0}.wkgap{font-size:.7rem;bottom:8px}.wkt,.wkb{border-radius:4px 4px 0 0}}
@@ -1476,6 +1481,14 @@ Total      = Pts/game × Games left</div>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+<script>
+// Chart islands (built from charts/ into assets/charts): fetched only when a page first shows one,
+// so the home page and tables never download React.
+(function(){var go=false;function load(){if(go||!document.querySelector('[data-island]'))return;go=true;
+  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=feb626ad47';document.head.appendChild(l);
+  import('./assets/charts/islands.js?v=feb626ad47').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
+  document.addEventListener('DOMContentLoaded',function(){load();if(!go)new MutationObserver(function(_,o){load();if(go)o.disconnect();}).observe(document.body,{childList:true,subtree:true});});})();
+</script>
 <script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data","ticker-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
 <script>
 (function(){
@@ -3258,11 +3271,13 @@ function weekCard(p,projV){
     const lbl=x.kind==='bye'?'Bye':x.kind==='upcoming'?'Next':'Out';
     return `<div class="wkcol${x.kind==='upcoming'?' next':''}" style="--i:${i}" role="img" aria-label="Week ${x.w}${esc(where)}: ${lbl}"><i class="wkt"></i><span class="wkgap">${lbl}</span></div>`;};
   const lab=x=>`<div class="wkl${x.kind==='proj'||x.kind==='upcoming'?' now':''}"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span></div>`;
-  return `<div class="card wkcard"><div class="wkhead"><h3>Points by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season avg <b>${n1(avg)}</b></span>`:''}</div>
+  // real Bklit chart (assets/charts) mounts into .ll-island; the hand-built chart below is the fallback
+  const island=esc(JSON.stringify({weeks:weeks.map(({w,o,v,snap,kind})=>({w,o,v,snap,kind})),avg,showSnaps:snaps,animate:anim}));
+  return `<div class="card wkcard has-island"><div class="wkhead"><h3>Points by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season avg <b>${n1(avg)}</b></span>`:''}</div>
     <div class="wkscroll"><div class="wkgrid" style="--n:${n}">
       <div class="wkplot${anim?' anim':''}" style="--n:${n};--h:${H}px;--st:${(0.44/Math.max(1,n)).toFixed(3)}s">${avg!=null?`<div class="wkline" style="bottom:${h(avg)}px"></div>`:''}${weeks.map(col).join('')}</div>
       <div class="wklabs" aria-hidden="true">${weeks.map(lab).join('')}</div>
-    </div></div><div class="wktip" aria-hidden="true"></div></div>`;}
+    </div></div><div class="wktip" aria-hidden="true"></div><div class="ll-island" data-island="week" data-props="${island}"></div></div>`;}
 // Bklit-style interaction: hovering, focusing or tapping a bar dims the others and opens the tooltip panel
 (function(){
   const COL='.wkcol.has,.us-col.has',PLOT='.wkplot,.us-plot';
