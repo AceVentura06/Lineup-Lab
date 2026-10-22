@@ -606,7 +606,6 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 /* team colors: brighter versions read on dark cards; bars use the team's lighter color */
 :root[data-theme="dark"] .teamed{--t-accent:color-mix(in srgb,var(--team-hi) 78%,#fff)}
 :root[data-theme="dark"] .teamed .tile .tr{box-shadow:0 0 0 1px rgba(255,255,255,.25)}
-:root[data-theme="dark"] .wkb.played{background:var(--team-hi,var(--gold));color:var(--team-hi-ink,#fff)}
 :root:not([data-theme="dark"]) .theme-dark-only{display:none}
 /* Settings */
 .topbar>.tabs .t-set{margin-left:auto}
@@ -763,25 +762,70 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .hm-empty{color:var(--muted);font-size:.95rem;line-height:1.5}
 @media (max-width:600px){.hm-hero{padding:20px;gap:12px}.hm-btns .hm-go{flex:1 1 40%;text-align:center}
   .hm-pick{display:flex}.hm-pos4 .hm-pcol:not(.on){display:none}.hm-pos4{grid-template-columns:1fr}}
-/* Points by week: broadcast bars */
-.wkcard{display:flex;flex-direction:column;gap:14px;--wkbg:var(--surface)}
+/* Points by week — Bklit-style bars (ported from bklit.com: ghost track, rounded caps, hover dim, panel tooltip, stagger grow) */
+.wkcard{position:relative;display:flex;flex-direction:column;gap:14px;--wkbg:var(--surface);--wkc:var(--t-accent,var(--gold));--wka:var(--team-stripe,var(--gold))}
 .teamed .wkcard{--wkbg:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
-.wkavg{font-family:var(--f-display);font-weight:700;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+:root[data-theme="dark"] .wkcard{--wkc:var(--t-accent,var(--gold-hi));--wka:var(--team-stripe,var(--gold-hi))}
+.wkhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px}
+.wkhead h3{white-space:nowrap}
+.wkavg{display:flex;align-items:baseline;gap:6px;font-family:var(--f-display);font-weight:700;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
 .wkavg b{color:var(--ink);font-size:1.25rem}
-.wkscroll{overflow-x:auto}
+.wkkey{display:inline-block;width:16px;border-top:2px dashed var(--wka);transform:translateY(-.3em)}
+.wkscroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}
 .wkgrid{min-width:calc(var(--n) * 64px)}
-.wkbars{position:relative;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px;align-items:end;border-bottom:2px solid var(--ink)}
-.wkcol{display:flex;flex-direction:column-reverse;align-items:stretch;gap:4px;position:relative;z-index:1}
-.wkb{display:flex;flex-direction:column;align-items:center;padding-top:12px;box-sizing:border-box;clip-path:polygon(0 8px,100% 0,100% 100%,0 100%);font-family:var(--f-display);line-height:1}
-.wkb b{font-weight:800;font-size:1.5rem}
-.wkb i{font-style:normal}.wkb span{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
-.wkb.played{background:var(--t-accent,var(--gold));color:var(--team-lo-ink,#fff)}
-.wkb.proj{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--t-accent,var(--gold)) 30%,transparent) 0 6px,color-mix(in srgb,var(--t-accent,var(--gold)) 12%,transparent) 6px 12px),var(--wkbg);color:var(--t-accent,var(--gold))}
-.wkb.empty{height:44px;clip-path:none;border:2px dashed var(--line);border-bottom:0;justify-content:center;padding:0;color:var(--muted);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
-.wkv{align-self:center;padding:0 5px;background:var(--wkbg);text-align:center;font-family:var(--f-display);font-weight:800;font-size:1.2rem}
+.wkplot{position:relative;height:var(--h);display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:12px;border-bottom:1px solid var(--line)}
+.wkcol{position:relative;outline:none;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.wkcol.has,.us-col.has{touch-action:manipulation;-webkit-touch-callout:none}
+.wkcol.has{cursor:pointer}
+/* ghost track: one quiet decorative layer, no grid on top of it */
+.wkt{position:absolute;inset:0;border-radius:6px 6px 0 0;background:repeating-linear-gradient(135deg,var(--line) 0 1.5px,transparent 1.5px 7px);opacity:.7}
+.wkb{position:absolute;left:0;right:0;bottom:0;border-radius:6px 6px 0 0;background:var(--wkc);transform-origin:50% 100%;transition:opacity .15s ease-in-out}
+.wkb.proj{background:repeating-linear-gradient(135deg,var(--wkc) 0 2px,transparent 2px 8px),var(--wkbg);box-shadow:inset 0 0 0 2px var(--wkc)}
+.wkv{position:absolute;left:-4px;right:-4px;text-align:center;font-family:var(--f-mono);font-weight:700;font-size:1rem;line-height:1;font-variant-numeric:tabular-nums;color:var(--ink);pointer-events:none}
+.wkv{z-index:3}.wkv span{padding:1px 4px;border-radius:4px;background:var(--wkbg)}
+.wkcol.proj .wkv{color:var(--wkc)}
+.wkgap{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-family:var(--f-display-cond);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wkcol.next .wkgap{color:var(--wkc)}
+.wkplot.hov .wkcol:not(.on) .wkb{opacity:.3}
+.wkv span{transition:color .15s ease-in-out}.wkplot.hov .wkcol:not(.on) .wkv span{color:color-mix(in srgb,currentColor 30%,var(--wkbg))}
+.wkcol.has:focus-visible .wkt{outline:2px solid var(--wkc);outline-offset:2px}
+.wkline{position:absolute;left:0;right:0;border-top:2px dashed var(--wka);z-index:2;pointer-events:none}
+.wklabs{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:12px;margin-top:8px;text-align:center;font-family:var(--f-display);text-transform:uppercase}
+.wkl b{display:block;font-size:.95rem;white-space:nowrap}
+.wkl span{display:block;margin-top:2px;font-family:var(--f-display-cond);font-size:.9rem;letter-spacing:.03em;color:var(--muted);white-space:nowrap}
+.wkl.now b,.wkl.now span{color:var(--wkc)}
+/* tooltip panel, after Bklit's TooltipBox: rounded, 1px border, soft shadow, frosted */
+.wktip{position:absolute;z-index:20;min-width:150px;max-width:220px;border:1px solid var(--line);border-radius:12px;background:color-mix(in srgb,var(--surface) 88%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 1px 2px rgba(14,23,38,.06),0 8px 24px rgba(14,23,38,.12);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s ease-out,transform .12s ease-out}
+.wktip.show{opacity:1;transform:none}
+:root[data-theme="dark"] .wktip{box-shadow:0 8px 28px rgba(0,0,0,.5)}
+@media (prefers-reduced-transparency:reduce){.wktip{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
+.wktip-h{padding:8px 12px;border-bottom:1px solid var(--line);font-weight:700;font-size:.92rem;color:var(--ink);white-space:nowrap}
+.wktip-r{display:flex;flex-direction:column;gap:6px;padding:9px 12px 10px}
+.wktip-r div{display:flex;align-items:center;justify-content:space-between;gap:16px;font-size:.88rem}
+.wktip-r span{display:flex;align-items:center;gap:7px;color:var(--muted)}
+.wktip-r i{width:8px;height:8px;border-radius:50%;background:var(--wkc);flex:none}
+.wktip-r i.hatch{border-radius:2px;background:repeating-linear-gradient(135deg,var(--wkc) 0 1.5px,transparent 1.5px 3.5px);box-shadow:inset 0 0 0 1px var(--wkc)}
+.wktip-r b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.wktip-r b.up{color:var(--good)}.wktip-r b.dn{color:var(--bad)}
+@media (prefers-reduced-motion:no-preference){
+  .wkplot.anim .wkb{animation:wkgrow .66s cubic-bezier(.85,0,.15,1) both;animation-delay:calc(var(--i) * var(--st))}
+  .wkplot.anim .wkv{animation:wkfade .25s ease-out both;animation-delay:calc(var(--i) * var(--st) + .45s)}
+}
+@keyframes wkgrow{from{transform:scaleY(0)}}
+@keyframes wkfade{from{opacity:0;transform:translateY(4px)}}
+@media (max-width:600px){.wkplot,.wklabs{gap:6px}.wkgrid{min-width:calc(var(--n) * 44px)}.wkv{font-size:.8rem}.wkavg{font-size:.78rem}.wkavg b{font-size:1.05rem}
+  .wkl b{font-size:.78rem}.wkl span{font-size:.76rem;letter-spacing:0}.wkgap{font-size:.7rem;bottom:8px}.wkt,.wkb{border-radius:4px 4px 0 0}}
 .us-plot{position:relative;margin-top:22px;border-bottom:2px solid var(--ink)}
 .us-plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.us-plot polyline{fill:none;stroke:var(--uc);stroke-width:2.5px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.us-plot{border-bottom-width:1px!important;border-bottom-color:var(--line)!important}
+.us-plot polyline{fill:none;stroke:var(--uc);stroke-width:2px;vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}
+.us-area{stroke:none}
+.us-col.has{cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+.us-col.has::before{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px dashed var(--muted);opacity:0;transition:opacity .15s ease-in-out}
+.us-col.on::before{opacity:.6}
+.us-col.on .us-dot{transform:scale(1.35)}
+.us-col.on .us-lbl{opacity:1}
+.us-dot.end{box-shadow:0 0 0 2px var(--wkbg),0 0 0 6px color-mix(in srgb,var(--uc) 25%,transparent)}
 .us-grid{position:absolute;left:0;right:0;border-top:1px solid var(--line);pointer-events:none}
 .us-grid span{position:absolute;left:0;bottom:2px;z-index:1;text-shadow:0 0 3px var(--wkbg),0 0 3px var(--wkbg);font-size:.7rem;color:var(--muted);font-family:var(--f-mono)}
 .us-cols{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px}
@@ -792,13 +836,6 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .us-col:focus .us-dot{transform:scale(1.35)}@media (hover:hover) and (pointer:fine){.us-col:hover .us-dot{transform:scale(1.35)}}
 .us-gap{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-family:var(--f-display);font-size:.8rem;text-transform:uppercase;color:var(--muted)}
 @media (max-width:600px){.us-cols{gap:6px}.us-lbl{font-size:.9rem}}
-.wkline{position:absolute;left:0;right:0;border-top:2px dashed var(--team-stripe,var(--gold));z-index:0;pointer-events:none}
-.wkseg{position:absolute;left:0;right:0;border-top:2px dashed var(--team-stripe,var(--gold));z-index:2;pointer-events:none}
-.wklabs{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:14px;margin-top:8px;text-align:center;font-family:var(--f-display);text-transform:uppercase}
-.wkl b{display:block;font-size:1rem}
-.wkl span{display:block;font-size:.85rem;color:var(--muted);white-space:nowrap}
-.wkl.now b,.wkl.now span{color:var(--t-accent,var(--gold))}
-@media (max-width:600px){.wkbars,.wklabs{gap:6px}.wkb b{font-size:1.15rem}.wkb span{font-size:.62rem;letter-spacing:.04em}.wkgrid{min-width:calc(var(--n) * 46px)}.wkcard h3{white-space:nowrap}.wkx{display:none}.wkavg{font-size:.85rem}.wkl b{font-size:.9rem}.wkl span{white-space:normal;font-size:.72rem;line-height:1.2}}
 
 /* Sharp corners on every box; dots and markers stay round */
 .range .dot,.sw,.sd,.lc-dot,.livedot,.us-dot,.tk-i::after,.tabs button.live::after,.team-hero::after{border-radius:50%!important}
@@ -3182,16 +3219,20 @@ function usageCard(p){
   const runs=[];let run=[];weeks.forEach((x,i)=>{if(x.v!=null)run.push(`${i*100+50},${(H-y(x.v)).toFixed(1)}`);else{if(run.length)runs.push(run);run=[];}});if(run.length)runs.push(run);
   const hi=pts.reduce((a,b)=>b.v>a.v?b:a),last=pts[pts.length-1];
   const grid=[top/2,top].map(g=>`<div class="us-grid" style="bottom:${y(g)}px"><span>${g}%</span></div>`).join('');
-  const col=x=>x.v==null?`<div class="us-col"><span class="us-gap">${x.kind==='bye'?'Bye':'Out'}</span></div>`
-    :`<div class="us-col" tabindex="0" title="Week ${x.w}${x.o?' '+x.o:''}: ${x.v.toFixed(1)}% ${U.title.toLowerCase()}"><i class="us-dot" style="bottom:${y(x.v)}px"></i><b class="us-lbl${x===hi||x===last?' on':''}" style="bottom:${y(x.v)+10}px">${Math.round(x.v)}%</b></div>`;
+  const gid='usg-'+p.key.replace(/[^a-z0-9]/g,'');// gradient ids are page-global
+  const area=r=>{if(r.length<2)return '';const x0=r[0].split(',')[0],x1=r[r.length-1].split(',')[0];return `<polygon class="us-area" fill="url(#${gid})" points="${x0},${H} ${r.join(' ')} ${x1},${H}"/>`;};
+  const tipOf=x=>{const r=[[U.title,x.v.toFixed(1)+'%','dot']];if(avg!=null){const d=x.v-avg;r.push(['vs season',(d>=0?'+':'−')+Math.abs(d).toFixed(1)+' pts',d>=0.05?'up':d<=-0.05?'dn':'']);}return esc(JSON.stringify({h:`Week ${x.w}${x.o?' '+x.o:''}`,r}));};
+  const col=x=>x.v==null?`<div class="us-col" role="img" aria-label="Week ${x.w}: ${x.kind==='bye'?'Bye':'Out'}"><span class="us-gap">${x.kind==='bye'?'Bye':'Out'}</span></div>`
+    :`<div class="us-col has" tabindex="0" role="img" data-tip="${tipOf(x)}" aria-label="Week ${x.w}${esc(x.o?' '+x.o:'')}: ${x.v.toFixed(1)}% ${esc(U.title.toLowerCase())}"><i class="us-dot${x===last?' end':''}" style="bottom:${y(x.v)}px"></i><b class="us-lbl${x===hi||x===last?' on':''}" style="bottom:${y(x.v)+12}px">${Math.round(x.v)}%</b></div>`;
   const lab=x=>`<div class="wkl"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span></div>`;
-  return `<div class="card wkcard uscard" style="--uc:var(--${p.pos.toLowerCase()})"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><h3>${U.title} by week</h3>${avg!=null?`<span class="wkavg">Season <b>${avg.toFixed(1)}%</b></span>`:''}</div>
+  return `<div class="card wkcard uscard" style="--uc:var(--${p.pos.toLowerCase()});--wkc:var(--uc)"><div class="wkhead"><h3>${U.title} by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season <b>${avg.toFixed(1)}%</b></span>`:''}</div>
     <div class="wkscroll"><div class="wkgrid" style="--n:${n}">
       <div class="us-plot" style="height:${H}px">${grid}${avg!=null?`<div class="wkline" style="bottom:${y(avg)}px"></div>`:''}
-        <svg viewBox="0 0 ${n*100} ${H}" preserveAspectRatio="none" aria-hidden="true">${runs.map(r=>r.length>1?`<polyline points="${r.join(' ')}"/>`:'').join('')}</svg>
+        <svg viewBox="0 0 ${n*100} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--uc)" stop-opacity=".28"/><stop offset="1" stop-color="var(--uc)" stop-opacity=".02"/></linearGradient></defs>${runs.map(area).join('')}${runs.map(r=>r.length>1?`<polyline points="${r.join(' ')}"/>`:'').join('')}</svg>
         <div class="us-cols" style="--n:${n}">${weeks.map(col).join('')}</div></div>
-      <div class="wklabs">${weeks.map(lab).join('')}</div>
-    </div></div></div>`;}
+      <div class="wklabs" aria-hidden="true">${weeks.map(lab).join('')}</div>
+    </div></div><div class="wktip" aria-hidden="true"></div></div>`;}
+const WK_SEEN=new Set();
 function weekCard(p,projV){
   const cur=SD.week,sc=SCHED[p.team]||[],weeks=[];
   for(let w=1;w<=cur;w++){const e=p.weeks[w-1],opp=sc[w-1]||'';
@@ -3202,19 +3243,54 @@ function weekCard(p,projV){
     weeks.push({w,o,kind:w===cur?'upcoming':'out'});}
   const vals=weeks.filter(x=>x.v!=null).map(x=>x.v),played=weeks.filter(x=>x.kind==='played').map(x=>x.v);
   const avg=played.length?played.reduce((a,b)=>a+b,0)/played.length:null;
-  const max=Math.max(8,...vals)*1.08,H=220,h=v=>Math.max(4,Math.round(H*Math.max(0,v)/max));
-  const snaps=p.pos!=='K'&&p.pos!=='DST';
-  const col=x=>{
-    if(x.kind==='played'||x.kind==='proj'){const hh=h(x.v),inside=hh>=40,la=avg!=null?h(avg):-1,zone=x.kind==='proj'?62:44;
-      const seg=la>0&&la<hh&&!(inside&&la>hh-zone)?`<i class="wkseg" style="bottom:${la}px"></i>`:'';
-      return `<div class="wkb ${x.kind}" style="height:${hh}px" title="Week ${x.w}${x.o?' '+x.o:''}: ${n1(x.v)} pts${x.kind==='proj'?' projected':''}">${inside?`<b>${n1(x.v)}</b>${x.kind==='proj'?'<span>Proj<i class="wkx">ected</i></span>':''}`:''}</div>${inside?'':`<b class="wkv">${n1(x.v)}</b>`}${seg}`;}
-    return `<div class="wkb empty">${x.kind==='bye'?'Bye':x.kind==='upcoming'?'Next':'Out'}</div>`;};
-  const lab=x=>`<div class="wkl${x.kind==='proj'||x.kind==='upcoming'?' now':''}"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}${x.kind==='played'&&snaps&&x.snap!=null?' · '+x.snap+'%':''}${x.kind==='proj'?' · next':''}</span></div>`;
-  return `<div class="card wkcard"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px"><h3>Points by week</h3>${avg!=null?`<span class="wkavg">Season avg <b>${n1(avg)}</b></span>`:''}</div>
-    <div class="wkscroll"><div class="wkgrid" style="--n:${weeks.length}">
-      <div class="wkbars" style="height:${H+30}px">${avg!=null?`<div class="wkline" style="bottom:${h(avg)}px"></div>`:''}${weeks.map(x=>`<div class="wkcol">${col(x)}</div>`).join('')}</div>
-      <div class="wklabs">${weeks.map(lab).join('')}</div>
-    </div></div></div>`;}
+  const H=200,max=Math.max(8,...vals,avg||0)*1.15,h=v=>Math.max(3,Math.round(H*Math.max(0,v)/max));
+  const snaps=p.pos!=='K'&&p.pos!=='DST',n=weeks.length;
+  // grow in once per player (Bklit timing: ~1.1s total, 40% of it spent on the stagger)
+  const anim=!WK_SEEN.has(p.key);WK_SEEN.add(p.key);
+  const col=(x,i)=>{
+    const where=x.o?' '+x.o:'';
+    if(x.kind==='played'||x.kind==='proj'){const hh=h(x.v),proj=x.kind==='proj';
+      const rows=[[proj?'Projected':'Points',n1(x.v),proj?'hatch':'dot']];
+      if(!proj&&snaps&&x.snap!=null)rows.push(['Snap share',x.snap+'%']);
+      if(avg!=null){const d=x.v-avg;rows.push(['vs season avg',(d>=0?'+':'−')+n1(Math.abs(d)),d>=0.05?'up':d<=-0.05?'dn':'']);}
+      const tip=esc(JSON.stringify({h:`Week ${x.w}${where}`,r:rows}));
+      return `<div class="wkcol has${proj?' proj':''}" style="--i:${i}" tabindex="0" role="img" data-tip="${tip}" aria-label="Week ${x.w}${esc(where)}: ${n1(x.v)} points${proj?' projected':''}"><i class="wkt"></i><i class="wkb${proj?' proj':''}" style="height:${hh}px"></i><b class="wkv" style="bottom:${hh+4}px"><span>${n1(x.v)}</span></b></div>`;}
+    const lbl=x.kind==='bye'?'Bye':x.kind==='upcoming'?'Next':'Out';
+    return `<div class="wkcol${x.kind==='upcoming'?' next':''}" style="--i:${i}" role="img" aria-label="Week ${x.w}${esc(where)}: ${lbl}"><i class="wkt"></i><span class="wkgap">${lbl}</span></div>`;};
+  const lab=x=>`<div class="wkl${x.kind==='proj'||x.kind==='upcoming'?' now':''}"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span></div>`;
+  return `<div class="card wkcard"><div class="wkhead"><h3>Points by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season avg <b>${n1(avg)}</b></span>`:''}</div>
+    <div class="wkscroll"><div class="wkgrid" style="--n:${n}">
+      <div class="wkplot${anim?' anim':''}" style="--n:${n};--h:${H}px;--st:${(0.44/Math.max(1,n)).toFixed(3)}s">${avg!=null?`<div class="wkline" style="bottom:${h(avg)}px"></div>`:''}${weeks.map(col).join('')}</div>
+      <div class="wklabs" aria-hidden="true">${weeks.map(lab).join('')}</div>
+    </div></div><div class="wktip" aria-hidden="true"></div></div>`;}
+// Bklit-style interaction: hovering, focusing or tapping a bar dims the others and opens the tooltip panel
+(function(){
+  const COL='.wkcol.has,.us-col.has',PLOT='.wkplot,.us-plot';
+  let on=null;
+  function show(c){if(on===c)return;hide();const card=c.closest('.wkcard'),tip=card&&card.querySelector('.wktip');if(!tip)return;
+    let d;try{d=JSON.parse(c.dataset.tip);}catch(_){return;}
+    on=c;c.classList.add('on');c.parentNode.classList.add('hov');
+    tip.innerHTML=`<div class="wktip-h">${esc(d.h)}</div><div class="wktip-r">${d.r.map(([l,v,k])=>`<div><span>${k==='dot'||k==='hatch'?`<i class="${k==='hatch'?'hatch':''}"></i>`:''}${esc(l)}</span><b class="${k==='up'||k==='dn'?k:''}">${esc(v)}</b></div>`).join('')}</div>`;
+    const cr=card.getBoundingClientRect(),br=c.getBoundingClientRect(),bar=c.querySelector('.wkb,.us-dot'),top=bar?bar.getBoundingClientRect().top:br.top;
+    const tw=tip.offsetWidth,th=tip.offsetHeight,mid=br.left+br.width/2-cr.left;
+    // beside the column, like Bklit's panel: right side if it fits, else left, else centered above the plot
+    const cl=br.left-cr.left,crt=br.right-cr.left,pb=br.bottom-cr.top,gap=10;
+    let x=crt+gap;if(x+tw>cr.width-8)x=cl-gap-tw;if(x<8)x=Math.min(Math.max(8,mid-tw/2),cr.width-tw-8);
+    let y=Math.min(Math.max(8,top-cr.top-4),pb-th);
+    tip.style.left=x+'px';tip.style.top=y+'px';tip.classList.add('show');}
+  function hide(){if(!on)return;on.classList.remove('on');on.parentNode.classList.remove('hov');const t=on.closest('.wkcard')?.querySelector('.wktip');if(t)t.classList.remove('show');on=null;}
+  document.addEventListener('pointerover',e=>{if(e.pointerType!=='mouse')return;const c=e.target.closest&&e.target.closest(COL);if(c)show(c);else if(on&&!e.target.closest?.(PLOT))hide();});
+  document.addEventListener('pointerout',e=>{if(e.pointerType!=='mouse'||!on)return;const to=e.relatedTarget;if(!to||!to.closest||!to.closest(PLOT))hide();});
+  // a tap on the open bar closes it; remember what was open before the tap, since focus opens it first
+  let downOn=null,downType='mouse';
+  // touch: open on finger-down, like a native control, not on release
+  document.addEventListener('pointerdown',e=>{downOn=on;downType=e.pointerType;if(e.pointerType!=='mouse'){const c=e.target.closest&&e.target.closest(COL);if(c&&c!==on)show(c);}},true);
+  document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest(COL);if(c){if(downType!=='mouse'&&downOn===c){hide();c.blur();}else show(c);}else hide();});
+  document.addEventListener('focusin',e=>{const c=e.target.closest&&e.target.closest(COL);if(c)show(c);else hide();});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});
+  document.addEventListener('scroll',e=>{if(on&&e.target.classList&&e.target.classList.contains('wkscroll'))hide();},true);
+  window.addEventListener('resize',hide);
+})();
 function boxScore(p){
   const g=p.gp||1,sc=scName(true);
   // [label, value for any player, options] — low: fewer is better; pg: per-game value; noPg: no per-game cell; show: custom display
