@@ -3304,6 +3304,22 @@ function prefetchShot(e){const b=e.target.closest&&e.target.closest('.plink');if
 ['pointerover','touchstart','focusin'].forEach(t=>document.addEventListener(t,prefetchShot,{passive:true}));
 document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;go('player',b.dataset.k);});
 
+// Card and section headings read in title case: every word capitalized except short connecting words
+// (a, of, vs, ...), which stay lowercase unless they lead the heading. Runs on every heading as it's drawn.
+const TC_SMALL=new Set('a an and as at but by for from in into nor of off on onto or per so the to up via vs with yet'.split(' '));
+function titleCaseEl(h){let first=true;const w=document.createTreeWalker(h,NodeFilter.SHOW_TEXT);let n;
+  while((n=w.nextNode())){const t=n.nodeValue,u=t.replace(/[A-Za-z][A-Za-z'’]*/g,wd=>{const lead=first;first=false;
+      return /^[a-z]/.test(wd)&&(lead||!TC_SMALL.has(wd))?wd[0].toUpperCase()+wd.slice(1):wd;});
+    if(/[A-Za-z0-9]/.test(t))first=first&&!/[A-Za-z0-9]/.test(t);
+    if(u!==t)n.nodeValue=u;}
+  // the last word is capitalized too ("Come From")
+  const ts=[];const w2=document.createTreeWalker(h,NodeFilter.SHOW_TEXT);while((n=w2.nextNode()))if(/[A-Za-z]/.test(n.nodeValue))ts.push(n);
+  const ln=ts[ts.length-1];if(ln){const v=ln.nodeValue.replace(/([a-z])([A-Za-z'’]*)([^A-Za-z]*)$/,(m,a,b,c,off,str)=>{const wd=a+b,pre=str.slice(0,off);return TC_SMALL.has(wd)&&/[A-Za-z]/.test(pre+ts.slice(0,-1).map(x=>x.nodeValue).join(''))?a.toUpperCase()+b+c:m;});if(v!==ln.nodeValue)ln.nodeValue=v;}}
+const tcAll=root=>{(root.matches&&root.matches('h2,h3')?[root]:[]).concat([...(root.querySelectorAll?root.querySelectorAll('h2,h3'):[])]).forEach(titleCaseEl);};
+new MutationObserver(ms=>{for(const m of ms){if(m.type==='childList')m.addedNodes.forEach(x=>{if(x.nodeType===1)tcAll(x);else if(x.parentElement&&x.parentElement.closest('h2,h3'))titleCaseEl(x.parentElement.closest('h2,h3'));});
+  else if(m.type==='characterData'){const h=m.target.parentElement&&m.target.parentElement.closest('h2,h3');if(h)titleCaseEl(h);}}})
+  .observe(document.body,{subtree:true,childList:true,characterData:true});
+tcAll(document.body);
 // profile pages: a "back" link that names where it goes, a row of jump buttons, and plain-English ranks
 const BACK_NM={home:'Home',sites:'Projections',week:'Start / Sit',lineup:'My Lineup',stats:'Player Stats',ros:'Rest of Season',dvp:'Teams',trade:'Trades',acc:'Accuracy',model:'How It Works',settings:'Settings'};
 const jumpNav=items=>items.length>1?`<nav class="pjump" aria-label="On this page">${items.map(([id,l])=>`<button type="button" data-jump="${id}">${esc(l)}</button>`).join('')}</nav>`:'';
