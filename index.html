@@ -1049,6 +1049,16 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 @media (prefers-reduced-motion:reduce){.nfx .panel :is(.num,.big,.hm-pr,.tile .v,.hp-v,.hw-v b,.mv,.proj,.lvp){filter:none;opacity:1}.toast,.toast.on{transform:translate(-50%,0)}
   :is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark):active{transform:none}
   .tools-d::details-content,.more-d::details-content{transition:none}}
+
+/* ===== Detail pass: one number face, even badges, no leftover all-caps labels, quieter links ===== */
+.hm-pr,.big{font-family:var(--f-mono);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0}
+.pos{font-family:var(--f-display-cond);font-weight:400;font-size:.88rem;letter-spacing:.04em;min-width:40px;box-sizing:border-box;padding:2px 6px}
+.hm-src,.hm-g .st{text-transform:none;letter-spacing:0;font-size:.85rem;font-weight:600}
+.plink{border-bottom:1px solid color-mix(in srgb,var(--ink) 22%,transparent);transition:border-color 120ms ease-out}
+@media (hover:hover) and (pointer:fine){.plink:hover{border-bottom-color:currentColor}}
+.lc-src{position:relative;display:inline-flex;gap:2px;padding:3px;border-radius:10px;background:var(--surface-2);width:fit-content;max-width:100%}
+.lc-src button{font-family:var(--f-display-cond);font-weight:400;font-size:1.02rem;letter-spacing:.03em;border-radius:7px;padding:7px 16px;background:transparent;color:var(--muted)}
+.lc-src button[aria-pressed="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{background:var(--gold);color:#fff}
 </style>
 </head>
 <body>
@@ -2609,7 +2619,7 @@ function renderHome(){
     if(!ws.length)acc=`<p class="hm-empty">Grades show up once Week ${SD.week}'s games are final.</p>`;
     else{const last=ws[ws.length-1],rows=accAgg([last]).sort((a,b)=>a.mae-b.mae),season=accAgg(ws).sort((a,b)=>a.mae-b.mae),best=rows[0];
       const li=rows.findIndex(r=>r.s==='lab'),si=season.findIndex(r=>r.s==='lab');
-      acc=`<div class="hm-list"><span class="hm-sm" style="font-weight:700;text-transform:uppercase;letter-spacing:.06em">Most accurate, Week ${last}</span>
+      acc=`<div class="hm-list"><span class="hm-sm" style="font-weight:700">Most accurate, Week ${last}</span>
         <span class="hm-big">${esc(ACC.sources[best.s])}</span><span class="hm-sm">${best.mae.toFixed(1)} points off per player</span>
         <div style="border-top:1px solid var(--line);padding-top:10px;font-size:.92rem">${best.s==='lab'?'That was us.':li>=0?`Ace Lineup Lab: <b>${ord(li+1)}</b> of ${rows.length} (${rows[li].mae.toFixed(1)} off).`:''}${si>=0?` Season to date: <b>${ord(si+1)}</b> of ${season.length}.`:''}</div></div>`;}}
   $('#hmAcc').innerHTML=`<div class="hm-head"><h3>Who called it</h3><button class="hm-link" data-go="acc">Scoreboard</button></div>${acc}`;
