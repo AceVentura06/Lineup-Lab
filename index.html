@@ -1054,8 +1054,12 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 .hm-pr,.big{font-family:var(--f-mono);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:0}
 .pos{font-family:var(--f-display-cond);font-weight:400;font-size:.88rem;letter-spacing:.04em;min-width:40px;box-sizing:border-box;padding:2px 6px}
 .hm-src,.hm-g .st{text-transform:none;letter-spacing:0;font-size:.85rem;font-weight:600}
-.plink{border-bottom:1px solid color-mix(in srgb,var(--ink) 22%,transparent);transition:border-color 120ms ease-out}
-@media (hover:hover) and (pointer:fine){.plink:hover{border-bottom-color:currentColor}}
+/* every tappable name or rank (players, teams, defenses, opponent ranks, ticker items) gets the same faint solid underline */
+:is(.plink,.tlink,.olink,.tk-a){border-bottom:1px solid color-mix(in srgb,currentColor 26%,transparent);transition:border-color 120ms ease-out}
+@media (hover:hover) and (pointer:fine){:is(.plink,.tlink,.olink,.tk-a):hover{border-bottom-color:currentColor}}
+/* text links (news, sources, "See all projections") match */
+:is(a,.hm-link2){text-decoration-color:color-mix(in srgb,currentColor 30%,transparent);text-underline-offset:3px;transition:text-decoration-color 120ms ease-out}
+@media (hover:hover) and (pointer:fine){:is(a,.hm-link2):hover{text-decoration-color:currentColor}}
 .lc-src{position:relative;display:inline-flex;gap:2px;padding:3px;border-radius:10px;background:var(--surface-2);width:fit-content;max-width:100%}
 .lc-src button{font-family:var(--f-display-cond);font-weight:400;font-size:1.02rem;letter-spacing:.03em;border-radius:7px;padding:7px 16px;background:transparent;color:var(--muted)}
 .lc-src button[aria-pressed="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{background:var(--gold);color:#fff}
