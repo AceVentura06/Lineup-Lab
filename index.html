@@ -247,7 +247,7 @@ td.none{color:var(--muted)}
 .tooltbl .trk{font-weight:400;color:var(--muted);font-size:.85em}.tooltbl td.win .trk{color:inherit;opacity:.8}
 @media (max-width:600px){#verdict .tooltbl .trk{display:block}#verdict .tooltbl th{white-space:normal}#verdict .tooltbl td,#verdict .tooltbl th{padding-left:6px;padding-right:6px}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.9rem}
-@media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:all .25s ease}}
+@media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:width .25s ease,left .25s ease,transform .25s ease}}
 
 .mlist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
 .mlist li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -820,8 +820,8 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 :root[data-theme="dark"] .topbar .tabs button[aria-selected="true"],:root[data-theme="dark"] .tmore-btn.on{border-bottom-color:var(--gold-hi)}
 .topbar .tabs button:focus-visible,.tmore-btn:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
 .tmore{position:relative;align-self:stretch;display:flex}
-.pop{position:absolute;top:calc(100% + 6px);left:0;z-index:70;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(14,23,38,.16),0 2px 6px rgba(14,23,38,.08);padding:6px;transform-origin:top left;animation:popIn .26s cubic-bezier(.32,.72,0,1)}
-@keyframes popIn{from{opacity:0;transform:scale(.95)}}
+.pop{position:absolute;top:calc(100% + 6px);left:0;z-index:70;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(14,23,38,.16),0 2px 6px rgba(14,23,38,.08);padding:6px;transform-origin:top left;opacity:0;transform:scale(.96) translateY(-4px);transition:opacity 140ms ease-out,transform 140ms ease-out}
+.pop.open{opacity:1;transform:none;transition:opacity 200ms var(--ease-out),transform 200ms var(--ease-out)}
 .tmore-menu{min-width:210px;display:flex;flex-direction:column}
 .tmore-menu:not([hidden]){display:flex}
 .tmore-menu button{all:unset;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:8px;font-size:1rem;font-weight:600}
@@ -858,7 +858,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .tk-pause .tk-pl,.ticker.paused .tk-pause .tk-ps{display:none}
 .ticker.paused .tk-pause .tk-pl{display:inline}
 .ticker.paused .tk-track{animation-play-state:paused}
-@media (prefers-reduced-motion:reduce){.tk-pause{display:none}.pop{animation:none}}
+@media (prefers-reduced-motion:reduce){.tk-pause{display:none}.pop,.pop.open{transform:none}}
 /* phone bar: logo, search icon, Week | scoring; tabs live in the bottom bar */
 @media (max-width:1080px){.board .hsearch input{width:160px}.topbar .tabs button,.tmore-btn{padding:0 9px}}
 @media (max-width:760px){
@@ -903,7 +903,7 @@ h2.pg-title{font-family:var(--f-display);font-style:italic;font-weight:400;font-
 .chips .chip[aria-pressed="true"]{color:var(--ink)}
 .seg button span,.seg button[aria-pressed] span{color:var(--muted)}
 .seg button[aria-pressed="true"],.seg button[aria-pressed="true"] span{color:#fff}
-.seg-th{position:absolute;left:0;top:0;z-index:0;border-radius:7px;background:var(--surface);box-shadow:0 1px 3px rgba(14,23,38,.2);pointer-events:none;transition:transform .34s cubic-bezier(.32,.72,0,1),width .34s cubic-bezier(.32,.72,0,1)}
+.seg-th{position:absolute;left:0;top:0;z-index:0;border-radius:7px;background:var(--surface);box-shadow:0 1px 3px rgba(14,23,38,.2);pointer-events:none;transition:transform 220ms var(--ease-out),width 220ms var(--ease-out)}
 :root[data-theme="dark"] .seg-th{background:#3A4250;box-shadow:none}
 .seg .seg-th,:root[data-theme="dark"] .seg .seg-th{background:var(--gold)}
 .chips .chip:active,.seg button:active,.btn:active,.hm-go:active,.ctx-btn:active,.wkstep button:active,.h2h-swap:active{transform:scale(.96)}
@@ -1021,6 +1021,34 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 .bnav button:active,.bmore button:active,.tabs button:active,.tm-card:active,.sx:active,.lc-pick button:active,.tmore-menu button:active{background:var(--surface-2)}
 .bnav button,.bmore button,.tabs button,.tm-card,.sx{transition:background 100ms ease-out}
 @media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.pick-slot .pick),select,textarea{font-size:16px!important}}
+
+/* ===== Motion and touch polish ===== */
+:root{--ease-out:cubic-bezier(.23,1,.32,1)}
+/* fold-outs ease open where the browser supports animating to "auto" height; elsewhere they open instantly */
+.tools-d,.more-d{interpolate-size:allow-keywords}
+.tools-d::details-content,.more-d::details-content{block-size:0;overflow:hidden;opacity:0;transition:block-size 200ms ease-out,opacity 150ms ease-out,content-visibility 200ms ease-out allow-discrete}
+.tools-d[open]::details-content,.more-d[open]::details-content{block-size:auto;opacity:1;transition:block-size 260ms var(--ease-out),opacity 200ms var(--ease-out),content-visibility 260ms allow-discrete}
+.tools-d>summary::after{transition:transform 200ms var(--ease-out)}
+/* numbers blur across for a moment when scoring or the week changes, so the swap reads as one update */
+.panel :is(.num,.big,.hm-pr,.tile .v,.hp-v,.hw-v b,.mv,.proj,.lvp){transition:filter 160ms ease-out,opacity 160ms ease-out}
+.nfx .panel :is(.num,.big,.hm-pr,.tile .v,.hp-v,.hw-v b,.mv,.proj,.lvp){filter:blur(2px);opacity:.55;transition:filter 90ms ease-out,opacity 90ms ease-out}
+/* toasts rise in and leave faster than they came */
+.toast{opacity:0;transform:translate(-50%,10px) scale(.98);transition:opacity 150ms ease-out,transform 150ms ease-out}
+.toast.on{opacity:1;transform:translate(-50%,0);transition:opacity 220ms var(--ease-out),transform 220ms var(--ease-out)}
+/* every control answers the moment it's pressed */
+:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark,.h2h-swap){transition:transform 120ms var(--ease-out),background-color 120ms ease-out,color 120ms ease-out}
+:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark,.h2h-swap):active{transform:scale(.97)}
+:is(.tools-d,.more-d)>summary{transition:transform 120ms var(--ease-out)}
+:is(.tools-d,.more-d)>summary:active{transform:scale(.99)}
+@media (max-width:560px){.h2h-swap,.h2h-swap:active{transform:none}.h2h-swap svg{transform:rotate(90deg)}.h2h-swap:active svg{transform:rotate(90deg) scale(.94)}}
+/* labels on controls can't be selected by a long press; names, numbers and news stay selectable as text */
+:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.tm-go,.h2h-swap,summary,th.sortable,.home-mark){-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+/* installed on a phone: the bar clears the status bar and, in landscape, the notch */
+.topbar{padding-top:env(safe-area-inset-top,0px)}
+.topbar>.board{padding-left:max(var(--gut),env(safe-area-inset-left,0px));padding-right:max(var(--gut),env(safe-area-inset-right,0px))}
+@media (prefers-reduced-motion:reduce){.nfx .panel :is(.num,.big,.hm-pr,.tile .v,.hp-v,.hw-v b,.mv,.proj,.lvp){filter:none;opacity:1}.toast,.toast.on{transform:translate(-50%,0)}
+  :is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark):active{transform:none}
+  .tools-d::details-content,.more-d::details-content{transition:none}}
 </style>
 </head>
 <body>
@@ -3341,19 +3369,24 @@ const jumpNav=items=>items.length>1?`<nav class="pjump" aria-label="On this page
 document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(!b)return;const t=document.getElementById(b.dataset.jump);if(!t)return;
   t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
 const rkTxt=(r,pos)=>{if(!r)return '';const n=+String(r).replace(/^\D+/,'');return Number.isFinite(n)&&n>0?`${ord(n)} among ${pos==='DST'?'defenses':pos+'s'}`:esc(r);};
-function toast(m){const t=$('#toast');t.hidden=false;t.textContent='';setTimeout(()=>{t.textContent=m;},50);clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
+function toast(m){const t=$('#toast');t.classList.remove('open');popShow(t);t.classList.add('on');t.textContent='';setTimeout(()=>{t.textContent=m;},50);clearTimeout(toast._t);toast._t=setTimeout(()=>{t.classList.remove('on');setTimeout(()=>{if(!t.classList.contains('on'))t.hidden=true;},160);},1800);}
 
 // events
 $('#poSeg').onclick=e=>{const b=e.target.closest('[data-po]');if(!b)return;S.po=+b.dataset.po;save();syncPo();renderRos();};
-$('#scoringSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.sc={...SC(),rec:{ppr:1,half:.5,std:0}[b.dataset.v]};syncFmt();save();render();};
-$('#weekIn').oninput=e=>{const v=Math.round(n(e.target.value));if(v>=1&&v<=18){S.week=v;save();render();}};
-document.querySelectorAll('.wkstep [data-wk]').forEach(b=>b.onclick=()=>{const v=Math.min(18,Math.max(1,S.week+ +b.dataset.wk));if(v!==S.week){S.week=v;save();render();}});
+// a brief blur on the numbers while they change
+function numFx(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;document.body.classList.add('nfx');clearTimeout(numFx._t);requestAnimationFrame(()=>requestAnimationFrame(()=>{clearTimeout(numFx._t);numFx._t=setTimeout(()=>document.body.classList.remove('nfx'),90);}));}
+$('#scoringSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.getAttribute('aria-pressed')!=='true')numFx();S.sc={...SC(),rec:{ppr:1,half:.5,std:0}[b.dataset.v]};syncFmt();save();render();};
+$('#weekIn').oninput=e=>{const v=Math.round(n(e.target.value));if(v>=1&&v<=18){numFx();S.week=v;save();render();}};
+document.querySelectorAll('.wkstep [data-wk]').forEach(b=>b.onclick=()=>{const v=Math.min(18,Math.max(1,S.week+ +b.dataset.wk));if(v!==S.week){numFx();S.week=v;save();render();}});
+// a menu or toast comes in with motion and leaves with (quicker) motion; it can be reversed mid-way
+function popShow(p){clearTimeout(p._hid);p.hidden=false;p.getBoundingClientRect();p.classList.add('open');}
+function popHide(p){p.classList.remove('open');clearTimeout(p._hid);p._hid=setTimeout(()=>{if(!p.classList.contains('open'))p.hidden=true;},160);}
 // small menus anchored to their button: Week | scoring, and More. One open at a time; outside click or Escape closes.
 (function(){const pairs=[['#ctxBtn','#ctxPop'],['#tMoreBtn','#tMoreMenu']].map(([b,p])=>[$(b),$(p)]).filter(([b,p])=>b&&p);
-  const close=(except)=>pairs.forEach(([b,p])=>{if(p!==except&&!p.hidden){p.hidden=true;b.setAttribute('aria-expanded','false');}});
-  pairs.forEach(([b,p])=>{b.onclick=e=>{e.stopPropagation();const open=p.hidden;close(p);p.hidden=!open;b.setAttribute('aria-expanded',String(open));if(open&&p.id==='ctxPop')segThumb($('#scoringSeg'),true);};});
+  const close=(except)=>pairs.forEach(([b,p])=>{if(p!==except&&p.classList.contains('open')){popHide(p);b.setAttribute('aria-expanded','false');}});
+  pairs.forEach(([b,p])=>{b.onclick=e=>{e.stopPropagation();const open=!p.classList.contains('open');close(p);if(open)popShow(p);else popHide(p);b.setAttribute('aria-expanded',String(open));if(open&&p.id==='ctxPop')segThumb($('#scoringSeg'),true);};});
   document.addEventListener('click',e=>{if(!e.target.closest('.pop,#ctxBtn,#tMoreBtn'))close();});
-  document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const o=pairs.find(([b,p])=>!p.hidden);if(o){close();o[0].focus();}});
+  document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const o=pairs.find(([b,p])=>p.classList.contains('open'));if(o){close();o[0].focus();}});
   const m=$('#tMoreMenu');if(m)m.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;close();try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);});})();
 // phone: the search field folds into an icon in the bar
 (function(){const b=$('#srchBtn'),tb=$('#topbar');if(!b||!tb)return;b.onclick=()=>{const on=!tb.classList.contains('srch-open');tb.classList.toggle('srch-open',on);b.setAttribute('aria-expanded',String(on));if(on)$('#hSearch').focus();};
