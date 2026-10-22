@@ -405,16 +405,16 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .label{font-family:var(--f-display);font-size:.85rem;letter-spacing:.1em}
 .board{background:var(--surface);color:var(--ink);border-radius:4px;box-shadow:0 1px 3px rgba(14,23,38,.08);border-bottom:4px solid var(--gold);align-items:center}
 .board::before{display:none}
-.board h1{display:flex;align-items:center;gap:12px;font-size:clamp(2rem,6vw,2.6rem)}
-.board h1 .ace-mk{display:inline-flex;align-items:stretch;flex:none}
-.board h1 .ace{background:var(--gold);color:var(--accent-ink);font-size:.7em;padding:.14em .62em .14em .55em;clip-path:polygon(10% 0,100% 0,88% 100%,0 100%)}
+.board .brand{display:flex;align-items:center;gap:12px;font-size:clamp(2rem,6vw,2.6rem)}
+.board .brand .ace-mk{display:inline-flex;align-items:stretch;flex:none}
+.board .brand .ace{background:var(--gold);color:var(--accent-ink);font-size:.7em;padding:.14em .62em .14em .55em;clip-path:polygon(10% 0,100% 0,88% 100%,0 100%)}
 /* speed lines: tucked against the block's slanted left edge, stepped along the same angle */
-.board h1 .ace-sl{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:.12em}
-.board h1 .ace-sl i{display:block;height:.095em;background:var(--gold-hi);transform:skewX(-17deg)}
-.board h1 .ace-sl i:nth-child(1){width:.62em;transform:translateX(.13em) skewX(-17deg)}
-.board h1 .ace-sl i:nth-child(2){width:1.05em;background:var(--gold);transform:translateX(.065em) skewX(-17deg)}
-.board h1 .ace-sl i:nth-child(3){width:.43em}
-:root[data-theme="dark"] .board h1 .ace-sl i:nth-child(2){background:var(--ink)}
+.board .brand .ace-sl{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:.12em}
+.board .brand .ace-sl i{display:block;height:.095em;background:var(--gold-hi);transform:skewX(-17deg)}
+.board .brand .ace-sl i:nth-child(1){width:.62em;transform:translateX(.13em) skewX(-17deg)}
+.board .brand .ace-sl i:nth-child(2){width:1.05em;background:var(--gold);transform:translateX(.065em) skewX(-17deg)}
+.board .brand .ace-sl i:nth-child(3){width:.43em}
+:root[data-theme="dark"] .board .brand .ace-sl i:nth-child(2){background:var(--ink)}
 .board .sub{color:#3A475C;opacity:1}
 .ctl .label{opacity:1;color:var(--muted)}
 .seg{border:0;background:var(--surface-2);padding:3px;border-radius:4px;gap:2px}
@@ -809,7 +809,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .topbar,:root[data-theme="dark"] .topbar{background:color-mix(in srgb,var(--surface) 80%,transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:none;border-bottom:1px solid var(--line)}
 @media (prefers-reduced-transparency:reduce){.topbar,:root[data-theme="dark"] .topbar{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
 .topbar>.board{display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:18px;height:64px;padding:0 var(--gut);background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
-.topbar .board h1{font-size:1.35rem;flex:none;margin:0}
+.topbar .board .brand{font-size:1.35rem;flex:none;margin:0}
 .home-mark{all:unset;cursor:pointer;display:flex;align-items:center;gap:.45em;line-height:1}
 .home-mark:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
 .topbar .tabs{display:flex;flex-wrap:nowrap;gap:0;padding:0;margin:0;background:none;align-self:stretch;overflow:visible;border:0;box-shadow:none}
@@ -863,7 +863,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 @media (max-width:1080px){.board .hsearch input{width:160px}.topbar .tabs button,.tmore-btn{padding:0 9px}}
 @media (max-width:760px){
   .topbar>.board{height:56px;gap:6px;padding:0 12px}
-  .topbar .board h1{font-size:1.02rem}
+  .topbar .board .brand{font-size:1.02rem}
   .topbar .tabs,.tmore,.topbar .ctl-tm,.board .hsearch{display:none}
   .srch-btn{display:flex}
   .topbar .controls{gap:4px}
@@ -885,7 +885,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 h2,h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:none;letter-spacing:0}
 h2{font-size:1.55rem;line-height:1.15}
 h3{font-size:1.25rem;line-height:1.2}
-h2.pg-title{font-family:var(--f-display);font-style:italic;font-weight:400;font-size:clamp(1.6rem,3vw,2.1rem);line-height:1.05;letter-spacing:-.015em}
+.pg-title{font-family:var(--f-display);font-style:italic;font-weight:400;text-transform:none;font-size:clamp(1.6rem,3vw,2.1rem);line-height:1.05;letter-spacing:-.015em}
 .label{font-family:var(--f-body);font-size:.88rem;font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted)}
 .hm-pcol>b{font-family:var(--f-body);font-size:1.05rem;letter-spacing:0;text-transform:none}
 .btn,.hm-go,.chips .chip,.seg button{font-family:var(--f-display-cond);font-weight:400;letter-spacing:.03em;text-transform:uppercase}
@@ -1063,14 +1063,32 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 .lc-src{position:relative;display:inline-flex;gap:2px;padding:3px;border-radius:10px;background:var(--surface-2);width:fit-content;max-width:100%}
 .lc-src button{font-family:var(--f-display-cond);font-weight:400;font-size:1.02rem;letter-spacing:.03em;border-radius:7px;padding:7px 16px;background:transparent;color:var(--muted)}
 .lc-src button[aria-pressed="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{background:var(--gold);color:#fff}
+
+/* keyboard focus on the remaining text-style buttons */
+:is(.hm-link,.hm-link2,.tk-a,.olink):focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:3px}
+.ticker .tk-a:focus-visible{outline-offset:-1px}
+.lc-src button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+/* skip link: hidden until reached with Tab */
+.skip{position:fixed;left:12px;top:calc(8px + env(safe-area-inset-top,0px));z-index:1000;background:var(--gold);color:var(--accent-ink);padding:10px 16px;border-radius:10px;font-family:var(--f-display-cond);font-size:1rem;text-decoration:none;transform:translateY(-160%);transition:transform 160ms var(--ease-out)}
+.skip:focus-visible{transform:none;outline:2px solid var(--ink);outline-offset:2px}
+#main{height:0;margin-top:-20px;scroll-margin-top:calc(var(--tbh,64px) + 12px)}#main:focus{outline:none}
+.board .brand{font-family:var(--f-display);font-style:italic;font-weight:800;line-height:1;text-transform:uppercase;letter-spacing:.01em;margin:0}
+.panel{scroll-margin-top:calc(var(--tbh,64px) + 12px)}
+/* undo in the toast */
+.toast.has-undo{display:flex;align-items:center;gap:14px;padding:6px 6px 6px 16px;white-space:nowrap;max-width:calc(100vw - 32px);box-sizing:border-box}.toast.has-undo>span{overflow:hidden;text-overflow:ellipsis}
+.toast-undo{all:unset;cursor:pointer;font-family:var(--f-display-cond);font-size:.95rem;letter-spacing:.03em;text-transform:uppercase;padding:6px 14px;min-height:36px;display:inline-flex;align-items:center;border-radius:999px;background:color-mix(in srgb,currentColor 18%,transparent);touch-action:manipulation;user-select:none;-webkit-user-select:none;transition:transform 120ms var(--ease-out)}
+@media (max-width:760px){.toast{bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:70}}
+.toast-undo:active{transform:scale(.96)}.toast-undo:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.skip{transition:none}}
 </style>
 </head>
 <body>
 
+<a class="skip" href="#main" id="skipLink">Skip to content</a>
 <div class="wrap">
   <div class="topbar" id="topbar">
   <header class="board">
-    <h1><button type="button" class="home-mark" data-go="home" aria-label="Ace Lineup Lab home"><span class="ace-mk"><span class="ace-sl" aria-hidden="true"><i></i><i></i><i></i></span><span class="ace">ACE</span></span><span class="hm-word">LINEUP LAB</span></button></h1>
+    <div class="brand"><button type="button" class="home-mark" data-go="home" aria-label="Ace Lineup Lab home" translate="no"><span class="ace-mk"><span class="ace-sl" aria-hidden="true"><i></i><i></i><i></i></span><span class="ace">ACE</span></span><span class="hm-word">LINEUP LAB</span></button></div>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button role="tab" data-tab="home" id="t-home" hidden>Home</button>
       <button role="tab" data-tab="sites" id="t-sites">Projections</button>
@@ -1124,6 +1142,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
     <button data-tab="dvp">Teams</button><button data-tab="acc">Accuracy</button><button data-tab="model">How It Works</button><button data-tab="settings">Settings</button>
   </div>
 
+  <div id="main" tabindex="-1" aria-label="Main content"></div>
   <!-- HOME -->
   <section class="panel" id="p-home" role="tabpanel">
     <div class="hm-install" id="hmInstall" hidden></div>
@@ -1147,7 +1166,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- START / SIT -->
   <section class="panel" id="p-week" role="tabpanel" hidden>
     <div class="card">
-      <h2 class="pg-title">Head to Head</h2>
+      <h1 class="pg-title">Head to Head</h1>
       <p class="muted" style="margin-bottom:14px">Pick two players to compare for this week. Your starred players are marked in the suggestions.</p>
       <div class="h2h-picks"><div class="pick-slot" id="pickA"></div><button type="button" class="h2h-swap" id="h2hSwap" aria-label="Swap players"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><path d="M4 7h12M12 3l4 4-4 4M16 13H4M8 9l-4 4 4 4" stroke="currentColor" stroke-width="1.7" fill="none"/></svg></button><div class="pick-slot" id="pickB"></div></div>
       <div id="verdict"></div>
@@ -1175,7 +1194,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- SITE PROJECTIONS -->
   <section class="panel" id="p-sites" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h2 class="pg-title">Week <span id="sitesWk"></span> Projections</h2>
+      <div><h1 class="pg-title">Week <span id="sitesWk"></span> Projections</h1>
         <p class="note" id="sitesNote"></p></div>
       <div class="chips" id="posSites"></div>
     </div>
@@ -1202,7 +1221,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- MY LINEUP -->
   <section class="panel" id="p-lineup" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h2 class="pg-title">My Lineup · Week <span id="luWk"></span></h2><p class="note">Add your players and the model fills your lineup with the highest projections. It also scans for players most leagues haven't picked up who would beat one of your starters.</p></div>
+      <div><h1 class="pg-title">My Lineup · Week <span id="luWk"></span></h1><p class="note">Add your players and the model fills your lineup with the highest projections. It also scans for players most leagues haven't picked up who would beat one of your starters.</p></div>
     </div>
     <div class="card myteams" id="luTeams"></div>
     <div class="card lc" id="luConnect"></div>
@@ -1243,7 +1262,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- PLAYER STATS DIRECTORY -->
   <section class="panel" id="p-stats" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h2 class="pg-title">Season Stats</h2><p class="note" id="statsNote"></p></div>
+      <div><h1 class="pg-title">Season Stats</h1><p class="note" id="statsNote"></p></div>
       <div class="chips" id="posStats"></div>
     </div>
     <div class="sitebar">
@@ -1266,7 +1285,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- ROS -->
   <section class="panel" id="p-ros" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h2 class="pg-title">Rest-of-Season Rankings</h2><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
+      <div><h1 class="pg-title">Rest-of-Season Rankings</h1><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
     <div class="tbl-wrap bigtbl"><table class="rostbl pin2">
@@ -1283,7 +1302,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <section class="panel" id="p-dvp" role="tabpanel" hidden>
     <div id="tmIndex">
       <div>
-        <h2 class="pg-title">Teams</h2>
+        <h1 class="pg-title">Teams</h1>
         <p class="note" style="margin-top:4px;max-width:78ch">Pick a team to see who gets the ball, its schedule, and what its defense gives up to each position.</p>
       </div>
       <div class="tm-confs" id="tmGrid"></div>
@@ -1303,7 +1322,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- TRADE -->
   <section class="panel" id="p-trade" role="tabpanel" hidden>
     <div>
-      <h2 class="pg-title">Trades</h2>
+      <h1 class="pg-title">Trades</h1>
       <p class="note" style="margin-top:4px;max-width:78ch">Each player is valued on his rest-of-season points above what you could pick up off waivers, blending our projections with FantasyPros' expert rankings. With your roster starred or your league connected, trades are also judged by how much they improve your starting lineup.</p>
     </div>
     <div class="split">
@@ -1318,7 +1337,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- ACCURACY -->
   <section class="panel" id="p-acc" role="tabpanel" hidden>
     <div>
-      <h2 class="pg-title">Who Projects Best?</h2>
+      <h1 class="pg-title">Who Projects Best?</h1>
       <p class="note" style="margin-top:4px;max-width:78ch">Every week the site saves each source's projections right before kickoff, then compares them with what players actually scored. Graded on fantasy-relevant players every source projected, in the scoring format chosen above. Weeks 2–5 were rebuilt afterward from what was known at the time, for this site's model and Sleeper only; ESPN, CBS and FantasyPros are graded from Week 6 on.</p>
     </div>
     <div class="chips" id="accWeeks"></div>
@@ -1328,7 +1347,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 
   <!-- SETTINGS -->
   <section class="panel" id="p-settings" role="tabpanel" hidden>
-    <div><h2 class="pg-title">Settings</h2><p class="note">Saved on this device. Everything on the site updates as you change these.</p></div>
+    <div><h1 class="pg-title">Settings</h1><p class="note">Saved on this device. Everything on the site updates as you change these.</p></div>
     <div class="card" id="setTheme"><h2>Appearance</h2><p class="muted">Auto follows your phone or computer's light/dark setting.</p>
       <div class="seg" id="themeSeg2" role="group" aria-label="Color theme"><button data-v="auto"><span>Auto</span></button><button data-v="light"><span>Light</span></button><button data-v="dark"><span>Dark</span></button></div></div>
     <div class="card myteams" id="setTeam"></div>
@@ -1356,7 +1375,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <section class="panel" id="p-model" role="tabpanel" hidden>
     <div>
       <div class="card prose">
-        <h2 class="pg-title">How a Player Is Graded</h2>
+        <h1 class="pg-title">How a Player Is Graded</h1>
         <p><b>1. Base points.</b> Per-game stats are converted with your scoring:</p>
         <div class="formula" id="scoreFormula"></div>
         <p><b>2. This week.</b> The model adjusts base points, then blends in the sites:</p>
@@ -1925,7 +1944,7 @@ const SRC_C={'ESPN':'var(--s-espn)','CBS Sports':'var(--s-cbs)','Yahoo Sports':'
 const SRC_SHORT={'ProFootballTalk':'PFT','Yahoo Sports':'Yahoo','CBS Sports':'CBS'};
 // story photo (or a tile with the source's name when the feed has none); links to the story
 function newsThumb(src,url,img){const sc=SRC_C[src]||'var(--muted)',lab=esc(SRC_SHORT[src]||src);
-  return img?`<a class="nthumb" href="${esc(url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" style="--sc:${sc}" data-src="${lab}"><img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer"></a>`
+  return img?`<a class="nthumb" href="${esc(url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" style="--sc:${sc}" data-src="${lab}"><img src="${esc(img)}" alt="" width="320" height="180" loading="lazy" referrerpolicy="no-referrer"></a>`
     :`<a class="nthumb ph" href="${esc(url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" style="--sc:${sc}">${lab}</a>`;}
 // a photo that fails to load falls back to the source tile
 document.addEventListener('error',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&t.parentElement&&t.parentElement.classList.contains('nthumb'))t.parentElement.classList.add('broken');},true);
@@ -2092,7 +2111,7 @@ const DIVS=[['AFC East',['BUF','MIA','NE','NYJ']],['AFC North',['BAL','CIN','CLE
   ['NFC East',['DAL','NYG','PHI','WAS']],['NFC North',['CHI','DET','GB','MIN']],['NFC South',['ATL','CAR','NO','TB']],['NFC West',['ARI','LAR','SEA','SF']]];
 const divOf=t=>(DIVS.find(d=>d[1].includes(t))||[''])[0];
 const byeOf=t=>{const i=(SCHED[t]||[]).indexOf('BYE');return i<0?null:i+1;};
-const tmLogo=(t,cls='',src=teamLogo(t))=>`<img class="${cls}" src="${src}" alt="" loading="lazy" onerror="if(!logoFb(this))this.style.visibility='hidden'">`;
+const tmLogo=(t,cls='',src=teamLogo(t))=>`<img class="${cls}" src="${src}" alt="" width="500" height="500" loading="lazy" onerror="if(!logoFb(this))this.style.visibility='hidden'">`;
 // season-level numbers for every team, cached per scoring setting
 let _tm=null,_tmK=null;
 function teamData(){const k=JSON.stringify(SC());if(_tm&&_tmK===k)return _tm;
@@ -2658,7 +2677,8 @@ document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g
 // ---- my team: stars and the shared "My team only" filter ----
 function starBtn(k){const on=S.mine.includes(k);return `<button class="star${on?' on':''}" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on?'Remove from':'Add to'} my team" title="${on?'On my team':'Add to my team'}">${on?'★':'☆'}</button>`;}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-star]');if(!b)return;const k=b.dataset.star;
-  const i=S.mine.indexOf(k);if(i>=0)S.mine.splice(i,1);else S.mine.push(k);save();render();});
+  if(S.mine.includes(k))unMine(k);else{S.mine.push(k);save();render();}});
+document.addEventListener('click',e=>{if(!e.target.closest('#skipLink'))return;e.preventDefault();const m=$('#main');m.focus({preventScroll:true});const pnl=document.querySelector('.panel:not([hidden])');(pnl||m).scrollIntoView({block:'start'});});
 document.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('.mine-cb')){ui.mineOnly=e.target.checked;render();}});
 $('#wkSearch').oninput=e=>{ui.qW=e.target.value;renderWeek();};
 document.querySelector('table.wk thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if((ui.sortW||'proj')===th.dataset.sort)ui.dirW=-(ui.dirW||1);else{ui.sortW=th.dataset.sort;ui.dirW=1;}renderWeek();};
@@ -2905,7 +2925,7 @@ $('#luAddBtn').onclick=luAdd;
 $('#luAdd').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();luAdd();}};
 $('#luAdd').oninput=e=>{const v=e.target.value.trim().toLowerCase();if([...lineupPool().values()].some(x=>`${x.name}${x.team?' ('+x.team+')':''} · ${x.pos}`.toLowerCase()===v))luAdd();};
 $('#luOwn').oninput=e=>{ui.luOwn=+e.target.value;renderLineup();};
-document.addEventListener('click',e=>{const b=e.target.closest('[data-unstar]');if(!b)return;S.mine=S.mine.filter(k=>k!==b.dataset.unstar);save();renderLineup();});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-unstar]');if(!b)return;unMine(b.dataset.unstar);});
 $('#luClear').onclick=e=>{const b=e.target;if(b.dataset.confirm){S.mine=[];save();renderLineup();b.textContent='Clear roster';delete b.dataset.confirm;toast('Roster cleared');}
   else{b.dataset.confirm='1';b.textContent='Tap again to clear';setTimeout(()=>{if(b.dataset.confirm){delete b.dataset.confirm;b.textContent='Clear roster';}},3000);}};
 
@@ -3330,7 +3350,7 @@ function renderPlayer(){
     return `<aside class="hero-wk"><span class="hw-l">Week ${S.week}${opp?' '+opp:''}</span><span class="hw-v"><b>${bye?'Bye':out?esc(st):tr.projV!=null?n1(tr.projV):'—'}</b>${!bye&&!out&&tr.proj?`<span>projected, ${rkTxt(tr.proj,p.pos)}</span>`:''}</span>${call||g?`<span class="hw-s">${call}${g?`<span>${esc(kickText(g))}</span>`:''}</span>`:''}</aside>`;})();
   const wkSec=thisWeek?thisWeek.replace('@@TOOLS@@',toolsCard):toolsCard?`<div class="card" id="sec-week"><h3>This week</h3>${toolsCard}</div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">${esc(navDepth>0||ui.prev?BACK_NM[ui.prev]||'Back':'Projections')}</button></div>
-   <div class="ph team-hero${p.pos==='DST'?' dst-hero':''}${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg ${bannerCls(p.team)}" src="${bannerLogo(p.team)}" alt="" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo '+bannerCls(p.team):''}" src="${p.pos==='DST'?bannerLogo(p.team):headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}${p.pos==='DST'?`<div><div class="meta"><span class="pos DST">DST</span> Fantasy D/ST · ${p.gp} games</div><h1>${esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())} D/ST</h1>${TEAM_NAMES[p.team]?`<div class="meta"><button class="tlink" data-tm="${esc(p.team)}">Team page →</button></div>`:''}</div>`
+   <div class="ph team-hero${p.pos==='DST'?' dst-hero':''}${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg ${bannerCls(p.team)}" src="${bannerLogo(p.team)}" alt="" width="500" height="500" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo '+bannerCls(p.team):''}" src="${p.pos==='DST'?bannerLogo(p.team):headshotOf(p)}" alt="" ${p.pos==='DST'||isLogo(headshotOf(p))?'width="500" height="500"':'width="350" height="254"'} fetchpriority="high" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}${p.pos==='DST'?`<div><div class="meta"><span class="pos DST">DST</span> Fantasy D/ST · ${p.gp} games</div><h1>${esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())} D/ST</h1>${TEAM_NAMES[p.team]?`<div class="meta"><button class="tlink" data-tm="${esc(p.team)}">Team page →</button></div>`:''}</div>`
      :`<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>`}
      ${heroWk}</div>
    ${jumpNav([['sec-season','Season'],['sec-week','This week'],['sec-trend','Week by week'],['sec-usage','Usage'],...(po?[['sec-po','Playoffs']]:[]),['pNews','News']])}
@@ -3372,9 +3392,9 @@ function titleCaseEl(h){let first=true;const w=document.createTreeWalker(h,NodeF
   // the last word is capitalized too ("Come From")
   const ts=[];const w2=document.createTreeWalker(h,NodeFilter.SHOW_TEXT);while((n=w2.nextNode()))if(/[A-Za-z]/.test(n.nodeValue))ts.push(n);
   const ln=ts[ts.length-1];if(ln){const v=ln.nodeValue.replace(/([a-z])([A-Za-z'’]*)([^A-Za-z]*)$/,(m,a,b,c,off,str)=>{const wd=a+b,pre=str.slice(0,off);return TC_SMALL.has(wd)&&/[A-Za-z]/.test(pre+ts.slice(0,-1).map(x=>x.nodeValue).join(''))?a.toUpperCase()+b+c:m;});if(v!==ln.nodeValue)ln.nodeValue=v;}}
-const tcAll=root=>{(root.matches&&root.matches('h2,h3')?[root]:[]).concat([...(root.querySelectorAll?root.querySelectorAll('h2,h3'):[])]).forEach(titleCaseEl);};
-new MutationObserver(ms=>{for(const m of ms){if(m.type==='childList')m.addedNodes.forEach(x=>{if(x.nodeType===1)tcAll(x);else if(x.parentElement&&x.parentElement.closest('h2,h3'))titleCaseEl(x.parentElement.closest('h2,h3'));});
-  else if(m.type==='characterData'){const h=m.target.parentElement&&m.target.parentElement.closest('h2,h3');if(h)titleCaseEl(h);}}})
+const tcAll=root=>{(root.matches&&root.matches('h2,h3,.pg-title')?[root]:[]).concat([...(root.querySelectorAll?root.querySelectorAll('h2,h3,.pg-title'):[])]).forEach(titleCaseEl);};
+new MutationObserver(ms=>{for(const m of ms){if(m.type==='childList')m.addedNodes.forEach(x=>{if(x.nodeType===1)tcAll(x);else if(x.parentElement&&x.parentElement.closest('h2,h3,.pg-title'))titleCaseEl(x.parentElement.closest('h2,h3,.pg-title'));});
+  else if(m.type==='characterData'){const h=m.target.parentElement&&m.target.parentElement.closest('h2,h3,.pg-title');if(h)titleCaseEl(h);}}})
   .observe(document.body,{subtree:true,childList:true,characterData:true});
 tcAll(document.body);
 // profile pages: a "back" link that names where it goes, a row of jump buttons, and plain-English ranks
@@ -3383,7 +3403,16 @@ const jumpNav=items=>items.length>1?`<nav class="pjump" aria-label="On this page
 document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(!b)return;const t=document.getElementById(b.dataset.jump);if(!t)return;
   t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
 const rkTxt=(r,pos)=>{if(!r)return '';const n=+String(r).replace(/^\D+/,'');return Number.isFinite(n)&&n>0?`${ord(n)} among ${pos==='DST'?'defenses':pos+'s'}`:esc(r);};
-function toast(m){const t=$('#toast');t.classList.remove('open');popShow(t);t.classList.add('on');t.textContent='';setTimeout(()=>{t.textContent=m;},50);clearTimeout(toast._t);toast._t=setTimeout(()=>{t.classList.remove('on');setTimeout(()=>{if(!t.classList.contains('on'))t.hidden=true;},160);},1800);}
+function toast(m,undo){const t=$('#toast');t.classList.remove('open');popShow(t);t.classList.add('on');t.classList.toggle('has-undo',!!undo);t.textContent='';toast._undo=undo||null;
+  setTimeout(()=>{if(undo){const sp=document.createElement('span');sp.textContent=m;t.appendChild(sp);}else t.textContent=m;if(undo){const b=document.createElement('button');b.type='button';b.className='toast-undo';b.textContent='Undo';t.appendChild(b);}},50);
+  clearTimeout(toast._t);toast._t=setTimeout(toastHide,undo?5000:1800);}
+function toastHide(){const t=$('#toast');toast._undo=null;t.classList.remove('on');setTimeout(()=>{if(!t.classList.contains('on'))t.hidden=true;},160);}
+document.addEventListener('click',e=>{if(!e.target.closest('.toast-undo'))return;const f=toast._undo;clearTimeout(toast._t);toastHide();if(f)f();});
+// take a player off "my team", with a few seconds to put him back
+function unMine(k){const i=S.mine.indexOf(k);if(i<0)return;
+  let nm='Player';try{const x=lineupPool().get(k)||S.players.find(q=>q.key===k);if(x&&x.name)nm=x.name;}catch(e){}
+  S.mine.splice(i,1);save();render();
+  toast(nm+' removed',()=>{if(!S.mine.includes(k)){S.mine.splice(Math.min(i,S.mine.length),0,k);save();render();}});}
 
 // events
 $('#poSeg').onclick=e=>{const b=e.target.closest('[data-po]');if(!b)return;S.po=+b.dataset.po;save();syncPo();renderRos();};
@@ -3518,7 +3547,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   let off=false;try{off=!!localStorage.getItem(KEY+'.noinstall');}catch(_){}
   if(standalone||off)return;
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  const show=html=>{el.innerHTML=`<img src="icons/icon-192.png" alt="">${html}<button class="x" aria-label="Dismiss" data-noinstall>×</button>`;el.hidden=false;};
+  const show=html=>{el.innerHTML=`<img src="icons/icon-192.png" alt="" width="192" height="192">${html}<button class="x" aria-label="Dismiss" data-noinstall>×</button>`;el.hidden=false;};
   if(ios)show('<p><b>Get the app.</b> Tap the Share button, then <b>Add to Home Screen</b>, to open Lineup Lab full-screen like an app.</p>');
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();const ev=e;
     show('<p><b>Get the app.</b> Install Lineup Lab on your home screen. It opens full-screen and works with weak signal.</p><button class="btn primary sm" data-install>Install</button>');
@@ -3540,7 +3569,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   const R=document.documentElement,noAnchor=()=>{R.style.overflowAnchor='none';requestAnimationFrame(()=>requestAnimationFrame(()=>{R.style.overflowAnchor='';}));};
   const set=v=>{if(v===on)return;
     anims.forEach(a=>a.cancel());anims=[];brd.style.overflow='';
-    noAnchor();const t1=brd.querySelector('h1'),f0=getComputedStyle(t1).fontSize,full=tb.offsetHeight,h0=brd.offsetHeight,m0=parseFloat(tb.style.marginBottom)||0;
+    noAnchor();const t1=brd.querySelector('.brand'),f0=getComputedStyle(t1).fontSize,full=tb.offsetHeight,h0=brd.offsetHeight,m0=parseFloat(tb.style.marginBottom)||0;
     tb.classList.add('no-tr');tb.classList.toggle('scrolled',v);
     const h1=brd.offsetHeight,end=tb.offsetHeight,m1=v?Math.max(0,full+m0-end):0,f1=getComputedStyle(t1).fontSize;tb.classList.remove('no-tr');
     tb.style.marginBottom=m1?m1+'px':'';on=v;
