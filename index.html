@@ -953,7 +953,17 @@ h3{font-size:1.25rem;line-height:1.2}
 .vd-who b{color:#fff}
 .h2h{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .side{padding:16px 18px;border:1px solid var(--line);background:var(--surface)}
-.side-nm{font-weight:700;font-size:1.05rem}
+.side-nm{font-weight:700;font-size:1.05rem;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px}
+/* "Player page" link in Head to Head: a real button-sized target on touch, instant press feedback, no long-press text selection */
+.side-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.side-pg{all:unset;box-sizing:border-box;flex:none;display:inline-flex;align-items:center;gap:2px;min-height:32px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;
+  font-family:var(--f-display-cond);font-size:.85rem;letter-spacing:.03em;text-transform:uppercase;color:var(--gold);cursor:pointer;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;transition:background 120ms ease-out,transform 120ms ease-out}
+.side-pg:active{background:var(--surface-2);transform:scale(.97)}
+.side-pg:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.side-pg:hover{background:var(--surface-2)}}
+@media (pointer:coarse){.side-pg{min-height:44px;padding:6px 14px}}
+:root[data-theme="dark"] .side-pg{color:var(--gold-hi)}
 .tools-d{margin-top:14px;border:1px solid var(--line);overflow:hidden}
 .tools-d>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;min-height:52px;padding:0 18px;font-weight:700;font-size:1.08rem}
 .tools-d>summary::-webkit-details-marker{display:none}
@@ -1736,7 +1746,7 @@ function renderH2H(){
   const byLabel=new Map(ps.map(x=>[label(x.p).toLowerCase(),x.p.id]));
   const opts=groups.map(([pos,g])=>g.map(x=>`<option value="${esc(label(x.p))}">${isMine(x.p)?'★ On my team':''}</option>`).join('')).join('');
   const A=byId.get(ui.a),B=byId.get(ui.b),wa=weekProj(A),wb=weekProj(B);
-  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${esc(p.name)}</div><div class="proj">${f1(w.proj)}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}</div>
+  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';const pg=p.real&&PL.has(p.key);return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${pg?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name)}</div><div class="side-row"><div class="proj">${f1(w.proj)}</div>${pg?`<button class="side-pg" data-k="${esc(p.key)}" aria-label="Open ${esc(p.name)}'s player page">Player page<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}</div>
     ${g&&g.implied!=null?`<div class="note">Vegas: team implied ${n1(g.implied)} pts (${g.spread>0?'+':''}${g.spread}, O/U ${g.total})${wt?' · '+esc(wt):''}</div>`:''}
     ${e?`<div class="note">Experts: ${p.pos}${e[1]} (best ${e[3]}, worst ${e[4]})${e[5]?' · grade '+esc(e[5]):''}</div>`:''}
     <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p,true)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
@@ -3376,10 +3386,10 @@ function renderPlayer(){
 }
 // start downloading a player's photo as soon as the pointer or finger lands on his name
 const PREF=new Set();
-function prefetchShot(e){const b=e.target.closest&&e.target.closest('.plink');if(!b)return;const k=b.dataset.k;if(!k||PREF.has(k))return;
+function prefetchShot(e){const b=e.target.closest&&e.target.closest('.plink,.side-pg');if(!b)return;const k=b.dataset.k;if(!k||PREF.has(k))return;
   const p=PL.get(k);const u=p&&headshotOf(p);if(!u)return;PREF.add(k);const im=new Image();im.decoding='async';im.src=u;}
 ['pointerover','touchstart','focusin'].forEach(t=>document.addEventListener(t,prefetchShot,{passive:true}));
-document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;go('player',b.dataset.k);});
+document.addEventListener('click',e=>{const b=e.target.closest('.plink,.side-pg');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;go('player',b.dataset.k);});
 
 // Card and section headings read in title case: every word capitalized except short connecting words
 // (a, of, vs, ...), which stay lowercase unless they lead the heading. Runs on every heading as it's drawn.
