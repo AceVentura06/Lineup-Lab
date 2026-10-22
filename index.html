@@ -3276,7 +3276,7 @@ function renderPlayer(){
    <div class="ph team-hero${p.pos==='DST'?' dst-hero':''}${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg ${bannerCls(p.team)}" src="${bannerLogo(p.team)}" alt="" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo '+bannerCls(p.team):''}" src="${p.pos==='DST'?bannerLogo(p.team):headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}${p.pos==='DST'?`<div><div class="meta"><span class="pos DST">DST</span> Fantasy D/ST · ${p.gp} games</div><h1>${esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())} D/ST</h1>${TEAM_NAMES[p.team]?`<div class="meta"><button class="tlink" data-tm="${esc(p.team)}">Team page →</button></div>`:''}</div>`
      :`<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>`}
      ${heroWk}</div>
-   ${jumpNav([['sec-week','This week'],['sec-trend','Week by week'],['sec-season','Season'],['sec-usage','Usage'],...(po?[['sec-po','Playoffs']]:[]),['pNews','News']])}
+   ${jumpNav([['sec-season','Season'],['sec-week','This week'],['sec-trend','Week by week'],['sec-usage','Usage'],...(po?[['sec-po','Playoffs']]:[]),['pNews','News']])}
    <div class="tiles">
      <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${rkTxt(tr.ppg,p.pos)}</b>`:''}</span></div>
      <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${rkTxt(tr.tot,p.pos)}</b>, `:''}${scName()}</span></div>
@@ -3284,11 +3284,11 @@ function renderPlayer(){
      ${!shareTile&&sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${rkTxt(tr.snap,p.pos)}</b>, `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
      <div class="tile"><span class="label">Week-to-week swing</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${rkTxt(tr.cons,p.pos)}</b>, `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
+   <div class="card" id="sec-season"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    ${wkSec}
    ${p.pos==='DST'?dstOppCard(p):''}
    <div id="sec-trend" class="sec-anchor">${weekCard(p,tr.projV)}</div>
    ${usageCard(p)}
-   <div class="card" id="sec-season"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    <div id="sec-usage" class="sec-anchor">${xfpCard}<div style="margin-top:20px"><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
    <div class="mgrid">${ms}</div>${msMore?`<details class="more-d"><summary>Show ${msA.length-4} more usage stats</summary><div class="mgrid">${msMore}</div></details>`:''}</div></div>
    <div id="sec-po" class="sec-anchor">${poCard}</div>
