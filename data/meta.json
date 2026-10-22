@@ -1,6 +1,6 @@
 {
-  "hash": "ab2464af1e4b51ad",
-  "updated": "2026-10-22T14:40:42.910Z",
+  "hash": "3837663e82a71c6a",
+  "updated": "2026-10-22T18:50:05.406Z",
   "season": 2026,
   "week": 7,
   "through": "Weeks 1–6",
@@ -43,7 +43,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "426 players"
+      "detail": "493 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "414 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "411 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "192 players with news, 372 of 377 stories with photos (ESPN 1635 articles scanned; ESPN 504, CBS Sports 18, Yahoo Sports 14, ProFootballTalk 14)"
+      "detail": "190 players with news, 368 of 373 stories with photos (ESPN 1636 articles scanned; ESPN 490, CBS Sports 21, Yahoo Sports 16, ProFootballTalk 13)"
     }
   }
 }
