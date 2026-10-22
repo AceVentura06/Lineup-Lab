@@ -229,6 +229,8 @@ td.none{color:var(--muted)}
 .team-hero{background:var(--team);color:var(--team-ink);border-radius:10px;padding:20px 22px 18px;border-bottom:6px solid var(--team2);position:relative;overflow:hidden}
 .team-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;border:28px solid var(--team2);opacity:.18;pointer-events:none}
 .team-hero>*{position:relative}
+.team-hero.stuck>div{min-width:0}  /* flex item: let the name column shrink so a long name truncates instead of running under the photo */
+.team-hero.stuck h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .team-hero .meta{color:inherit;opacity:.88}
 .team-hero h1{color:inherit}
 .teamed .tile,.teamed .metric,.teamed .card{border-top:3px solid var(--t-accent);background:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
@@ -572,7 +574,11 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
   .team-hero.stuck>div>.meta{display:none}
   .team-hero.stuck .shot{max-height:56px}
   .team-hero.stuck .shot.logo{height:44px}
+  /* stuck bar: the photo gets a fixed 72x56 box at the right edge, and a long name ends with "..." just before it */
+  .team-hero.stuck:not(.tm-hero) .shot:not(.logo){width:72px;height:56px;object-position:bottom right}
+  .team-hero.stuck.has-shot:not(.tm-hero)>div:not(.meta){padding-right:60px}
 }
+@media (min-width:601px){.team-hero.stuck.has-shot:not(.tm-hero)>div:not(.meta){padding-right:165px}}
 
 /* ---- dark mode: set by data-theme on <html> (follows the phone/computer setting unless chosen in the header) ---- */
 :root[data-theme="dark"]{
