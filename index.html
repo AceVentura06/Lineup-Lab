@@ -33,9 +33,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FFFFFF" id="themeColor">
 <script>if(document.documentElement.getAttribute('data-theme')==='dark')document.getElementById('themeColor').setAttribute('content','#1A1D23');</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Gothic+Expanded+One&family=Special+Gothic+Condensed+One&family=Cabin+Condensed:wght@400;500;600;700&family=Asap+Sharp:wght@400;600;700&display=swap">
+<!-- fonts are self-hosted (fonts/): no requests to Google. Preload the two faces the first screen needs. -->
+<link rel="preload" href="fonts/cabin-condensed-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/special-gothic-expanded-one-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 [hidden]{display:none!important}
 html{padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
@@ -636,7 +637,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .lc-src button{all:unset;cursor:pointer;padding:8px 16px;border-radius:4px;font-family:var(--f-display);font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-2);color:#3A475C}
 .lc-src button[aria-pressed="true"]{background:var(--gold);color:var(--accent-ink)}
 .lc-src button{display:inline-flex;align-items:center;gap:8px}
-.lc-logo{width:20px;height:20px;border-radius:4px;background:#fff;padding:1px;box-sizing:content-box}
+.lc-logo{width:20px;height:20px;border-radius:4px;background:#fff;padding:1px;box-sizing:content-box;pointer-events:none;-webkit-user-drag:none}
 .lc-warn{background:var(--warn-soft);color:#6B4300;border-radius:4px;padding:10px 12px;font-size:.92rem;line-height:1.45}
 .lc-form{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
 .lc-form .field{flex:1 1 260px}
@@ -2364,7 +2365,9 @@ function checkHTML(c,max){const L=S.league,src=SRC_NAME[L.src];
   return `<div class="lc-chk">${c.moves.slice(0,max||99).map(m=>`<div class="lc-mv"><span>Start <span class="pos ${m.inP.pos}">${m.inP.pos}</span> ${nm(m.inP)} <span class="muted">${f1(m.inP.proj)}</span></span><span>${m.outP?`over ${nm(m.outP)} <span class="muted">${f1(m.outP.proj)}${m.outP.proj<=0?' · not playing':''}</span>`:'in an empty slot'}</span><span class="gain">+${f1(m.gain)}</span></div>`).join('')}
     ${max&&c.moves.length>max?`<span class="note">+${c.moves.length-max} more on My Lineup</span>`:''}<p class="note">Make the swap${c.moves.length>1?'s':''} in the ${src} app: outside sites can read lineups but can't change them.</p></div>`;}
 // each service's own icon, via Google's favicon service; hidden if it doesn't load
-const lcLogo=d=>`<img class="lc-logo" src="https://www.google.com/s2/favicons?domain=${d}&sz=64" alt="" width="20" height="20" referrerpolicy="no-referrer" onerror="this.remove()">`;
+// site logos are stored in icons/sites/ (self-hosted, no third-party favicon service)
+const LC_LOGOS={'sleeper.com':'icons/sites/sleeper.png','fantasy.espn.com':'icons/sites/espn.png'};
+const lcLogo=d=>LC_LOGOS[d]?`<img class="lc-logo" src="${LC_LOGOS[d]}" alt="" width="20" height="20" decoding="async" onerror="this.remove()">`:'';
 function renderConnect(){const el=$('#luConnect');if(!el)return;const L=S.league;
   if(L){const c=lineupCheck();
     el.innerHTML=`<div class="lc-on"><div><h3>Your league</h3><div class="lc-badge" style="margin-top:6px"><span class="lc-dot"></span>${esc(L.teamName)} · ${esc(L.leagueName)} on ${SRC_NAME[L.src]}</div>

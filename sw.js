@@ -1,7 +1,7 @@
 // Ace Lineup Lab service worker: keeps a copy of the page and its data so the app opens
 // with weak or no signal. Always tries the network first (projections change often) and
 // falls back to the saved copy after a few seconds. Live scores and league APIs are never cached.
-const CACHE = 'lineup-lab-v1';
+const CACHE = 'lineup-lab-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png'];
 
 self.addEventListener('install', e => {
@@ -12,7 +12,8 @@ self.addEventListener('activate', e => {
 });
 
 const sameOrigin = url => url.origin === self.location.origin;
-const isFont = url => /fonts\.(googleapis|gstatic)\.com$/.test(url.hostname);
+// fonts and logos never change under the same name: serve the saved copy straight away
+const isStatic = url => /\/(fonts|icons\/sites)\//.test(url.pathname);
 
 // network first; the saved copy if the network is slow (4s) or down
 function networkFirst(req, key) {
@@ -37,11 +38,9 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (sameOrigin(url)) {
     if (req.mode === 'navigate') return e.respondWith(networkFirst(req, './index.html'));
+    if (isStatic(url)) return e.respondWith(caches.open(CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }))));
     // data files carry a ?v= stamp; keep one copy per file
     return e.respondWith(networkFirst(req, url.pathname));
-  }
-  if (isFont(url)) {
-    e.respondWith(caches.open(CACHE).then(c => c.match(req).then(hit => hit || fetch(req).then(res => { if (res.ok) c.put(req, res.clone()); return res; }))));
   }
   // everything else (league APIs, live scores, news photos, headshots) goes straight to the network
 });
