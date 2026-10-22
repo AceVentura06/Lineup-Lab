@@ -959,6 +959,40 @@ h2.pg-title{font-family:var(--f-display);font-style:italic;font-weight:400;font-
 .tools-d>.note{margin:8px 16px 14px!important}
 @media (max-width:760px){.verdict,:root[data-theme="dark"] .verdict{grid-template-columns:1fr;padding:18px}}
 @media (max-width:560px){.h2h{grid-template-columns:1fr}.h2h-picks{grid-template-columns:1fr}.h2h-swap{justify-self:center;transform:rotate(90deg)}}
+/* --- player and team pages: calm cards, the week's answer in the banner, jump buttons --- */
+.teamed .tile,.teamed .metric,.teamed .card{border-top:1px solid var(--line);background:var(--surface)}
+.teamed .card h3,.teamed>div>h2{padding-left:0;border-left:0}
+.teamed .tile .tr,:root[data-theme="dark"] .teamed .tile .tr,.teamed .tile:not(.teamed .tile) .tr{display:inline;background:none;color:var(--ink);font-family:var(--f-body);font-size:inherit;font-weight:700;letter-spacing:0;padding:0;margin:0;box-shadow:none}
+.teamed .tile .v{font-family:var(--f-mono);font-weight:700}
+.back{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:var(--f-body)!important;font-size:1rem!important;font-weight:700;letter-spacing:0!important;text-transform:none!important;color:var(--gold)}
+.back::before{content:"";width:7px;height:7px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-right:2px}
+:root[data-theme="dark"] .back{color:var(--gold-hi)}
+.back:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.hero-wk{display:flex;flex-direction:column;gap:6px;width:fit-content;max-width:100%;box-sizing:border-box;margin-top:16px;padding:14px 18px;border-radius:12px;background:color-mix(in srgb,var(--team-ink) 12%,transparent);border:1px solid color-mix(in srgb,var(--team-ink) 24%,transparent)}
+.hw-l{font-weight:700;font-size:1rem;opacity:.92}
+.hw-v{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
+.hw-v b{font-family:var(--f-mono);font-size:2.4rem;line-height:1}
+.hw-v span{font-size:1rem;opacity:.92}
+.hw-s{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;font-size:.95rem}
+.hw-s .pill{font-size:.92rem;font-weight:700}
+.team-hero.stuck .hero-wk{display:none}
+.team-hero:has(>.hero-wk)::after{display:none}
+.team-hero .meta,.team-hero>div>.meta{font-family:var(--f-body);font-size:1.05rem;font-weight:600;letter-spacing:0;text-transform:none}
+.team-hero.stuck>div>.meta,.team-hero.stuck>.meta{font-size:.9rem}
+@media (min-width:901px){.team-hero.has-shot:not(.tm-hero)>.hero-wk{margin-right:230px}}
+@media (max-width:600px){.team-hero.has-shot:not(.tm-hero)>.hero-wk{width:auto;margin-right:96px}}
+@media (max-width:600px){.tm-hero .shot.logo.tm-logo{top:16px;bottom:auto;transform:none;height:72px}.tm-hero.stuck .shot.logo.tm-logo{top:50%;transform:translateY(-50%);height:44px}.tm-hero.has-shot>div:not(.meta){padding-right:84px}.tm-hero>.hero-wk{width:100%}}
+.pjump{display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:10px;background:var(--surface-2);width:fit-content;max-width:100%}
+.pjump button{all:unset;cursor:pointer;padding:7px 14px;border-radius:7px;font-weight:700;font-size:.98rem;color:var(--muted)}
+.pjump button:hover{background:var(--surface);color:var(--ink)}
+.pjump button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+.teamed [id^="sec-"],#pNews{scroll-margin-top:calc(var(--tbh,64px) + 120px)}
+@media (max-width:600px){.pjump{flex-wrap:nowrap;overflow-x:auto;width:auto;scrollbar-width:none}.pjump button{white-space:nowrap}.hw-v b{font-size:2rem}.hero-wk{width:100%}}
+.more-d{margin-top:12px}
+.more-d>summary{cursor:pointer;display:inline-flex;font-weight:700;color:var(--gold);padding:6px 0}
+:root[data-theme="dark"] .more-d>summary{color:var(--gold-hi)}
+.more-d>.mgrid{margin-top:12px}
+.tm-two{align-items:start}
 /* --- projections: our number first; each site's number folds into the row --- */
 table.sites:not(.show-sites) th:nth-child(n+4):nth-child(-n+8),table.sites:not(.show-sites) tr:not(.sdet)>td:nth-child(n+4):nth-child(-n+8){display:none}
 table.sites:not(.show-sites) .m-l,table.sites.show-sites .p-l{display:none}
@@ -2080,9 +2114,14 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const opp=o&&o!=='BYE'?o.replace('@',''):null;
   const tlink=x=>`<button class="tlink" data-tm="${x}">${esc(x)}</button>`;
   // hero + top tiles
-  const hero=`<div><button class="back" id="tmBack">← ${navDepth>0?'Back':'All teams'}</button></div>
+  const ez=g?oppEase(g.opp):null;
+  const heroWk=o==='BYE'?`<aside class="hero-wk"><span class="hw-l">Week ${wk}</span><span class="hw-v"><b>Bye</b><span>bench or replace their players</span></span></aside>`
+    :g&&g.implied!=null?`<aside class="hero-wk"><span class="hw-l">Week ${wk} ${g.home?'vs':'at'} ${esc(g.opp)}</span><span class="hw-v"><b>${n1(g.implied)}</b><span>implied points, league average ${n1(AD.avgImplied||0)}</span></span><span class="hw-s">${ez!=null?`<span class="pill ${({good:'p-good',bad:'p-bad',mid:'p-mute'})[easeCls(ez)]}">${easeLbl(ez)} matchup</span>`:''}<span>${esc(t)} ${g.spread>0?'+':''}${g.spread}, ${esc(kickText(g))}${g.weather?', '+esc(weatherText(g.weather)):g.roof==='dome'?', dome':''}</span></span></aside>`
+    :o?`<aside class="hero-wk"><span class="hw-l">Week ${wk}</span><span class="hw-v"><b>${o.startsWith('@')?'at':'vs'} ${esc(opp)}</b></span></aside>`:'';
+  const hero=`<div><button class="back" id="tmBack">${navDepth>0?esc(BACK_NM[ui.prev]||'Back'):'All teams'}</button></div>
    <div class="ph team-hero tm-hero has-shot">${tmLogo(t,'shot logo tm-logo '+bannerCls(t),bannerLogo(t))}<div><div class="meta">${esc(divOf(t))}${bye?` · Bye in week ${bye}`:''}${d.g?` · ${d.g} games`:''}${d.dst?` · <button class="plink tlink tm-dst" data-k="${esc(d.dst.key)}">D/ST page →</button>`:''}</div><h1>${esc(nm)}</h1></div>
-     ${o?`<div class="meta">Week ${wk}: ${o==='BYE'?'bye':`${o.startsWith('@')?'at':'vs'} ${tlink(opp)}`}</div>`:''}</div>
+     ${heroWk}</div>
+   @@JUMP@@
    <div class="tiles">
      <div class="tile"><span class="label">Points / game</span><span class="v">${d.ppg!=null?n1(d.ppg):'—'}</span><span class="s">${d.rk.ppg?`<b class="tr">${ord(d.rk.ppg)}</b> of 32 · real points`:'Not available'}</span></div>
      <div class="tile"><span class="label">Fantasy pts / game</span><span class="v">${d.fpg!=null?n1(d.fpg):'—'}</span><span class="s">${d.rk.fpg?`<b class="tr">${ord(d.rk.fpg)}</b> · whole offense, ${scName(true)}`:''}</span></div>
@@ -2100,40 +2139,43 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const sk=d.pl.filter(p=>['QB','RB','WR','TE'].includes(p.pos)&&p.gp>0).map(p=>({p,sn:dv(p.s.off_snp,p.s.tm_off_snp),ts:dv(p.s.rec_tgt,p.s.tm_tgt),cs:dv(p.s.rush_att,p.s.tm_rush_att),pg:ppg(p)}))
     .filter(x=>(x.sn||0)>=.15||(x.ts||0)>=.05||(x.cs||0)>=.08).sort((a,b)=>b.pg-a.pg);
   const bar=(v,cls)=>v==null||v<.005?'<span class="muted">—</span>':`<span class="tm-bar ${cls}" aria-hidden="true"><i style="width:${Math.min(100,v/.4*100)}%"></i></span><span class="num">${Math.round(v*100)}%</span>`;
-  const usage=sk.length?`<div class="card"><h3>Who gets the ball</h3><p class="note" style="margin:4px 0 0">Shares of the team's targets and carries this season. Hover a slice to see that player in both charts.</p>${sharePies(d)}<p class="note" style="margin:14px 0 0">Below: shares in the games each player played, sorted by fantasy points per game.</p>
+  const usage=sk.length?`<div class="card" id="sec-ball"><h3>Who gets the ball</h3><p class="note" style="margin:4px 0 0">Shares of the team's targets and carries this season. Hover a slice to see that player in both charts.</p>${sharePies(d)}<p class="note" style="margin:14px 0 0">Below: shares in the games each player played, sorted by fantasy points per game.</p>
     <div class="tbl-wrap"><table class="tooltbl tm-use"><thead><tr><th>Player</th><th class="r">G</th><th class="r">Snaps</th><th>Target share</th><th>Carry share</th><th class="r">Pts/g</th></tr></thead><tbody>
-    ${sk.map(x=>`<tr${isMine(x.p)?' class="mine"':''}><td style="white-space:nowrap"><span class="pos ${x.p.pos}">${x.p.pos}</span><button class="plink" data-k="${esc(x.p.key)}">${esc(x.p.name)}</button>${INJ[x.p.key]&&INJ[x.p.key]!=='Healthy'?` <span class="pill p-bad">${esc(INJ[x.p.key])}</span>`:''}</td>
+    ${sk.map((x,ix)=>`<tr${isMine(x.p)?' class="mine"':''}${ix>=8?' data-xtra hidden':''}><td style="white-space:nowrap"><span class="pos ${x.p.pos}">${x.p.pos}</span><button class="plink" data-k="${esc(x.p.key)}">${esc(x.p.name)}</button>${INJ[x.p.key]&&INJ[x.p.key]!=='Healthy'?` <span class="pill p-bad">${esc(INJ[x.p.key])}</span>`:''}</td>
       <td class="r num">${x.p.gp}</td><td class="r num">${x.sn!=null?Math.round(x.sn*100)+'%':'—'}</td><td class="tm-bc">${bar(x.ts,'tg')}</td><td class="tm-bc">${bar(x.cs,'cr')}</td><td class="r num"><b>${n1(x.pg)}</b></td></tr>`).join('')}
-    </tbody></table></div></div>`:'';
+    </tbody></table></div>${sk.length>8?`<button class="btn sm tm-xtra" type="button" style="margin-top:10px">Show ${sk.length-8} more players</button>`:''}</div>`:'';
   // where the fantasy points come from
   const mixTot=['QB','RB','WR','TE','K'].reduce((a,p)=>a+Math.max(0,d.pts[p]),0);
-  const mix=mixTot>0?`<div class="card"><h3>Where the fantasy points come from</h3><p class="note" style="margin:4px 0 12px">Share of this offense's ${scName()} points by position, this season.</p>
+  const mix=mixTot>0?`<div class="card" id="sec-mix"><h3>Where the fantasy points come from</h3><p class="note" style="margin:4px 0 12px">Share of this offense's ${scName()} points by position, this season.</p>
     <div class="tm-mix" role="img" aria-label="${['QB','RB','WR','TE','K'].map(p=>`${p} ${Math.round(Math.max(0,d.pts[p])/mixTot*100)}%`).join(', ')}">${['QB','RB','WR','TE','K'].map(p=>{const f=Math.max(0,d.pts[p])/mixTot;return f<.005?'':`<i style="width:${f*100}%;background:var(--${p.toLowerCase()})">${f>=.09?p:''}</i>`;}).join('')}</div>
     <div class="tm-leg">${['QB','RB','WR','TE','K'].map(p=>{const f=Math.max(0,d.pts[p])/mixTot,lg=Object.values(TD).filter(x=>x.g).map(x=>{const s=['QB','RB','WR','TE','K'].reduce((a,q)=>a+Math.max(0,x.pts[q]),0);return s?Math.max(0,x.pts[p])/s:0;});const avg=lg.reduce((a,b)=>a+b,0)/(lg.length||1);
       return `<span><span class="pos ${p}">${p}</span> <b class="num">${Math.round(f*100)}%</b> <span class="muted">· ${n1(d.g?d.pts[p]/d.g:0)}/g · league ${Math.round(avg*100)}%</span></span>`;}).join('')}</div></div>`:'';
   // schedule strip
   const poS=poStart(),played=new Map((dd?dd.weeks:[]).map(w=>[w.w,w]));
-  const schedCard=sched.length?`<div class="card"><h3>Schedule</h3><p class="note" style="margin:4px 0 12px">Upcoming games are graded by how many fantasy points the opponent's defense gives up (average rank vs QB, RB, WR and TE). Fantasy playoffs (${poWeeks()}) are outlined.</p>
+  const schedCard=sched.length?`<div class="card" id="sec-sched"><h3>Schedule</h3><p class="note" style="margin:4px 0 12px">Upcoming games are graded by how many fantasy points the opponent's defense gives up (average rank vs QB, RB, WR and TE). Fantasy playoffs (${poWeeks()}) are outlined.</p>
     <div class="tm-sched">${sched.map((x,i)=>{const w=i+1,po=w>=poS&&w<=poS+2,cur=w===wk;
       if(x==='BYE')return `<div class="tm-wk bye${po?' po':''}${cur?' cur':''}"><span class="label">Wk ${w}</span><b>Bye</b><small>No game</small></div>`;
       const ot=x.replace('@',''),pl=played.has(w)&&w<SD.week,e=oppEase(ot);
       return `<button class="tm-wk${pl?' past':' '+easeCls(e)}${po?' po':''}${cur?' cur':''}" data-tm="${ot}"><span class="label">Wk ${w}</span><b>${x.startsWith('@')?'@':'vs'} ${esc(ot)}</b><small>${pl?'Played':easeLbl(e)}</small></button>`;}).join('')}</div></div>`:'';
   // defense: the defense-vs-position chart
-  const defCard=dd?`<div class="card"><h3>What the ${esc(nm.split(' ').pop())} defense allows</h3><p class="note" style="margin:4px 0 12px">Fantasy points given up per game to each position, ${scName()} scoring. Longer bars give up more; rank 1st allows the fewest of 32.</p>
+  const defCard=dd?`<div class="card" id="sec-def"><h3>What the ${esc(nm.split(' ').pop())} defense allows</h3><p class="note" style="margin:4px 0 12px">Fantasy points given up per game to each position, ${scName()} scoring. Longer bars give up more; rank 1st allows the fewest of 32.</p>
     <div class="dvp-bars">${DPOS.map((p,i)=>`<div class="dvp-b"><span class="pos ${p}">${p}</span><span class="dvp-track" aria-hidden="true"><i class="${rkCls(dd.rank[i])}" style="width:${Math.max(4,(dd.rank[i]/32)*100)}%"></i></span><span class="num"><b>${n1(dd.avg[i])}</b></span><span class="ork ${rkCls(dd.rank[i])}">${ord(dd.rank[i])}</span></div>`).join('')}</div>
-    <div class="tbl-wrap" style="margin-top:14px"><table class="tooltbl" style="min-width:600px"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
+    <details class="tools-d" style="margin-top:14px"><summary><span>Week by week</span><span class="muted">${dd.weeks.length} games</span></summary><div class="tbl-wrap" style="margin:0 12px"><table class="tooltbl" style="min-width:600px"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
     ${dd.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${tlink(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=dd.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=dd.avg[i]*.75?'color:var(--bad)':''}">${n1(x)}</td>`).join('')}</tr>`).join('')}
     <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${dd.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
     <tr><td colspan="2"><b>Rank</b></td>${dd.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
-    </tbody></table></div><p class="note" style="margin-top:8px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p>
+    </tbody></table></div><p class="note" style="margin:8px 16px 14px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p></details>
     ${d.dst?(()=>{const r=ppgRank(d.dst),x=d.dst;return `<button class="plink dst-link" data-k="${esc(x.key)}"><span class="pos DST">DST</span><span><b>${esc(nm.split(' ').pop())} D/ST</b><small>${n1(ppg(x))} pts/game${r?` · DST${r.r} of ${r.n}`:''}${x.d?` · ${x.d.sack} sacks, ${x.d.int+x.d.fr} takeaways`:''}</small></span><span class="dst-go">Open →</span></button>`;})():''}
     </div>`:`<div class="card"><h3>Defense</h3><p class="note">No games played yet this season.</p></div>`;
   // injuries
   const ord2={Out:0,IR:1,Doubtful:2,Questionable:3};
   const hurt=d.pl.filter(p=>INJ[p.key]&&INJ[p.key]!=='Healthy'&&(p.gp>0||p.pos==='K')).sort((a,b)=>(ord2[INJ[a.key]]??9)-(ord2[INJ[b.key]]??9)||ppg(b)-ppg(a));
-  const injCard=hurt.length?`<div class="card"><h3>Injury report</h3><div class="tm-inj">${hurt.map(p=>`<span><span class="pos ${p.pos}">${p.pos}</span><button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button> <span class="pill ${INJ[p.key]==='Questionable'?'p-gold':'p-bad'}">${esc(INJ[p.key])}</span></span>`).join('')}</div></div>`:'';
-  el.innerHTML=hero+game+usage+'<div class="split">'+mix+injCard+'</div>'+schedCard+defCard;
-  if(!injCard&&mix)el.querySelector('.split').classList.add('one');
+  const injCard=hurt.length?`<div class="card" id="sec-inj"><h3>Injury report</h3><div class="tm-inj">${hurt.map(p=>`<span><span class="pos ${p.pos}">${p.pos}</span><button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button> <span class="pill ${INJ[p.key]==='Questionable'?'p-gold':'p-bad'}">${esc(INJ[p.key])}</span></span>`).join('')}</div></div>`:'';
+  // order: the ball, the schedule, then where points come from and the defense side by side; injuries last
+  const jump=jumpNav([...(usage?[['sec-ball','Who gets the ball']]:[]),...(schedCard?[['sec-sched','Schedule']]:[]),...(mix?[['sec-mix','Where points come from']]:[]),['sec-def','Defense'],...(injCard?[['sec-inj','Injuries']]:[])]);
+  el.innerHTML=hero.replace('@@JUMP@@',jump)+usage+schedCard+'<div class="split tm-two">'+mix+defCard+'</div>'+injCard;
+  if(!mix)el.querySelector('.split').classList.add('one');
+  const xb=el.querySelector('.tm-xtra');if(xb)xb.onclick=()=>{el.querySelectorAll('tr[data-xtra]').forEach(r=>r.hidden=false);xb.remove();};
   $('#tmBack').onclick=()=>{if(navDepth>0)history.back();else go('dvp',null);};
   if(window.heroChk)setTimeout(window.heroChk,0);}
 
@@ -3178,23 +3220,24 @@ function renderPlayer(){
   const startLine={QB:18,RB:12,WR:12,TE:9,K:8,DST:8}[p.pos];
   const boom=vals.length?vals.filter(v=>v>=startLine).length:0;
   const sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp);
-  const ms=METRICS[p.pos].map(m=>{const v=m.f(p);if(v==null&&m.src)return '';const rk=rankOf(p,m);const frac=rk?1-(rk.r-1)/Math.max(1,rk.n-1):null;
+  const msA=METRICS[p.pos].map(m=>{const v=m.f(p);if(v==null&&m.src)return '';const rk=rankOf(p,m);const frac=rk?1-(rk.r-1)/Math.max(1,rk.n-1):null;
     const cls=m.neutral?'mid':frac>=.67?'hi':frac>=.33?'mid':'lo';
     return `<div class="metric"><div class="top"><span class="label" style="color:var(--ink)">${esc(m.l)}</span><span class="mv">${m.fmt(v)}</span></div>
      ${frac!=null?`<div class="pbar" aria-hidden="true"><i class="${cls}" style="width:${Math.max(4,frac*100)}%"></i></div><span class="rk">${m.neutral?ord(rk.r)+' highest':ord(rk.r)} of ${rk.n} ${p.pos}s</span>`:'<span class="rk">Not enough volume to rank</span>'}
-     <span class="why">${esc(m.why)}</span><span><span class="src">${esc(m.src||'Sleeper')}</span></span></div>`}).join('');
+     <span class="why">${esc(m.why)}</span><span><span class="src">${esc(m.src||'Sleeper')}</span></span></div>`}).filter(Boolean);
+  const ms=msA.slice(0,4).join(''),msMore=msA.slice(4).join('');
   const g=gameOf(p),e=ecrOf(p),prc=practiceOf(p),wp=weekProj(realPlayers().find(x=>x.key===p.key)||{pos:p.pos,real:false,b:0}),xf=xfpOf(p);
   const site2=SITEBY.get(p.key),sv2=site2?siteVals(site2):null;
-  const thisWeek=(g||e||prc||sv2)?`<div class="card"><h3 style="margin-bottom:12px">Week ${S.week}${g?`: ${g.home?'vs':'at'} ${esc(g.opp)}`:''}</h3><div class="kv">
+  const thisWeek=(g||e||prc||sv2)?`<div class="card" id="sec-week"><h3 style="margin-bottom:12px">This week${g?`: ${g.home?'vs':'at'} ${esc(g.opp)}`:''}</h3><div class="kv">
      ${g&&g.implied!=null?`<div><span class="label">Vegas</span><b>${n1(g.implied)} implied pts</b><span class="note">${esc(p.team)} ${g.spread>0?'+':''}${g.spread} · total ${g.total}</span></div>`:''}
      ${g?`<div><span class="label">Kickoff and conditions</span><b>${esc(kickText(g))}</b><span class="note">${g.weather?esc(weatherText(g.weather)):({dome:'Dome',closed:'Roof closed'})[g.roof]||'Forecast not available yet'}${g.stadium?' · '+esc(g.stadium):''}</span></div>`:''}
      ${prc?`<div><span class="label">Injury report</span><b>${esc(prc[1]||'No game status')}</b><span class="note">Practice: ${({DNP:'did not practice',LP:'limited',FP:'full'})[prc[0]]||'—'}${prc[2]?' · '+esc(prc[2]):''}</span></div>`:''}
      ${e?`<div><span class="label">FantasyPros experts</span><b>${p.pos}${e[1]??'—'} · grade ${esc(e[5]||'—')}</b><span class="note">Best ${e[3]}, worst ${e[4]} overall · spread ±${e[2]}</span></div>`:''}
-     ${sv2?`<div><span class="label">Projections</span><b>${n1(wp.proj)} pts</b><span class="note">${[['espn','ESPN'],['sleeper','Sleeper'],['fp','FantasyPros']].filter(([k])=>sv2[k]!=null).map(([k,l])=>l+' '+n1(sv2[k])).join(' · ')}${wp.model?' · model '+n1(wp.model):''}</span></div>`:''}
-   </div></div>`:'';
+     ${sv2?`<div><span class="label">Each site</span><b>${[['espn','ESPN'],['sleeper','Sleeper'],['cbs','CBS'],['fp','FantasyPros']].filter(([k])=>sv2[k]!=null).map(([k,l])=>l+' '+n1(sv2[k])).join(', ')}</b><span class="note">${wp.model?'Our model '+n1(wp.model)+', blended into '+n1(wp.proj):'Blended into '+n1(wp.proj)}</span></div>`:''}
+   </div>@@TOOLS@@</div>`:'';
   const cons=consensus(realPlayers().find(x=>x.key===p.key)||{real:false});
-  const toolsCard=cons?`<div class="card"><h3>Start/sit tools</h3><p class="note" style="margin:4px 0 8px">${cons.n.start} of ${cons.total} tools say start, ${cons.n.flex} flex, ${cons.n.sit} sit. Average rank: ${p.pos}${Math.round(cons.avg)}.</p>
-   <div class="tbl-wrap"><table class="tooltbl"><tbody>${cons.tools.map(t=>`<tr><td>${esc(t.name)}</td><td class="r num">${p.pos}${Math.round(t.rank)}</td><td><span class="pill ${({start:'p-good',flex:'p-gold',sit:'p-mute'})[t.vote]}">${t.vote[0].toUpperCase()+t.vote.slice(1)}</span></td><td class="note">${esc(t.detail||'')}</td></tr>`).join('')}</tbody></table></div></div>`:'';
+  const toolsCard=cons?`<details class="tools-d"><summary><span>How each tool voted</span><span class="muted">${cons.n.start} start, ${cons.n.flex} flex, ${cons.n.sit} sit</span></summary><p class="note" style="margin:0 16px 8px">Average rank: ${p.pos}${Math.round(cons.avg)}.</p>
+   <div class="tbl-wrap"><table class="tooltbl"><tbody>${cons.tools.map(t=>`<tr><td>${esc(t.name)}</td><td class="r num">${p.pos}${Math.round(t.rank)}</td><td><span class="pill ${({start:'p-good',flex:'p-gold',sit:'p-mute'})[t.vote]}">${t.vote[0].toUpperCase()+t.vote.slice(1)}</span></td><td class="note">${esc(t.detail||'')}</td></tr>`).join('')}</tbody></table></div></details>`:'';
   const poP=realPlayers().find(x=>x.key===p.key),po=poP?poOf(poP):null;
   const poCard=po?(()=>{const pct=Math.round(po.ease*100),sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
     const [lbl,cls]=po.bye?['Bye in playoffs','p-bad']:po.ease>=PO_CUT?['Easy','p-good']:po.ease<=-PO_CUT?['Tough','p-bad']:['Neutral','p-mute'];
@@ -3221,29 +3264,35 @@ function renderPlayer(){
     const share=us?rk(peers.filter(us.pool),us.seas):null;
     return {share,cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
-  const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${tr.share}</b> · `:''}${US.sub(p)}</span></div>`:'';
-  el.innerHTML=`<div><button class="back" id="backBtn">← Back</button></div>
+  const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${rkTxt(tr.share,p.pos)}</b>, `:''}${US.sub(p)}</span></div>`:'';
+  // the week's answer, in the banner: projection, what the tools say, kickoff
+  const me=realPlayers().find(x=>x.key===p.key);
+  const heroWk=(()=>{if(!me)return '';const bye=onBye(me),st=effStatus(me),out=!bye&&(st==='Out'||st==='IR');
+    const opp=g?`${g.home?'vs':'at'} ${esc(g.opp)}`:sv?esc(oppText(site)):'';
+    let call='';if(cons&&!bye&&!out){const n=cons.n,c=n.start>=n.flex&&n.start>=n.sit?['Start','p-good',n.start]:n.flex>=n.sit?['Flex','p-gold',n.flex]:['Sit','p-mute',n.sit];call=`<span class="pill ${c[1]}">${c[0]}: ${c[2]} of ${cons.total} tools</span>`;}
+    return `<aside class="hero-wk"><span class="hw-l">Week ${S.week}${opp?' '+opp:''}</span><span class="hw-v"><b>${bye?'Bye':out?esc(st):tr.projV!=null?n1(tr.projV):'—'}</b>${!bye&&!out&&tr.proj?`<span>projected, ${rkTxt(tr.proj,p.pos)}</span>`:''}</span>${call||g?`<span class="hw-s">${call}${g?`<span>${esc(kickText(g))}</span>`:''}</span>`:''}</aside>`;})();
+  const wkSec=thisWeek?thisWeek.replace('@@TOOLS@@',toolsCard):toolsCard?`<div class="card" id="sec-week"><h3>This week</h3>${toolsCard}</div>`:'';
+  el.innerHTML=`<div><button class="back" id="backBtn">${esc(navDepth>0||ui.prev?BACK_NM[ui.prev]||'Back':'Projections')}</button></div>
    <div class="ph team-hero${p.pos==='DST'?' dst-hero':''}${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg ${bannerCls(p.team)}" src="${bannerLogo(p.team)}" alt="" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo '+bannerCls(p.team):''}" src="${p.pos==='DST'?bannerLogo(p.team):headshotOf(p)}" alt="" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}${p.pos==='DST'?`<div><div class="meta"><span class="pos DST">DST</span> Fantasy D/ST · ${p.gp} games</div><h1>${esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())} D/ST</h1>${TEAM_NAMES[p.team]?`<div class="meta"><button class="tlink" data-tm="${esc(p.team)}">Team page →</button></div>`:''}</div>`
      :`<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>`}
-     ${sv?`<div class="meta">Week ${SD.week}: ${oppText(site)}</div>`:''}</div>
+     ${heroWk}</div>
+   ${jumpNav([['sec-week','This week'],['sec-trend','Week by week'],['sec-season','Season'],['sec-usage','Usage'],...(po?[['sec-po','Playoffs']]:[]),['pNews','News']])}
    <div class="tiles">
-     <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${tr.ppg}</b>`:''}</span></div>
-     <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${tr.tot}</b> · `:''}${scName()}</span></div>
+     <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${rkTxt(tr.ppg,p.pos)}</b>`:''}</span></div>
+     <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${rkTxt(tr.tot,p.pos)}</b>, `:''}${scName()}</span></div>
      ${shareTile||''}
-     ${!shareTile&&sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${tr.snap}</b> · `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
-     ${(()=>{const me=realPlayers().find(x=>x.key===p.key),bye=me&&onBye(me),st=me?effStatus(me):null,out=!bye&&(st==='Out'||st==='IR');
-       return `<div class="tile"><span class="label">Week ${S.week} projection</span><span class="v">${bye?'Bye':out?(st==='IR'?'IR':'Out'):tr.projV!=null?n1(tr.projV):'—'}</span><span class="s">${bye?`${esc(TEAM_NAMES[p.team]||p.team)} are off this week`:out?(st==='IR'?'On injured reserve':'Ruled out this week'):tr.proj?`<b class="tr">${tr.proj}</b> · model + sites`:'No projection yet'}</span></div>`;})()}
-     <div class="tile"><span class="label">Consistency</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${tr.cons}</b> · `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
+     ${!shareTile&&sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${rkTxt(tr.snap,p.pos)}</b>, `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
+     <div class="tile"><span class="label">Week-to-week swing</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${rkTxt(tr.cons,p.pos)}</b>, `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
-   <div class="card"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
-   ${thisWeek}
+   ${wkSec}
    ${p.pos==='DST'?dstOppCard(p):''}
-   ${weekCard(p,tr.projV)}
+   <div id="sec-trend" class="sec-anchor">${weekCard(p,tr.projV)}</div>
    ${usageCard(p)}
-   ${poCard}
-   <div id="pNews"></div>${toolsCard}${xfpCard}
-   <div><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
-   <div class="mgrid">${ms}</div></div>`;
+   <div class="card" id="sec-season"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
+   <div id="sec-usage" class="sec-anchor">${xfpCard}<div style="margin-top:20px"><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
+   <div class="mgrid">${ms}</div>${msMore?`<details class="more-d"><summary>Show ${msA.length-4} more usage stats</summary><div class="mgrid">${msMore}</div></details>`:''}</div></div>
+   <div id="sec-po" class="sec-anchor">${poCard}</div>
+   <div id="pNews"></div>`;
   $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'sites');};
   fillNews(p);
   if(window.heroChk)setTimeout(window.heroChk,0);
@@ -3255,6 +3304,12 @@ function prefetchShot(e){const b=e.target.closest&&e.target.closest('.plink');if
 ['pointerover','touchstart','focusin'].forEach(t=>document.addEventListener(t,prefetchShot,{passive:true}));
 document.addEventListener('click',e=>{const b=e.target.closest('.plink');if(!b)return;if(ui.tab!=='player')ui.prev=ui.tab;go('player',b.dataset.k);});
 
+// profile pages: a "back" link that names where it goes, a row of jump buttons, and plain-English ranks
+const BACK_NM={home:'Home',sites:'Projections',week:'Start / Sit',lineup:'My Lineup',stats:'Player Stats',ros:'Rest of Season',dvp:'Teams',trade:'Trades',acc:'Accuracy',model:'How It Works',settings:'Settings'};
+const jumpNav=items=>items.length>1?`<nav class="pjump" aria-label="On this page">${items.map(([id,l])=>`<button type="button" data-jump="${id}">${esc(l)}</button>`).join('')}</nav>`:'';
+document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(!b)return;const t=document.getElementById(b.dataset.jump);if(!t)return;
+  t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
+const rkTxt=(r,pos)=>{if(!r)return '';const n=+String(r).replace(/^\D+/,'');return Number.isFinite(n)&&n>0?`${ord(n)} among ${pos==='DST'?'defenses':pos+'s'}`:esc(r);};
 function toast(m){const t=$('#toast');t.hidden=false;t.textContent='';setTimeout(()=>{t.textContent=m;},50);clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,1800);}
 
 // events
