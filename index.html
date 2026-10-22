@@ -637,7 +637,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .lc-src button{all:unset;cursor:pointer;padding:8px 16px;border-radius:4px;font-family:var(--f-display);font-weight:800;font-size:1rem;text-transform:uppercase;letter-spacing:.04em;background:var(--surface-2);color:#3A475C}
 .lc-src button[aria-pressed="true"]{background:var(--gold);color:var(--accent-ink)}
 .lc-src button{display:inline-flex;align-items:center;gap:8px}
-.lc-logo{width:20px;height:20px;border-radius:4px;background:#fff;padding:1px;box-sizing:content-box;pointer-events:none;-webkit-user-drag:none}
+.lc-logo{width:22px;height:22px;border-radius:5px;flex:none;pointer-events:none;-webkit-user-drag:none}
 .lc-warn{background:var(--warn-soft);color:#6B4300;border-radius:4px;padding:10px 12px;font-size:.92rem;line-height:1.45}
 .lc-form{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
 .lc-form .field{flex:1 1 260px}
@@ -2366,8 +2366,8 @@ function checkHTML(c,max){const L=S.league,src=SRC_NAME[L.src];
     ${max&&c.moves.length>max?`<span class="note">+${c.moves.length-max} more on My Lineup</span>`:''}<p class="note">Make the swap${c.moves.length>1?'s':''} in the ${src} app: outside sites can read lineups but can't change them.</p></div>`;}
 // each service's own icon, via Google's favicon service; hidden if it doesn't load
 // site logos are stored in icons/sites/ (self-hosted, no third-party favicon service)
-const LC_LOGOS={'sleeper.com':'icons/sites/sleeper.png','fantasy.espn.com':'icons/sites/espn.png'};
-const lcLogo=d=>LC_LOGOS[d]?`<img class="lc-logo" src="${LC_LOGOS[d]}" alt="" width="20" height="20" decoding="async" onerror="this.remove()">`:'';
+const LC_LOGOS={'sleeper.com':'icons/sites/sleeper.webp','fantasy.espn.com':'icons/sites/espn.svg'};
+const lcLogo=d=>LC_LOGOS[d]?`<img class="lc-logo" src="${LC_LOGOS[d]}" alt="" width="22" height="22" decoding="async" onerror="this.remove()">`:'';
 function renderConnect(){const el=$('#luConnect');if(!el)return;const L=S.league;
   if(L){const c=lineupCheck();
     el.innerHTML=`<div class="lc-on"><div><h3>Your league</h3><div class="lc-badge" style="margin-top:6px"><span class="lc-dot"></span>${esc(L.teamName)} · ${esc(L.leagueName)} on ${SRC_NAME[L.src]}</div>
