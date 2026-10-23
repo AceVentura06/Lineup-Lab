@@ -3468,7 +3468,7 @@ function usageCard(p){
   const lab=x=>`<div class="wkl"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span></div>`;
   // real Bklit chart (assets/charts) mounts into .ll-island; the hand-built chart below is the fallback
   const island=esc(JSON.stringify({weeks:weeks.map(({w,o,v,kind})=>({w,o,v,kind})),avg,title:U.title}));
-  return `<div class="card wkcard uscard has-island" style="--uc:var(--${p.pos.toLowerCase()});--wkc:var(--uc)"><div class="wkhead"><h3>${U.title} by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season <b>${avg.toFixed(1)}%</b></span>`:''}</div>
+  return `<div class="card wkcard uscard has-island" style="--uc:var(--wkc)"><div class="wkhead"><h3>${U.title} by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season <b>${avg.toFixed(1)}%</b></span>`:''}</div>
     <div class="wkscroll"><div class="wkgrid" style="--n:${n}">
       <div class="us-plot" style="height:${H}px">${grid}${avg!=null?`<div class="wkline" style="bottom:${y(avg)}px"></div>`:''}
         <svg viewBox="0 0 ${n*100} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--uc)" stop-opacity=".28"/><stop offset="1" stop-color="var(--uc)" stop-opacity=".02"/></linearGradient></defs>${runs.map(area).join('')}${runs.map(r=>r.length>1?`<polyline points="${r.join(' ')}"/>`:'').join('')}</svg>
