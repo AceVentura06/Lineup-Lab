@@ -750,6 +750,18 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 .formula{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}
 .hm-close{padding:9px 12px;background:var(--gold-soft);border-radius:4px;font-size:.92rem}
 .hm-bench{font-size:.85rem;color:var(--muted)}
+.hm-bench .bn{white-space:nowrap;font-variant-numeric:tabular-nums}.hm-bench b{color:var(--ink)}.hm-bench b.beat{color:var(--good)}
+/* score column: points on top, state underneath; the total row lines up with the player rows */
+.sc-c{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0}
+.sc-c .lvp{font-variant-numeric:tabular-nums}
+.sc-s{font-size:.78rem;color:var(--muted);line-height:1.25;white-space:nowrap}
+.sc-zero{color:var(--muted)}
+.sc-d{font-weight:700;font-variant-numeric:tabular-nums}.sc-d.up{color:var(--good)}.sc-d.down{color:var(--bad)}
+.hm-tot{display:contents}
+.hm-rule{grid-column:1/-1;height:2px;background:var(--line);margin-top:2px}
+.hm-tot .tl{grid-column:1/3;font-family:var(--f-display-cond);text-transform:uppercase;letter-spacing:.04em;font-size:.95rem;font-weight:700;align-self:center}
+.hm-tot .tp{color:var(--muted)}
+@media (max-width:420px){.sc-s{white-space:normal;max-width:9.5em}}
 .hm-pos4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
 .hm-pcol{border-top:3px solid var(--c);padding-top:10px;display:flex;flex-direction:column;gap:9px}
 .hm-pcol>b{font-family:var(--f-display);letter-spacing:.1em;color:var(--c)}
@@ -2745,12 +2757,37 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 // and your starters' projected total (points so far and pace once games are on).
 const untilText=ms=>{const m=Math.max(1,Math.round(ms/6e4)),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mm=m%60;return d?`${d}d ${h}h`:h?`${h}h ${mm}m`:`${mm}m`;};
 let PULSE=null;
+// A player's score for the week shown on Home. Live points while his game is on (Sleeper/ESPN), then the final
+// from the live feed or, once the live window closes, from the season stats, so scores stay up after Sunday.
+// st: 'pre' (not started) · 'live' · 'final' · 'out' · 'bye' · 'wait' (game over, stats not in yet) · 'future'
+function weekScore(p,wk){
+  if(n(p.bye)===wk)return {st:'bye',pts:0};
+  const s=PL.get(p.key),w=s&&s.weeks?s.weeks[wk-1]:null,stat=w?wpts(w):null;
+  if(wk>SD.week)return {st:'future'};
+  if(wk<SD.week)return stat!=null?{st:'final',pts:stat}:{st:'out',pts:0,dnp:true};
+  const lv=LIVE.games.size?liveOf(p):null;
+  if(lv&&lv.g.state==='in')return {st:'live',pts:lv.pts,g:lv.g};
+  if(lv&&lv.g.state==='post')return {st:'final',pts:stat!=null?stat:lv.pts,g:lv.g};
+  const t=kickTime(gameOf(p)),now=Date.now();
+  if(stat!=null&&(!t||now>t+3*36e5))return {st:'final',pts:stat};
+  if(effStatus(p)==='Out'||effStatus(p)==='IR')return {st:'out',pts:0};
+  if(t&&now>t+4.5*36e5)return {st:'wait'};
+  if(t&&now>=t)return {st:'live',pts:stat||0};   // kicked off, live feed not loaded yet
+  return {st:'pre'};}
+// Starters' total: points banked so far, and where they're headed (live games scaled by time left)
+function teamScore(starters,byKey,wk){let sofar=0,pace=0,proj=0,started=0,done=0,on=false;
+  for(const x of starters){const r=byKey.get(x.x.key),sc=weekScore(r.p,wk);proj+=r.proj;
+    if(sc.st==='live'){started++;on=true;sofar+=sc.pts;pace+=sc.pts+r.proj*(sc.g?liveFrac(sc.g):1);}
+    else if(sc.st==='final'||sc.st==='out'||sc.st==='bye'){started++;done++;sofar+=sc.pts;pace+=sc.pts;}
+    else if(sc.st==='wait'){started++;pace+=r.proj;}
+    else pace+=r.proj;}
+  return {sofar,pace,proj,on,started,done,n:starters.length,all:starters.length>0&&done===starters.length};}
 function renderPulse(starters,byKey,lvTot,live){const el=$('#hmPulse');if(!el)return;
   const now=Date.now(),next=live?starters.map(x=>{const p=byKey.get(x.x.key).p,g=gameOf(p),t=kickTime(g);return t&&t>now?{p,g,t}:null;}).filter(Boolean).sort((a,b)=>a.t-b.t)[0]:null;
   const total=starters.reduce((a,x)=>a+x.x.proj,0),started=live&&starters.some(x=>{const t=kickTime(gameOf(byKey.get(x.x.key).p));return t&&t<=now;});
   PULSE=next?next.t:null;
   const kick=next?`<div class="hp-t"><span class="label">${started?'Your next kickoff':'Your first kickoff'}</span><b class="hp-v" id="hpCount">${untilText(next.t-now)}</b><span class="hp-s">${esc(next.p.name)} · ${esc(kickText(next.g))}</span></div>`:'';
-  const tot=lvTot?`<div class="hp-t"><span class="label">Your starters${lvTot.on?' <span class="livedot"></span>':''}</span><b class="hp-v">${f1(lvTot.sofar)}</b><span class="hp-s">points so far · on pace for ${f1(lvTot.pace)}</span></div>`
+  const tot=lvTot?`<div class="hp-t"><span class="label">Your starters${lvTot.on?' <span class="livedot"></span>':''}</span><b class="hp-v">${f1(lvTot.sofar)}</b><span class="hp-s">${lvTot.all?`final · projected ${f1(lvTot.proj)}`:`points so far · on pace for ${f1(lvTot.pace)}`}</span></div>`
     :`<div class="hp-t"><span class="label">Your starters</span><b class="hp-v">${f1(total)}</b><span class="hp-s">points projected, ${starters.length} in the lineup</span></div>`;
   el.innerHTML=kick+tot;el.hidden=false;}
 // the countdown ticks while Home is open
@@ -2775,21 +2812,30 @@ function renderHome(){
     <div class="btns"><button class="btn" data-go="lineup">Connect league</button><button class="hm-link" data-go="sites">or star players instead</button></div>`;
   else{const L=optimize(mine),starters=L.start.filter(x=>x.x&&byKey.has(x.x.key)),bench=L.bench.filter(x=>byKey.has(x.key));
     let close=null;for(const st of starters)for(const b of bench){if(b.proj<=0||!SLOT_OK[st.slot].includes(b.pos))continue;const gap=st.x.proj-b.proj;if(!close||gap<close.gap)close={a:st.x,b,gap,slot:st.slot};}
-    const lvOn=live&&LIVE.games.size;
-    const row=(r,slot)=>{const lv=lvOn?liveOf(r.p):null;
-      return `<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span>${lv?`<span class="lvp">${f1(lv.pts)}</span><br><span class="hm-sm">${lv.g.state==='in'?'<span class="livedot"></span>':''}${esc(lv.g.short)}${lv.g.poss&&lv.g.poss===r.p.team?ballIcon(lv.g.rz,`${r.p.team} has the ball${lv.g.rz?', red zone':''}`,'hm-ball-inline'):''}</span>`:call(r)}</span>`;};
-    // live total for the starters, and where they're on pace to finish
-    let lvTot=null;if(lvOn){let sofar=0,pace=0,any=false;for(const x of starters){const r=byKey.get(x.x.key),lv=liveOf(r.p);if(lv){any=true;sofar+=lv.pts;pace+=lv.pts+r.proj*liveFrac(lv.g);}else pace+=r.proj;}
-      if(any)lvTot={sofar,pace,on:starters.some(x=>{const lv=liveOf(byKey.get(x.x.key).p);return lv&&lv.g.state==='in';})};}
+    const T=teamScore(starters,byKey,wk),scoring=T.started>0;
+    const diff=(pts,pj)=>{const d=pts-pj;return Math.abs(d)<.05?'<span class="sc-d">on projection</span>':`<span class="sc-d ${d>0?'up':'down'}">${d>0?'+':'−'}${f1(Math.abs(d))}</span>`;};
+    const scoreCell=(r)=>{const sc=weekScore(r.p,wk),g=sc.g;
+      if(sc.st==='live')return `<span class="lvp">${f1(sc.pts)}</span><span class="sc-s">${g&&g.state==='in'?'<span class="livedot"></span>':''}${g?esc(g.short):'In progress'}${g&&g.poss&&g.poss===r.p.team?ballIcon(g.rz,`${r.p.team} has the ball${g.rz?', red zone':''}`,'hm-ball-inline'):''}</span>`;
+      if(sc.st==='final')return `<span class="lvp">${f1(sc.pts)}</span><span class="sc-s">Final · ${diff(sc.pts,r.proj)}</span>`;
+      if(sc.st==='out')return `<span class="lvp sc-zero">0.0</span><span class="sc-s">${sc.dnp?'Did not play':'Out'}</span>`;
+      if(sc.st==='bye')return `<span class="sc-s">Bye</span>`;
+      if(sc.st==='wait')return `<span class="lvp sc-zero">—</span><span class="sc-s">Final · stats soon</span>`;
+      return call(r);};
+    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span class="sc-c">${scoreCell(r)}</span>`;
+    const lvTot=scoring?T:null;
     renderPulse(starters,byKey,lvTot,live);
     const LG=S.league,chk=LG?lineupCheck():null;
     $('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3><button class="hm-link" data-go="lineup">${LG?'League':'Edit roster'}</button></div>
       ${LG?`<div class="hm-sm" style="margin-top:-6px"><span class="lc-dot" style="display:inline-block;margin-right:6px"></span>${esc(LG.teamName)} · ${SRC_NAME[LG.src]} · synced ${agoMin(LG.synced)}</div>`:''}
       ${chk&&chk.moves.length?`<div><b style="font-size:.9rem">Lineup check:</b> ${checkHTML(chk,2)}</div>`:chk?`<div class="lc-ok" style="font-size:.9rem">Your ${SRC_NAME[LG.src]} lineup matches the best projected lineup.</div>`:''}
-      ${lvTot?`<div class="hm-live">${lvTot.on?'<span class="livedot"></span>':''}<span><b class="big">${f1(lvTot.sofar)}</b> pts so far</span><span class="hm-sm">on pace for <b>${f1(lvTot.pace)}</b> · projected ${f1(starters.reduce((a,x)=>a+x.x.proj,0))}</span></div>`:''}
-      <div class="hm-tt"><span class="hd">Pos</span><span class="hd">Player</span><span class="hd" style="text-align:right">Proj</span><span class="hd">${lvTot?'Live':'Call'}</span>
-      ${starters.map(x=>row(byKey.get(x.x.key),x.slot)).join('')}</div>
-      ${bench.length?`<div class="hm-bench"><b>Bench:</b> ${bench.slice(0,6).map(x=>`${esc(x.name)} ${f1(x.proj)}`).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
+      <div class="hm-tt"><span class="hd">Pos</span><span class="hd">Player</span><span class="hd" style="text-align:right">Proj</span><span class="hd">${scoring?'Score':'Call'}</span>
+      ${starters.map(x=>row(byKey.get(x.x.key),x.slot)).join('')}
+      <span class="hm-rule" aria-hidden="true"></span><div class="hm-tot" role="group" aria-label="Starters total"><span class="tl">${T.all?'Final':'Total'}${T.on?' <span class="livedot"></span>':''}</span>
+        <span class="hm-pr tp">${f1(T.proj)}</span>
+        <span class="sc-c">${scoring?`<span class="lvp">${f1(T.sofar)}</span><span class="sc-s">${T.all?diff(T.sofar,T.proj)+' vs projection':`on pace for <b>${f1(T.pace)}</b> · ${T.n-T.done} still to play`}</span>`:`<span class="sc-s">Projected</span>`}</span></div></div>
+      ${bench.length?`<div class="hm-bench"><b>Bench:</b> ${bench.slice(0,6).map(x=>{const r=byKey.get(x.key),sc=r?weekScore(r.p,wk):{st:'pre'},has=sc.st==='live'||sc.st==='final';
+        const beat=has&&starters.some(st=>{if(!SLOT_OK[st.slot].includes(x.pos))return false;const s2=weekScore(byKey.get(st.x.key).p,wk);return (s2.st==='final'||s2.st==='out')&&sc.st==='final'&&sc.pts>s2.pts;});
+        return `${esc(x.name)} <span class="bn">${f1(x.proj)}${has?` → <b${beat?' class="beat" title="Outscored one of your starters at this spot"':''}>${f1(sc.pts)}</b>`:''}</span>`;}).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
       ${!LG&&close&&close.gap<=4?`<div class="hm-close"><b>Closest call:</b> ${esc(close.a.name)} ${f1(close.a.proj)} vs ${esc(close.b.name)} ${f1(close.b.proj)} for your ${SLOT_LBL[close.slot]==='D/ST'?'D/ST':SLOT_LBL[close.slot].toLowerCase()} spot. <button class="hm-link" data-cmp="${esc(close.a.key)}|${esc(close.b.key)}">Compare</button></div>`:''}`;}
   // this week's games, once any has started or one kicks off within 12 hours
   {const el=$('#hmGames'),now=Date.now(),gs=[...new Set(LIVE.games.values())].filter(g=>g.state==='in'||Math.abs(now-g.date)<12*36e5).sort((a,b)=>({in:0,pre:1,post:2}[a.state]-{in:0,pre:1,post:2}[b.state])||a.date-b.date);
