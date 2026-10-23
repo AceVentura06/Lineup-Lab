@@ -59,6 +59,27 @@ function GapLabels() {
 }
 GapLabels.__isPostOverlay = true;
 
+/** Faint full-height column behind each week, so the chart has structure even in low weeks. */
+function ColumnTrack() {
+  const { data, barScale, bandWidth, barXAccessor, innerHeight } = useChart();
+  if (!(barScale && bandWidth && barXAccessor)) return null;
+  return (
+    <g aria-hidden="true">
+      {(data as unknown as Row[]).map((d) => (
+        <rect
+          fill="var(--chart-1)"
+          height={innerHeight}
+          key={d.name}
+          opacity={0.07}
+          width={bandWidth}
+          x={barScale(barXAccessor(d)) ?? 0}
+          y={0}
+        />
+      ))}
+    </g>
+  );
+}
+
 /** Season average as a dashed rule drawn over the bars, in the team's stripe colour. */
 function AvgRule({ value }: { value: number }) {
   const { yScale, innerWidth } = useChart();
@@ -165,10 +186,10 @@ export function WeekChart({ weeks, avg, showSnaps, animate = true }: WeekChartPr
             strokeWidth={2}
             width={8}
           />
-          <Grid hideHorizontalEdgeLines horizontal numTicksRows={3} strokeDasharray="0" />
-          {/* Bklit rounds every stacked segment only when Bar has a stack gap; a hairline gap keeps the caps rounded */}
-          <Bar animate={animate} dataKey="pts" fill="var(--chart-1)" lineCap={6} stackGap={0.01} />
-          <Bar animate={animate} dataKey="proj" fill={`url(#${hatch})`} lineCap={6} stackGap={0.01} stroke="var(--chart-1)" />
+          <Grid fadeHorizontal hideHorizontalEdgeLines horizontal numTicksRows={3} strokeDasharray="0" />
+          <ColumnTrack />
+          <Bar animate={animate} dataKey="pts" fill="var(--chart-1)" lineCap="butt" />
+          <Bar animate={animate} dataKey="proj" fill={`url(#${hatch})`} lineCap="butt" stroke="var(--chart-1)" />
           {avg != null && <AvgRule value={avg} />}
           <ValueLabels />
           <GapLabels />
