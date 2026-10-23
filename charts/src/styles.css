@@ -122,6 +122,14 @@
 .ll-wk-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
 .ll-wk-chart { height: 270px; }
 .ll-us-chart { height: 250px; }
+.ll-acc-chart { height: 260px; }
+.ll-acc-chart svg text { font-family: var(--f-display); }
+.ll-ytick { fill: var(--chart-label); font-family: var(--f-mono) !important; font-size: 12px; }
+.ll-acc-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
+.ll-acc-key { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 2px; border: 0; background: none; color: var(--ink); font: 600 .88rem var(--f-body); cursor: pointer; transition: opacity .15s ease-out; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+.ll-acc-key i { width: 14px; height: 3px; border-radius: 2px; flex: none; }
+.ll-acc-key i.dash { background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px) !important; }
+.ll-acc-key:focus-visible { outline: 2px solid var(--chart-1); outline-offset: 2px; border-radius: 4px; }
 .ll-us-chart svg text { font-family: var(--f-display); }
 .ll-wk-chart svg text { font-family: var(--f-display); }
 .ll-val { font-family: var(--f-mono) !important; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--chart-background); stroke-width: 4px; stroke-linejoin: round; }
@@ -143,6 +151,7 @@
   .ll-wk-inner { --ll-col: 46px; }
   .ll-wk-chart { height: 240px; }
   .ll-us-chart { height: 230px; }
+  .ll-acc-chart { height: 230px; }
   .ll-val { font-size: 12px; }
   .ll-wk { font-size: 11px; }
   .ll-opp { font-size: 11.5px; letter-spacing: 0; }

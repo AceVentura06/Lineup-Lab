@@ -828,7 +828,7 @@ h3{font-style:italic;font-weight:800;font-size:1.25rem}
 @keyframes wkgrow{from{transform:scaleY(0)}}
 /* chart islands: once the chart bundle has loaded, the React chart replaces the hand-built one */
 .ll-island:empty{display:none}
-html.ll-ready .has-island>.wkscroll,html.ll-ready .has-island>.wktip{display:none}
+html.ll-ready .has-island>.wkscroll,html.ll-ready .has-island>.wktip,html.ll-ready .has-island>svg.chart{display:none}
 html.ll-ready .has-island>.ll-island{display:block;min-height:270px}
 @media (max-width:600px){html.ll-ready .has-island>.ll-island{min-height:240px}}
 @keyframes wkfade{from{opacity:0;transform:translateY(4px)}}
@@ -1671,8 +1671,8 @@ Total      = Pts/game × Games left</div>
 // Chart islands (built from charts/ into assets/charts): fetched only when a page first shows one,
 // so the home page and tables never download React.
 (function(){var go=false;function load(){if(go||!document.querySelector('[data-island]'))return;go=true;
-  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=41136ccaea';document.head.appendChild(l);
-  import('./assets/charts/islands.js?v=41136ccaea').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
+  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=dba62dfed8';document.head.appendChild(l);
+  import('./assets/charts/islands.js?v=dba62dfed8').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
   document.addEventListener('DOMContentLoaded',function(){load();if(!go)new MutationObserver(function(_,o){load();if(go)o.disconnect();}).observe(document.body,{childList:true,subtree:true});});})();
 </script>
 <script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data","ticker-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
@@ -2135,7 +2135,9 @@ function accChart(ws){const sc=S.scoring,srcs=Object.keys(ACC.sources).filter(s=
     const li=p.map((v,i)=>v!=null?i:-1).filter(i=>i>=0).pop();if(li!=null)ends.push([y(p[li]),s]);});
   ends.sort((a,b)=>a[0]-b[0]);for(let i=1;i<ends.length;i++)if(ends[i][0]-ends[i-1][0]<13)ends[i][0]=ends[i-1][0]+13;
   ends.forEach(([yy,s])=>g+=`<text x="${W-pr+8}" y="${yy+4}" style="fill:${SRC_COLOR[s]};font-weight:700;font-family:var(--f-body)">${esc(ACC.sources[s])}</text>`);
-  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Average miss per player by week for each source; lower is better">${g}</svg>`;}
+  // real Bklit chart (assets/charts) mounts into .ll-island; the svg above is the fallback
+  const island=esc(JSON.stringify({weeks:ws,sources:srcs.map((s,j)=>({key:s,name:ACC.sources[s],color:SRC_COLOR[s],miss:pts[j]}))}));
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Average miss per player by week for each source; lower is better">${g}</svg><div class="ll-island" data-island="accuracy" data-props="${island}"></div>`;}
 function renderAccBlend(){const el=$('#accBlend');if(!el)return;const B=SD.blend,P=(B&&B.pos)||{},ks=['QB','RB','WR','TE','K','DST'].filter(k=>P[k]);
   if(!ks.length){el.hidden=true;return;}el.hidden=false;
   const best=x=>Math.min(x.mae,x.even,x.sites,x.model),cell=(v,x)=>`<td class="r num"${v===best(x)?' style="font-weight:700;color:var(--good)"':''}>${v.toFixed(2)}</td>`;
@@ -2165,7 +2167,7 @@ function renderAcc(){
       <td style="width:28%"><div class="bar" aria-hidden="true"><i style="width:${Math.max(4,100*r.mae/maxM)}%;background:${SRC_COLOR[r.s]}"></i></div></td>
       <td class="r num">${r.hitP!=null?Math.round(100*r.hitP)+'%':'—'}</td><td class="r num">${r.rho!=null?Math.round(100*r.rho):'—'}</td>${ui.accW==='season'?`<td class="r num">${r.weeks}</td>`:''}</tr>`).join('')}
     </tbody></table></div><p class="note" style="margin-top:8px">Avg miss is points per player (lower is better). Right starters: of the players each source ranked as starters in a 12-team league, the share that finished as starters.</p></div>`;
-  const chart=ui.accW==='season'&&ws.length>1?`<div class="card"><h3>Average miss by week</h3><p class="note" style="margin:4px 0 8px">Lower is better.</p>${accChart(ws)}</div>`:'';
+  const chart=ui.accW==='season'&&ws.length>1?`<div class="card has-island"><h3>Average miss by week</h3><p class="note" style="margin:4px 0 8px">Lower is better.</p>${accChart(ws)}</div>`:'';
   const P=['QB','RB','WR','TE','K','DST'];
   const posBest={};P.forEach(p=>{let b=null;rows.forEach(r=>{const q=r.pos[p];if(q&&q[1]){const v=q[0]/q[1];if(b==null||v<b)b=v;}});posBest[p]=b;});
   const pos=`<div class="card"><h3 style="margin-bottom:12px">Average miss by position</h3><div class="tbl-wrap"><table style="min-width:520px"><thead><tr><th>Source</th>${P.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
