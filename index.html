@@ -158,6 +158,7 @@ input[type=range]{width:100%;accent-color:var(--turf)}
 .prose{max-width:68ch;display:flex;flex-direction:column;gap:10px}
 .prose ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
 .note{font-size:.85rem;color:var(--muted)}
+.note:empty,.muted:empty{display:none}
 .sitebar{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:end;justify-content:space-between}
 .legend{display:flex;gap:14px;font-size:.85rem;font-weight:600;flex-wrap:wrap}
 .legend span{display:inline-flex;align-items:center;gap:6px}
@@ -1295,8 +1296,8 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- START / SIT -->
   <section class="panel" id="p-week" role="tabpanel" hidden>
     <div class="card">
-      <h1 class="pg-title">Head to Head</h1>
-      <p class="muted" style="margin-bottom:14px">Pick two players to compare for this week. Your starred players are marked in the suggestions.</p>
+      <h1 class="pg-title" style="margin-bottom:14px">Head to Head</h1>
+      
       <div class="h2h-picks"><div class="pick-slot" id="pickA"></div><button type="button" class="h2h-swap" id="h2hSwap" aria-label="Swap players"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 20 20"><path d="M4 7h12M12 3l4 4-4 4M16 13H4M8 9l-4 4 4 4" stroke="currentColor" stroke-width="1.7" fill="none"/></svg></button><div class="pick-slot" id="pickB"></div></div>
       <div id="verdict"></div>
       <div class="h2h">
@@ -1350,7 +1351,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- MY LINEUP -->
   <section class="panel" id="p-lineup" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h1 class="pg-title">My Lineup · Week <span id="luWk"></span></h1><p class="note">Add your players and the model fills your lineup with the highest projections. It also scans for players most leagues haven't picked up who would beat one of your starters.</p></div>
+      <div><h1 class="pg-title">My Lineup · Week <span id="luWk"></span></h1></div>
     </div>
     <div class="card myteams" id="luTeams"></div>
     <div class="card lc" id="luConnect"></div>
@@ -1414,7 +1415,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <!-- ROS -->
   <section class="panel" id="p-ros" role="tabpanel" hidden>
     <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:end">
-      <div><h1 class="pg-title">Rest-of-Season Rankings</h1><p class="note">Through week 17. Bye weeks and injuries cut games; schedule and trend adjust each game.</p></div>
+      <div><h1 class="pg-title">Rest-of-Season Rankings</h1></div>
       <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
     <div class="tbl-wrap bigtbl"><table class="rostbl pin2">
@@ -1432,7 +1433,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
     <div id="tmIndex">
       <div>
         <h1 class="pg-title">Teams</h1>
-        <p class="note" style="margin-top:4px;max-width:78ch">Pick a team to see who gets the ball, its schedule, and what its defense gives up to each position.</p>
+        
       </div>
       <div class="tm-confs" id="tmGrid"></div>
       <details class="card tm-all" id="tmAll">
@@ -1452,7 +1453,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <section class="panel" id="p-trade" role="tabpanel" hidden>
     <div>
       <h1 class="pg-title">Trades</h1>
-      <p class="note" style="margin-top:4px;max-width:78ch">Each player is valued on his rest-of-season points above what you could pick up off waivers, blending our projections with FantasyPros' expert rankings. With your roster starred or your league connected, trades are also judged by how much they improve your starting lineup.</p>
+      
     </div>
     <div class="split">
       <div class="card tside" id="tGive"></div>
@@ -1467,7 +1468,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <section class="panel" id="p-acc" role="tabpanel" hidden>
     <div>
       <h1 class="pg-title">Who Projects Best?</h1>
-      <p class="note" style="margin-top:4px;max-width:78ch">Every week the site saves each source's projections right before kickoff, then compares them with what players actually scored. Graded on fantasy-relevant players every source projected, in the scoring format chosen above. Weeks 2–5 were rebuilt afterward from what was known at the time, for this site's model and Sleeper only; ESPN, CBS and FantasyPros are graded from Week 6 on.</p>
+      
     </div>
     <div class="chips" id="accWeeks"></div>
     <div id="accBody" aria-busy="true"></div>
@@ -1476,15 +1477,15 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 
   <!-- SETTINGS -->
   <section class="panel" id="p-settings" role="tabpanel" hidden>
-    <div><h1 class="pg-title">Settings</h1><p class="note">Saved on this device. Everything on the site updates as you change these.</p></div>
-    <div class="card" id="setTheme"><h2>Appearance</h2><p class="muted">Auto follows your phone or computer's light/dark setting.</p>
+    <div><h1 class="pg-title">Settings</h1></div>
+    <div class="card" id="setTheme"><h2 style="margin-bottom:12px">Appearance</h2>
       <div class="seg" id="themeSeg2" role="group" aria-label="Color theme"><button data-v="auto"><span>Auto</span></button><button data-v="light"><span>Light</span></button><button data-v="dark"><span>Dark</span></button></div></div>
     <div class="card myteams" id="setTeam"></div>
     <div class="split">
       <div class="card sc-card" id="setScoring"></div>
       <div class="set-col">
       <div class="card" style="display:flex;flex-direction:column;gap:18px">
-        <div><h2>Tune the model</h2><p class="muted">Decide how much each factor should matter. Every table updates live.</p></div>
+        <div><h2>Tune the model</h2></div>
         <div class="slider"><div class="top"><label class="label" for="w-match">Matchup impact</label><span class="mono" id="w-match-v"></span></div><input type="range" id="w-match" min="0" max="0.35" step="0.01"><small class="note">How far the best/worst matchup moves a projection.</small></div>
         <div class="slider"><div class="top"><label class="label" for="w-trend">Usage trend impact</label><span class="mono" id="w-trend-v"></span></div><input type="range" id="w-trend" min="0" max="0.25" step="0.01"><small class="note">Boost for rising roles, cut for shrinking ones.</small></div>
         <div class="slider"><div class="top"><label class="label" for="w-sched">ROS schedule impact</label><span class="mono" id="w-sched-v"></span></div><input type="range" id="w-sched" min="0" max="0.2" step="0.01"><small class="note">Easy or hard remaining schedule.</small></div>
@@ -1494,7 +1495,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
           <label class="mine-toggle" style="margin-top:8px"><input type="checkbox" id="blendAuto"> <span>Tune automatically from past accuracy</span></label><small class="note" id="blendNote"></small></div>
         <div class="btns"><button class="btn sm" id="resetW">Reset to defaults</button></div>
       </div>
-      <div class="card" id="setPlayoffs"><h2>Fantasy playoffs</h2><p class="muted">The weeks your league's playoffs run. The Playoffs column on Rest of Season grades each player's matchups in these weeks.</p>
+      <div class="card" id="setPlayoffs"><h2 style="margin-bottom:12px">Fantasy playoffs</h2>
       <div class="chips" role="group" aria-label="Playoff weeks" id="poSeg"><button class="chip" data-po="14">Weeks 14–16</button><button class="chip" data-po="15">Weeks 15–17</button><button class="chip" data-po="16">Weeks 16–18</button></div></div>
       </div>
     </div>
@@ -1665,7 +1666,7 @@ function renderTeamCtl(){const el=$('#teamCtl');if(!el)return;
    :S.teams.length===1?`<span class="label">My team</span><button class="tm-go" data-go="lineup" title="Open My Lineup">${esc(S.teams[0].name)}</button>`
    :`<span class="label">My team</span><select id="teamSel" aria-label="My team">${S.teams.map(t=>`<option value="${esc(t.id)}"${t.id===S.tid?' selected':''}>${esc(t.name)}</option>`).join('')}</select>`;}
 function renderTeams(){const el=$('#luTeams');if(!el)return;const t=curTeam();
-  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>My teams</h3><span class="note">Each team keeps its own roster, stars and league.</span></div>
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>My teams</h3></div>
    ${S.teams.length>1?`<div class="chips">${S.teams.map(x=>`<button class="chip" aria-pressed="${x.id===S.tid}" data-team="${esc(x.id)}">${esc(x.name)}</button>`).join('')}</div>`:''}
    <div class="tm-row">${t?`<div class="field"><label class="label" for="tmName">Team name</label><input id="tmName" enterkeyhint="done" class="pick" maxlength="40" value="${esc(t.name)}" placeholder="Name this team" autocomplete="off"></div>`:''}
     <div class="field"><label class="label" for="tmNew">${t?'Add another team':'Name your team'}</label><input id="tmNew" enterkeyhint="done" class="pick" maxlength="40" placeholder="e.g. Work League" autocomplete="off"></div>
@@ -1905,7 +1906,7 @@ function renderWeek(){
   document.querySelectorAll('table.wk th.sortable').forEach(th=>th.dataset.sort===kW?th.setAttribute('aria-sort',dW===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   const total=rows.length;rows=rows.slice(0,200);const pgW=pageRows('week',rows,200,9,ui.qW.trim());rows=pgW.shown;
   const maxHi=Math.max(1,...rows.map(r=>r.hi));
-  $('#wkNote').textContent=ui.mineOnly?`Your starred players, ranked by this week's projection.`:`${total} players with stats this season${total>200?' (showing the top 200; search or filter to see more)':''}. Tap ☆ to add someone to your team.`;
+  $('#wkNote').textContent='';
   $('#weekBody').innerHTML=rows.length?rows.map((r,i)=>{return `<tr>
     <td class="rank">${i+1}</td><td style="white-space:nowrap">${nameCell(r.p,true)}</td>
     <td class="r num muted">${f1(r.b)}</td><td style="white-space:nowrap">${onBye(r.p)?'<span class="muted">—</span>':matchPill(r.p)}</td>
@@ -2088,8 +2089,8 @@ function accChart(ws){const sc=S.scoring,srcs=Object.keys(ACC.sources).filter(s=
 function renderAccBlend(){const el=$('#accBlend');if(!el)return;const B=SD.blend,P=(B&&B.pos)||{},ks=['QB','RB','WR','TE','K','DST'].filter(k=>P[k]);
   if(!ks.length){el.hidden=true;return;}el.hidden=false;
   const best=x=>Math.min(x.mae,x.even,x.sites,x.model),cell=(v,x)=>`<td class="r num"${v===best(x)?' style="font-weight:700;color:var(--good)"':''}>${v.toFixed(2)}</td>`;
-  el.innerHTML=`<h3>How much the site trusts each source</h3>
-    <p class="note" style="margin:4px 0 12px;max-width:78ch">Every update, the site checks which mix of our model and the sites' average (ESPN, Sleeper, CBS, FantasyPros) would have missed by the least in Weeks ${blendWeeks()}, separately for each position, and uses that mix for this week's projections. Small samples are pulled toward 50/50. Graded in PPR. ${blendAuto()?'':`<b>You've set your own split in Settings (${Math.round(S.w.blend*100)}% sites), so the site is using that instead.</b>`}</p>
+  el.innerHTML=`<h3 style="margin-bottom:12px">How much the site trusts each source</h3>
+    <p class="note" style="margin:4px 0 12px;max-width:78ch">${blendAuto()?'':`<b>You've set your own split in Settings (${Math.round(S.w.blend*100)}% sites), so the site is using that instead.</b>`}</p>
     <div class="tbl-wrap"><table><thead><tr><th>Pos</th><th class="r">Weight on sites</th><th class="r">Avg miss, tuned</th><th class="r">50 / 50</th><th class="r">Sites only</th><th class="r">Model only</th><th class="r">Players</th></tr></thead>
     <tbody>${ks.map(k=>{const x=P[k];return `<tr><td><span class="pos ${k}">${k}</span></td><td class="r num"><b>${Math.round(x.w*100)}%</b></td>${cell(x.mae,x)}${cell(x.even,x)}${cell(x.sites,x)}${cell(x.model,x)}<td class="r num muted">${x.n}</td></tr>`;}).join('')}</tbody></table></div>
     <p class="note" style="margin-top:8px">The Ace Lineup Lab grades above are what the site projected at the time; weeks before this tuning started used a 50/50 split.</p>`;}
@@ -2117,7 +2118,7 @@ function renderAcc(){
   const chart=ui.accW==='season'&&ws.length>1?`<div class="card"><h3>Average miss by week</h3><p class="note" style="margin:4px 0 8px">Lower is better.</p>${accChart(ws)}</div>`:'';
   const P=['QB','RB','WR','TE','K','DST'];
   const posBest={};P.forEach(p=>{let b=null;rows.forEach(r=>{const q=r.pos[p];if(q&&q[1]){const v=q[0]/q[1];if(b==null||v<b)b=v;}});posBest[p]=b;});
-  const pos=`<div class="card"><h3>Average miss by position</h3><p class="note" style="margin:4px 0 10px">Points per player. The best source at each position is highlighted.</p><div class="tbl-wrap"><table style="min-width:520px"><thead><tr><th>Source</th>${P.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
+  const pos=`<div class="card"><h3 style="margin-bottom:12px">Average miss by position</h3><div class="tbl-wrap"><table style="min-width:520px"><thead><tr><th>Source</th>${P.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
     ${rows.map(r=>`<tr><td>${label(r.s)}</td>${P.map(p=>{const q=r.pos[p];if(!q||!q[1])return '<td class="r none">—</td>';const v=q[0]/q[1];return `<td class="r num${Math.abs(v-posBest[p])<1e-9?' top':''}">${v.toFixed(1)}</td>`;}).join('')}</tr>`).join('')}
     </tbody></table></div></div>`;
   // hits and misses for one week and one source
@@ -2413,26 +2414,26 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const sk=d.pl.filter(p=>['QB','RB','WR','TE'].includes(p.pos)&&p.gp>0).map(p=>({p,sn:dv(p.s.off_snp,p.s.tm_off_snp),ts:dv(p.s.rec_tgt,p.s.tm_tgt),cs:dv(p.s.rush_att,p.s.tm_rush_att),pg:ppg(p)}))
     .filter(x=>(x.sn||0)>=.15||(x.ts||0)>=.05||(x.cs||0)>=.08).sort((a,b)=>b.pg-a.pg);
   const bar=(v,cls)=>v==null||v<.005?'<span class="muted">—</span>':`<span class="tm-bar ${cls}" aria-hidden="true"><i style="width:${Math.min(100,v/.4*100)}%"></i></span><span class="num">${Math.round(v*100)}%</span>`;
-  const usage=sk.length?`<div class="card" id="sec-ball"><h3>Who gets the ball</h3><p class="note" style="margin:4px 0 0">Shares of the team's targets and carries this season. Hover a slice to see that player in both charts.</p>${sharePies(d)}<p class="note" style="margin:14px 0 0">Below: shares in the games each player played, sorted by fantasy points per game.</p>
+  const usage=sk.length?`<div class="card" id="sec-ball"><h3>Who gets the ball</h3>${sharePies(d)}
     <div class="tbl-wrap"><table class="tooltbl tm-use"><thead><tr><th>Player</th><th class="r">G</th><th class="r">Snaps</th><th>Target share</th><th>Carry share</th><th class="r">Pts/g</th></tr></thead><tbody>
     ${sk.map((x,ix)=>`<tr${isMine(x.p)?' class="mine"':''}${ix>=8?' data-xtra hidden':''}><td style="white-space:nowrap"><span class="pos ${x.p.pos}">${x.p.pos}</span><button class="plink" data-k="${esc(x.p.key)}">${esc(x.p.name)}</button>${INJ[x.p.key]&&INJ[x.p.key]!=='Healthy'?` <span class="pill p-bad">${esc(INJ[x.p.key])}</span>`:''}</td>
       <td class="r num">${x.p.gp}</td><td class="r num">${x.sn!=null?Math.round(x.sn*100)+'%':'—'}</td><td class="tm-bc">${bar(x.ts,'tg')}</td><td class="tm-bc">${bar(x.cs,'cr')}</td><td class="r num"><b>${n1(x.pg)}</b></td></tr>`).join('')}
     </tbody></table></div>${sk.length>8?`<button class="btn sm tm-xtra" type="button" style="margin-top:10px">Show ${sk.length-8} more players</button>`:''}</div>`:'';
   // where the fantasy points come from
   const mixTot=['QB','RB','WR','TE','K'].reduce((a,p)=>a+Math.max(0,d.pts[p]),0);
-  const mix=mixTot>0?`<div class="card" id="sec-mix"><h3>Where the fantasy points come from</h3><p class="note" style="margin:4px 0 12px">Share of this offense's ${scName()} points by position, this season.</p>
+  const mix=mixTot>0?`<div class="card" id="sec-mix"><h3 style="margin-bottom:12px">Where the fantasy points come from</h3>
     <div class="tm-mix" role="img" aria-label="${['QB','RB','WR','TE','K'].map(p=>`${p} ${Math.round(Math.max(0,d.pts[p])/mixTot*100)}%`).join(', ')}">${['QB','RB','WR','TE','K'].map(p=>{const f=Math.max(0,d.pts[p])/mixTot;return f<.005?'':`<i style="width:${f*100}%;background:var(--${p.toLowerCase()})">${f>=.09?p:''}</i>`;}).join('')}</div>
     <div class="tm-leg">${['QB','RB','WR','TE','K'].map(p=>{const f=Math.max(0,d.pts[p])/mixTot,lg=Object.values(TD).filter(x=>x.g).map(x=>{const s=['QB','RB','WR','TE','K'].reduce((a,q)=>a+Math.max(0,x.pts[q]),0);return s?Math.max(0,x.pts[p])/s:0;});const avg=lg.reduce((a,b)=>a+b,0)/(lg.length||1);
       return `<span><span class="pos ${p}">${p}</span> <b class="num">${Math.round(f*100)}%</b> <span class="muted">· ${n1(d.g?d.pts[p]/d.g:0)}/g · league ${Math.round(avg*100)}%</span></span>`;}).join('')}</div></div>`:'';
   // schedule strip
   const poS=poStart(),played=new Map((dd?dd.weeks:[]).map(w=>[w.w,w]));
-  const schedCard=sched.length?`<div class="card" id="sec-sched"><h3>Schedule</h3><p class="note" style="margin:4px 0 12px">Upcoming games are graded by how many fantasy points the opponent's defense gives up (average rank vs QB, RB, WR and TE). Fantasy playoffs (${poWeeks()}) are outlined.</p>
+  const schedCard=sched.length?`<div class="card" id="sec-sched"><h3>Schedule</h3><p class="note" style="margin:4px 0 12px">Fantasy playoffs (${poWeeks()}) are outlined.</p>
     <div class="tm-sched">${sched.map((x,i)=>{const w=i+1,po=w>=poS&&w<=poS+2,cur=w===wk;
       if(x==='BYE')return `<div class="tm-wk bye${po?' po':''}${cur?' cur':''}"><span class="label">Wk ${w}</span><b>Bye</b><small>No game</small></div>`;
       const ot=x.replace('@',''),pl=played.has(w)&&w<SD.week,e=oppEase(ot);
       return `<button class="tm-wk${pl?' past':' '+easeCls(e)}${po?' po':''}${cur?' cur':''}" data-tm="${ot}"><span class="label">Wk ${w}</span><b>${x.startsWith('@')?'@':'vs'} ${esc(ot)}</b><small>${pl?'Played':easeLbl(e)}</small></button>`;}).join('')}</div></div>`:'';
   // defense: the defense-vs-position chart
-  const defCard=dd?`<div class="card" id="sec-def"><h3>What the ${esc(nm.split(' ').pop())} defense allows</h3><p class="note" style="margin:4px 0 12px">Fantasy points given up per game to each position, ${scName()} scoring. Longer bars give up more; rank 1st allows the fewest of 32.</p>
+  const defCard=dd?`<div class="card" id="sec-def"><h3>What the ${esc(nm.split(' ').pop())} defense allows</h3><p class="note" style="margin:4px 0 12px">Longer bars give up more; rank 1st allows the fewest of 32.</p>
     <div class="dvp-bars">${DPOS.map((p,i)=>`<div class="dvp-b"><span class="pos ${p}">${p}</span><span class="dvp-track" aria-hidden="true"><i class="${rkCls(dd.rank[i])}" style="width:${Math.max(4,(dd.rank[i]/32)*100)}%"></i></span><span class="num"><b>${n1(dd.avg[i])}</b></span><span class="ork ${rkCls(dd.rank[i])}">${ord(dd.rank[i])}</span></div>`).join('')}</div>
     <details class="tools-d" style="margin-top:14px"><summary><span>Week by week</span><span class="muted">${dd.weeks.length} games</span></summary><div class="tbl-wrap" style="margin:0 12px"><table class="tooltbl" style="min-width:600px"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
     ${dd.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${tlink(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=dd.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=dd.avg[i]*.75?'color:var(--bad)':''}">${n1(x)}</td>`).join('')}</tr>`).join('')}
@@ -2566,7 +2567,7 @@ function renderConnect(){const el=$('#luConnect');if(!el)return;const L=S.league
   if(o&&o.kind==='leagues')body=o.list.length?`<p class="note">Pick your league.</p><div class="lc-pick">${o.list.map((l,i)=>`<button data-lc="pickL" data-i="${i}"><b>${esc(l.name)}</b><span>${l.teams} teams</span></button>`).join('')}</div>`
     :`<div class="lc-err">No ${lseason()} leagues found for that Sleeper account.</div>`;
   else if(o&&o.kind==='teams')body=`<p class="note">${esc(o.lg.name)}: which team is yours?</p><div class="lc-pick">${o.lg.teams.map((t,i)=>`<button data-lc="pickT" data-i="${i}"><b>${esc(t.name)}</b><span>${esc(t.owner||t.abbrev)}</span></button>`).join('')}</div>`;
-  el.innerHTML=`<div><h3>Connect your league</h3><p class="note" style="margin-top:4px">Bring in your roster, scoring and lineup slots, then see which lineup changes the projections suggest. Read-only: nothing is changed in your league.</p></div>
+  el.innerHTML=`<div><h3>Connect your league</h3><p class="note" style="margin-top:4px">Read-only: nothing is changed in your league.</p></div>
     <div class="lc-src" role="group" aria-label="Fantasy site"><button data-lc="src" data-v="sleeper" aria-pressed="${src==='sleeper'}">${lcLogo('sleeper.com')}Sleeper</button><button data-lc="src" data-v="espn" aria-pressed="${src==='espn'}">${lcLogo('fantasy.espn.com')}ESPN</button></div>
     ${src==='espn'?`<div class="lc-warn" role="note"><b>Public ESPN leagues only.</b> ESPN doesn't let outside sites read private leagues. If yours is private, your league manager can turn on "Make League Viewable to Public" in League Settings, or you can add your players by hand below.</div>`:''}
     <form class="lc-form" id="lcForm">${src==='sleeper'
@@ -2800,7 +2801,7 @@ function renderHome(){
   // hero
   $('#hmKick').textContent='';
   $('#hmTitle').textContent=`Week ${wk}`;
-  $('#hmSub').textContent=live?`Projections are set: ESPN, Sleeper, CBS and FantasyPros, blended with our model, in ${sc} scoring.${SD.pulled?` Updated ${SD.pulled}.`:''}`
+  $('#hmSub').textContent=live?(SD.pulled?`Updated ${SD.pulled}.`:'')
     :wk<SD.week?`Week ${wk} is in the books. Switch to Week ${SD.week} from the Week button at the top for this week.`:`Week ${wk} projections aren't out yet. Switch to Week ${SD.week} from the Week button at the top for this week.`;
   const all=pool().filter(p=>p.real).map(p=>({p,...weekProj(p)})),call=makeCall(all),byKey=new Map(all.map(r=>[r.p.key,r]));
   // my team
@@ -3106,8 +3107,8 @@ function renderBuySell(){const el=$('#rosBuySell');if(!el)return;
   const low=shown.filter(r=>r.x.fpoe<=-1.5).sort((a,b)=>a.x.fpoe-b.x.fpoe).slice(0,8),high=shown.filter(r=>r.x.fpoe>=1.5&&!elite(r)).sort((a,b)=>b.x.fpoe-a.x.fpoe).slice(0,8);
   el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Buy low / sell high</h3><div class="chips" role="group" aria-label="Position">${['All','RB','WR','TE'].map(x=>`<button class="chip" data-bsp="${x}" aria-pressed="${(pos||'All')===x}">${x}</button>`).join('')}</div>
     <span class="note">Points per game vs. expected points: what an average player scores with the same targets and carries, from where they happened on the field.</span></div>
-    <div class="bs-cols"><div><h4>Buy low: due for more</h4><p class="note">Getting the work but not the points yet. Usually bounces back.</p>${low.length?`<ol class="bs-l">${low.map(r=>li(r,'up')).join('')}</ol>`:'<p class="muted">Nobody well below expected right now.</p>'}</div>
-    <div><h4>Sell high: due to cool off</h4><p class="note">Scoring more than the work supports, often from long TDs.</p>${high.length?`<ol class="bs-l">${high.map(r=>li(r,'down')).join('')}</ol>`:'<p class="muted">Nobody well above expected right now.</p>'}</div></div>
+    <div class="bs-cols"><div><h4>Buy low: due for more</h4>${low.length?`<ol class="bs-l">${low.map(r=>li(r,'up')).join('')}</ol>`:'<p class="muted">Nobody well below expected right now.</p>'}</div>
+    <div><h4>Sell high: due to cool off</h4>${high.length?`<ol class="bs-l">${high.map(r=>li(r,'down')).join('')}</ol>`:'<p class="muted">Nobody well above expected right now.</p>'}</div></div>
     <p class="note">Running backs, receivers and tight ends with 3+ games and a real role (7+ expected points a game), in your scoring.${LG?' "Available" means nobody in your league has him.':''}</p>`;}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-bsp]');if(!b)return;ui.posBS=b.dataset.bsp;renderBuySell();});
 function renderLineup(){
@@ -3139,8 +3140,8 @@ function renderLineup(){
   $('#luOwnBox').hidden=!!LG;$('#luOwnTh').textContent=LG?'Rostered elsewhere':'Rostered';
   const avail=(LG?[...pool.values()].filter(x=>x.real&&!taken.has(x.key)&&!rs.has(x.key)&&x.proj>0).map(x=>({x,own:ownOf(x.key)}))
     :[...pool.values()].filter(x=>!rs.has(x.key)&&x.proj>0).map(x=>({x,own:ownOf(x.key)})).filter(o=>o.own&&o.own.pct<=ui.luOwn)).sort((a,b)=>b.x.proj-a.x.proj);
-  if(LG)$('#luWaiverNote').textContent=`Players nobody in ${LG.leagueName} has on a roster, as of the last sync (${agoMin(LG.synced)}). "Rostered elsewhere" is how many leagues across fantasy sites have them, a hint at who's in demand.`;
-  else $('#luWaiverNote').textContent=`Players rostered in ${ui.luOwn}% or fewer of leagues, using FantasyPros' average across fantasy sites (ESPN's rate for players FantasyPros doesn't list). Availability varies by league, so check your own waiver wire.`;
+  if(LG)$('#luWaiverNote').textContent=`As of your last league sync (${agoMin(LG.synced)}).`;
+  else $('#luWaiverNote').textContent='';
   if(roster.length){
     const sugg=[];for(const o of avail.slice(0,150)){const L2=optimize([...roster,o.x.key]);const gain=L2.total-L.total;if(gain>0.3){const slot=L2.start.find(r=>r.x&&r.x.key===o.x.key);
       const now=new Set(L2.start.filter(r=>r.x).map(r=>r.x.key));const out=L.start.find(r=>r.x&&!now.has(r.x.key));sugg.push({...o,gain,slot:slot.slot,out:out&&out.x});}}
@@ -3558,7 +3559,7 @@ function renderPlayer(){
     <div class="tiles">${po.wks.map(w=>w.bye?`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v" style="color:var(--bad)">Bye</span><span class="s">No game</span></div>`
       :w.d?`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v"><button class="ork olink ${rkCls(w.rk)}" style="font-size:1.2rem" data-dvp="${esc(w.d.t)}">${esc(w.o)}</button></span><span class="s">Allow ${n1(w.allow)} pts/game to ${p.pos}s · ${ord(w.rk)} fewest of 32</span></div>`
       :`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v">${esc(w.o)}</span><span class="s">No defense data yet</span></div>`).join('')}</div></div>`;})():'';
-  const xfpCard=xf?`<div class="card"><h3>Expected fantasy points</h3><p class="note" style="margin:4px 0 12px">Every target and carry is valued at what an average player scores in that spot (depth of target and field position), using this season's play-by-play. Compare it with what he actually scored.</p>
+  const xfpCard=xf?`<div class="card"><h3 style="margin-bottom:12px">Expected fantasy points</h3>
    <div class="tiles"><div class="tile"><span class="label">Expected / game</span><span class="v">${n1(xf.pg)}</span><span class="s">from usage alone</span></div>
    <div class="tile"><span class="label">Actual / game</span><span class="v">${n1(xf.actPg)}</span><span class="s">receiving + rushing</span></div>
    <div class="tile"><span class="label">Over expected</span><span class="v" style="color:${xf.fpoe>=0?'var(--good)':'var(--bad)'}">${xf.fpoe>=0?'+':''}${n1(xf.fpoe)}</span><span class="s">${Math.abs(xf.fpoe)<1.5?'Scoring about as his usage predicts':xf.fpoe>0?'Outscoring his usage; may cool off':'Underscoring his usage; may bounce back'}</span></div></div></div>`:'';
@@ -3601,7 +3602,7 @@ function renderPlayer(){
    ${p.pos==='DST'?dstOppCard(p):''}
    <div id="sec-trend" class="sec-anchor">${weekCard(p,tr.projV)}</div>
    ${usageCard(p)}
-   <div id="sec-usage" class="sec-anchor">${xfpCard}<div style="margin-top:20px"><h2>Usage and efficiency</h2><p class="note" style="margin:4px 0 12px">Ranked against ${p.pos}s with at least 2 games and enough volume. Usage stats (top of the list) predict future scoring better than efficiency stats, which bounce around more early in the season. Each card shows its source.</p>
+   <div id="sec-usage" class="sec-anchor">${xfpCard}<div style="margin-top:20px"><h2 style="margin-bottom:12px">Usage and efficiency</h2>
    <div class="mgrid">${ms}</div>${msMore?`<details class="more-d"><summary>Show ${msA.length-4} more usage stats</summary><div class="mgrid">${msMore}</div></details>`:''}</div></div>
    <div id="sec-po" class="sec-anchor">${poCard}</div>
    <div id="pNews"></div>`;
@@ -3757,7 +3758,7 @@ function scFields(){return [
   ['Defense / special teams',[['dsack','Sack','',1],['dint','Interception','',1],['dfr','Fumble rec.','',1],['dtd','Touchdown','Return or defensive',1],['dsafe','Safety','',1],['dblk','Blocked kick','',1]]],
   ['Points allowed (D/ST)',[['pa0','0 points','',1],['pa1','1–6','',1],['pa7','7–13','',1],['pa14','14–17','',1],['pa18','18–27','',1],['pa28','28–34','',1],['pa35','35–45','',1],['pa46','46+','',1]]]];}
 function renderSetTeam(){const el=$('#setTeam');if(!el)return;const t=curTeam();
-  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Settings for ${t?esc(t.name):'your team'}</h3><span class="note">Scoring, lineup slots, playoff weeks and model tuning are saved separately for each team. Appearance applies to all.</span></div>
+  el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Settings for ${t?esc(t.name):'your team'}</h3></div>
    ${S.teams.length>1?`<div class="chips">${S.teams.map(x=>`<button class="chip" aria-pressed="${x.id===S.tid}" data-team="${esc(x.id)}">${esc(x.name)}</button>`).join('')}</div>`:''}
    <div><button class="hm-link" data-go="lineup">${S.teams.length?'Add or rename teams on My Lineup':'Set up a team on My Lineup'}</button></div>`;}
 function renderSettings(){renderSetTeam();syncPo();const el=$('#setScoring');if(!el)return;const c=SC(),pre=scPreset(),dflt=JSON.stringify(c)===JSON.stringify(DEF_SC);
