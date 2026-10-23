@@ -1133,6 +1133,26 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 @media (max-width:760px){.toast{bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:70}}
 .toast-undo:active{transform:scale(.96)}.toast-undo:focus-visible{outline:2px solid currentColor;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.skip{transition:none}}
+
+/* --- site footer + Privacy / Terms (reached only from the footer) --- */
+.site-foot{margin-top:8px;padding-top:16px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;color:var(--muted);font-size:.85rem;line-height:1.45}
+.sf-row{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+.sf-mark{font-family:var(--f-display);font-style:italic;font-weight:400;font-size:.9rem;letter-spacing:.01em;color:var(--ink);text-transform:uppercase;-webkit-user-select:none;user-select:none}
+.sf-mark b{font-weight:400;color:var(--turf)}
+.sf-links{display:flex;gap:2px;margin-right:-10px}
+.sf-links a{display:inline-flex;align-items:center;min-height:40px;padding:0 10px;border-radius:8px;font-family:var(--f-display-cond);font-weight:400;font-size:.95rem;letter-spacing:.04em;text-transform:uppercase;color:var(--ink);text-decoration:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:background 120ms cubic-bezier(.23,1,.32,1)}
+.sf-links a[aria-current="page"]{color:var(--turf)}
+.sf-links a:active{background:var(--surface-2)}
+.sf-links a:focus-visible{outline:2px solid var(--turf);outline-offset:-2px}
+@media (hover:hover) and (pointer:fine){.sf-links a:hover{color:var(--turf);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}}
+.sf-note{max-width:72ch}
+.legal{display:flex;flex-direction:column;gap:12px;max-width:760px;font-size:15px;line-height:1.55}
+.legal .lg-lead{font-size:1.05rem;color:var(--ink)}
+.legal h2{font-family:var(--f-body);font-style:normal;font-size:1.15rem;font-weight:700;line-height:1.25;letter-spacing:0;text-transform:none;padding:0;border:0;margin:10px 0 -4px}
+.legal ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.legal a{color:var(--turf);text-decoration:underline;text-underline-offset:3px}
+.legal .btns{margin-top:2px}
+@media (max-width:760px){.legal h2{font-size:1.08rem}}
 </style>
 </head>
 <body>
@@ -1521,6 +1541,73 @@ Total      = Pts/game × Games left</div>
       </div>
     </div>
   </section>
+
+  <!-- PRIVACY (reached only from the footer) -->
+  <section class="panel" id="p-privacy" role="tabpanel" aria-labelledby="lgPrivacyH" hidden>
+    <div><h1 class="pg-title" id="lgPrivacyH">Privacy</h1><p class="note">Effective October 23, 2026</p></div>
+    <div class="card legal">
+      <p class="lg-lead">Ace Lineup Lab doesn’t collect personal information. There are no accounts, cookies, ads or analytics, and anything you enter stays on your own device.</p>
+      <h2>What’s saved on your device</h2>
+      <p>The site uses your browser’s local storage to remember:</p>
+      <ul>
+        <li>Your settings, such as theme, scoring format, week and how you’ve tuned the model.</li>
+        <li>The players you add to your team.</li>
+        <li>If you connect a league: your Sleeper username or ESPN league ID, plus the league’s name, team names and rosters.</li>
+        <li>Small things, like the last section you opened and whether you dismissed the install prompt.</li>
+      </ul>
+      <p>The site also keeps a copy of its pages and data so it opens with weak or no signal. None of this is sent to Ace Lineup Lab. You can remove your league with Disconnect on My Lineup, clear everything below, or clear this site’s data in your browser settings.</p>
+      <div class="btns"><button class="btn sm" type="button" id="lgClear">Clear data saved on this device</button></div>
+      <h2>Services your browser connects to</h2>
+      <p>To show live information, your browser connects directly to these services. Like any website, they receive your IP address and basic browser details, and their own privacy policies apply.</p>
+      <ul>
+        <li><b>GitHub Pages</b> hosts the site and keeps standard server logs for security.</li>
+        <li><b>ESPN</b> provides live scores, injuries, news, player photos and team logos, and your league if you connect an ESPN league.</li>
+        <li><b>Sleeper</b> provides player photos, and your league if you connect a Sleeper league.</li>
+        <li><b>News sites</b> (ESPN, CBS Sports, Yahoo Sports and NBC Sports) provide story photos.</li>
+      </ul>
+      <h2>Children</h2>
+      <p>Ace Lineup Lab is a general-audience site and isn’t directed to children under 13. It doesn’t collect personal information from anyone, including children.</p>
+      <h2>Do Not Track</h2>
+      <p>The site doesn’t track you, so it works the same whether or not your browser sends a Do Not Track signal.</p>
+      <h2>Changes</h2>
+      <p>If this policy changes, the new version will be posted here with a new effective date.</p>
+      <h2>Questions</h2>
+      <p>Questions about privacy? Open an issue on <a href="https://github.com/AceVentura06/Lineup-Lab/issues" target="_blank" rel="noopener">the site’s GitHub page</a>. Issues are public, so don’t include personal details.</p>
+    </div>
+  </section>
+
+  <!-- TERMS (reached only from the footer) -->
+  <section class="panel" id="p-terms" role="tabpanel" aria-labelledby="lgTermsH" hidden>
+    <div><h1 class="pg-title" id="lgTermsH">Terms of use</h1><p class="note">Effective October 23, 2026</p></div>
+    <div class="card legal">
+      <p class="lg-lead">By using Ace Lineup Lab, you agree to these terms. If you don’t agree, please don’t use the site.</p>
+      <h2>For fun and information</h2>
+      <p>Projections, rankings and start/sit calls are estimates. They can be wrong, late or incomplete, and they don’t guarantee how any player will do. Nothing on the site is gambling, financial or professional advice. Betting lines are shown for information only. Sports betting is only for adults of legal age where it’s allowed (21 and over in most US states).</p>
+      <h2>Where the data comes from</h2>
+      <p>Stats, projections, news and other data come from outside sources, including ESPN, Sleeper, CBS Sports, FantasyPros, nflverse, Open-Meteo and news sites. Links to other sites are there for convenience, and Ace Lineup Lab isn’t responsible for their content.</p>
+      <h2>Not affiliated</h2>
+      <p>Ace Lineup Lab is an independent fan project. It isn’t affiliated with or endorsed by the NFL, its teams, ESPN, Sleeper, CBS Sports, FantasyPros or any other company named on the site. Team names, logos and other trademarks belong to their owners and are used only to identify them.</p>
+      <h2>Connecting a league</h2>
+      <p>League connections are read-only. The site reads your roster and league settings and never changes anything in your league. You’re responsible for following your league platform’s own terms.</p>
+      <h2>Using the site fairly</h2>
+      <p>Don’t misuse the site, for example by trying to break it, overload it or copy its data in bulk.</p>
+      <h2>No warranty</h2>
+      <p>The site is free and provided as is, without warranties of any kind. It may change, contain errors or go offline at any time. To the fullest extent the law allows, Ace Lineup Lab isn’t liable for any loss that comes from using it, including fantasy or betting losses.</p>
+      <h2>Changes</h2>
+      <p>These terms may be updated. The current version is always on this page, with its effective date at the top.</p>
+      <h2>Questions</h2>
+      <p>Questions about these terms? Open an issue on <a href="https://github.com/AceVentura06/Lineup-Lab/issues" target="_blank" rel="noopener">the site’s GitHub page</a>.</p>
+    </div>
+  </section>
+
+  <footer class="site-foot" aria-label="Site information">
+    <div class="sf-row">
+      <span class="sf-mark" translate="no"><b>Ace</b> Lineup Lab</span>
+      <nav class="sf-links" aria-label="Legal"><a href="#privacy" data-go="privacy">Privacy</a><a href="#terms" data-go="terms">Terms</a></nav>
+    </div>
+    <p class="sf-note">Projections are estimates for fun, not betting advice. Not affiliated with or endorsed by the NFL, ESPN, Sleeper, CBS Sports or FantasyPros. Team names and logos belong to their owners.</p>
+    <p>© <span id="sfYear">2026</span> Ace Lineup Lab</p>
+  </footer>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -2771,7 +2858,7 @@ function renderHome(){
   $('#hmNews').innerHTML=`<div class="hm-head"><h3>Latest news</h3></div>${lat.length?`${feat?`<div class="hm-feat">${newsThumb(feat[1],feat[2],feat[4])}${meta(feat[1],feat[3])}${ln(feat[0],feat[2],'ht')}</div>`:''}
     <ul style="margin-top:12px">${rest.map(([t,src,url,iso,img])=>`<li>${newsThumb(src,url,img)}<div>${meta(src,iso)}${ln(t,url)}</div></li>`).join('')}</ul>`:'<p class="hm-empty">No headlines right now.</p>'}`;
 }
-document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return;}
+document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){if(g.tagName==='A'){if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;e.preventDefault();}go(g.dataset.go);return;}
   const h=e.target.closest('[data-hp]');if(h){ui.homePos=h.dataset.hp;renderHome();requestAnimationFrame(()=>segThumb($('#hmPick')));return;}
   const c=e.target.closest('[data-cmp]');if(c){const [a,b]=c.dataset.cmp.split('|');ui.a=a;ui.b=b;go('week');const el=$('#p-week .h2h');if(el)el.scrollIntoView({block:'start'});}});
 // ---- my team: stars and the shared "My team only" filter ----
@@ -2794,10 +2881,11 @@ function render(){
    const mb=$('#tMoreBtn');if(mb)mb.classList.toggle('on',inM);
    const rec=SC().rec;$('#ctxWk').textContent=S.week;$('#ctxSc').textContent=rec===1?'PPR':rec===.5?'Half PPR':rec===0?'Standard':'Custom';
    segThumb($('#scoringSeg'));}
-  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model','settings'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model','settings','privacy','terms'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  document.querySelectorAll('.sf-links [data-go]').forEach(a=>a.dataset.go===ui.tab?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
   // only the open tab is drawn; the others are drawn fresh when you switch to them (go() calls render())
   const R={home:renderHome,week:renderWeek,sites:renderSites,stats:renderStats,player:renderPlayer,ros:renderRos,lineup:renderLineup,
-    acc:renderAcc,trade:renderTrade,dvp:renderDvp,model:renderModel,settings:()=>{renderSettings();renderModel();}};
+    acc:renderAcc,trade:renderTrade,dvp:renderDvp,model:renderModel,settings:()=>{renderSettings();renderModel();},privacy:()=>{},terms:()=>{}};
   (R[ui.tab]||renderHome)();
 }
 
@@ -3027,7 +3115,7 @@ $('#luAdd').oninput=e=>{const v=e.target.value.trim().toLowerCase();if([...lineu
 $('#luOwn').oninput=e=>{ui.luOwn=+e.target.value;renderLineup();};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-unstar]');if(!b)return;unMine(b.dataset.unstar);});
 $('#luClear').onclick=e=>{const b=e.target;if(b.dataset.confirm){S.mine=[];save();renderLineup();b.textContent='Clear roster';delete b.dataset.confirm;toast('Roster cleared');}
-  else{b.dataset.confirm='1';b.textContent='Tap again to clear';setTimeout(()=>{if(b.dataset.confirm){delete b.dataset.confirm;b.textContent='Clear roster';}},3000);}};
+  else{b.dataset.confirm='1';b.textContent='Press again to clear';setTimeout(()=>{if(b.dataset.confirm){delete b.dataset.confirm;b.textContent='Clear roster';}},3000);}};
 
 // ---- start/sit tools: every source ranks the player at his position, then votes ----
 const CUT={QB:[12,18],RB:[24,36],WR:[30,42],TE:[12,18],K:[12,16],DST:[12,16]};
@@ -3553,7 +3641,7 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button[dat
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});});})();
 // Features that are built but switched off. To bring one back, change false to true.
 const FEATURES={trade:true};
-const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model'].filter(t=>FEATURES[t]!==false);
+const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model','privacy','terms'].filter(t=>FEATURES[t]!==false);
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
@@ -3586,6 +3674,14 @@ window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Mat
 $('#blendAuto').onchange=e=>{S.blendAuto=e.target.checked;save();renderModel();};
 $('#resetW').onclick=()=>{S.w={...DEF_W};S.blendAuto=true;save();render();toast('Weights reset');};
 
+// ---- footer year, and Privacy's "clear data saved on this device" (tap twice to confirm) ----
+(function(){const y=$('#sfYear');if(y)y.textContent=new Date().getFullYear();
+  const b=$('#lgClear');if(!b)return;const label=b.textContent;let armed=0;
+  b.onclick=async()=>{if(!armed){b.textContent='Press again to clear';armed=setTimeout(()=>{armed=0;b.textContent=label;},4000);return;}
+    clearTimeout(armed);b.disabled=true;b.textContent='Clearing…';
+    try{Object.keys(localStorage).filter(k=>k.startsWith('lineuplab')).forEach(k=>localStorage.removeItem(k));}catch(_){}
+    try{if(window.caches)for(const k of await caches.keys())await caches.delete(k);}catch(_){}
+    location.replace(location.pathname);};})();
 // phone bottom bar: four main sections plus a "More" sheet with the rest
 function syncBnav(){const tb=ui.tab;let inMore=false;
   document.querySelectorAll('#bnav [data-tab],#bmore [data-tab]').forEach(b=>{const on=b.dataset.tab===tb;if(on){b.setAttribute('aria-current','page');if(b.closest('#bmore'))inMore=true;}else b.removeAttribute('aria-current');});
