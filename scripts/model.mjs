@@ -32,12 +32,19 @@ export function loadModel(data, extra = []) {
   if (exposed === main) throw new Error('could not hook the model script');
   const doc = stub();
   doc.querySelectorAll = () => [];
+  doc.createTreeWalker = () => ({ nextNode: () => null });   // no text to walk, so loops over it end
+  // browser-only constructors the page uses for display work; inert here
+  const Observer = class { observe() {} unobserve() {} disconnect() {} takeRecords() { return []; } };
   const ctx = {
+    MutationObserver: Observer, IntersectionObserver: Observer, ResizeObserver: Observer,
+    getComputedStyle: () => stub(), NodeFilter: { SHOW_TEXT: 4, SHOW_ELEMENT: 1 },
+    SK: stub(),   // the page's skeleton-loader helper (defined in an earlier <script> this runner doesn't load)
     console: { log() {}, warn() {}, error() {} },
     document: doc, navigator: {}, location: { hash: '', search: '', href: '' },
     localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
     history: { replaceState() {}, pushState() {} },
-    scrollTo() {}, setTimeout: () => 0, clearTimeout() {}, requestAnimationFrame: () => 0,
+    scrollTo() {}, setTimeout: () => 0, clearTimeout() {}, setInterval: () => 0, clearInterval() {},
+    requestAnimationFrame: () => 0, cancelAnimationFrame() {}, queueMicrotask() {},
     matchMedia: () => ({ matches: false, addEventListener() {} }),
     Image: function () {},
     addEventListener() {}, removeEventListener() {},
@@ -59,6 +66,8 @@ export function projectAll(data) {
   const out = {};
   for (let i = 0; i < 3; i++) {
     M.S.scoring = SC[i];
+    // the page scores from S.sc (custom scoring) now; the three formats differ only in points per catch
+    M.S.sc = Object.assign({}, M.S.sc, { rec: [1, 0.5, 0][i] });
     for (const p of M.realPlayers()) {
       if (M.onBye(p) || !p.opp) continue;
       const wp = M.weekProj(p);
