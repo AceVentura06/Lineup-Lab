@@ -22,7 +22,8 @@ export interface UsageChartProps {
   animate?: boolean;
 }
 
-// Bklit's area chart runs on dates, so week w sits at day w of a fixed epoch.
+// Bklit's area chart runs on dates, so week w sits at day w of a fixed epoch. Only weeks with a
+// share are plotted, so the line joins straight across byes and missed games.
 const DAY = 86_400_000;
 const BASE = Date.UTC(2000, 0, 1);
 const at = (w: number) => new Date(BASE + w * DAY);
@@ -40,40 +41,38 @@ function useColumns() {
   return { x: (w: number) => xScale(at(w)), width };
 }
 
-/** Faint full-height column behind each week, as on Points by week. */
+/** Faint full-height column behind each week with a share (0% included), as on Points by week. */
 function ColumnTrack({ weeks }: { weeks: UsageWeek[] }) {
   const { innerHeight } = useChart();
   const { x, width } = useColumns();
   const bw = width * 0.82;
   return (
     <g aria-hidden="true">
-      {weeks.map((d) => (
+      {weeks.filter((d) => d.v != null).map((d) => (
         <rect fill="var(--chart-1)" height={innerHeight} key={d.w} opacity={0.07} width={bw} x={x(d.w) - bw / 2} y={0} />
       ))}
     </g>
   );
 }
 
-/** Bklit can't break a line at a missing week, so byes and missed games are painted over and labelled. */
-function GapCover({ weeks }: { weeks: UsageWeek[] }) {
+/** "Bye" / "Out" under weeks with no share. The line runs straight through them: no dot, no column. */
+function GapLabels({ weeks }: { weeks: UsageWeek[] }) {
   const { innerHeight } = useChart();
-  const { x, width } = useColumns();
+  const { x } = useColumns();
   return (
     <g aria-hidden="true">
       {weeks
-        .filter((d) => d.v == null)
+        // a game played with no share to show (a QB with 0 total points) gets no label: he wasn't out
+        .filter((d) => d.v == null && d.kind !== "played")
         .map((d) => (
-          <g key={d.w}>
-            <rect fill="var(--surface)" height={innerHeight + 2} width={width} x={x(d.w) - width / 2} y={-1} />
-            <text className="ll-gap" fill="var(--chart-label)" textAnchor="middle" x={x(d.w)} y={innerHeight - 10}>
-              {d.kind === "bye" ? "Bye" : "Out"}
-            </text>
-          </g>
+          <text className="ll-gap" fill="var(--chart-label)" key={d.w} textAnchor="middle" x={x(d.w)} y={innerHeight - 10}>
+            {d.kind === "bye" ? "Bye" : "Out"}
+          </text>
         ))}
     </g>
   );
 }
-GapCover.__isPostOverlay = true;
+GapLabels.__isPostOverlay = true;
 
 function AvgRule({ value }: { value: number }) {
   const { yScale, innerWidth } = useChart();
@@ -159,7 +158,7 @@ export function UsageChart({ weeks, avg, title, animate = true }: UsageChartProp
             stroke="var(--chart-1)"
             strokeWidth={2.5}
           />
-          <GapCover weeks={weeks} />
+          <GapLabels weeks={weeks} />
           {avg != null && <AvgRule value={avg} />}
           <PointLabels only={new Set([hi.w, last.w])} rows={rows} />
           <WeekAxis weeks={weeks} />
