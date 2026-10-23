@@ -7,6 +7,7 @@ import { Grid } from "@/components/charts/grid";
 import { Line } from "@/components/charts/line";
 import { LineChart } from "@/components/charts/line-chart";
 import { ChartTooltip } from "@/components/charts/tooltip";
+import { at, Tip, WeekAxis } from "./parts";
 
 /** One graded source, as index.html's accChart() describes it. */
 export interface AccSource {
@@ -21,11 +22,6 @@ export interface AccuracyChartProps {
   weeks: number[];
   sources: AccSource[];
 }
-
-// Bklit's line chart runs on dates, so week w sits at day w of a fixed epoch.
-const DAY = 86_400_000;
-const BASE = Date.UTC(2000, 0, 1);
-const at = (w: number) => new Date(BASE + w * DAY);
 
 /*
  * Bklit always starts the y-axis at 0, and every source misses by 5–6 points, so drawn
@@ -50,20 +46,6 @@ function YLabels({ floor, ticks, step }: { floor: number; ticks: number[]; step:
   );
 }
 YLabels.__isPostOverlay = true;
-
-function WeekAxis({ weeks }: { weeks: number[] }) {
-  const { xScale, innerHeight } = useChart();
-  return (
-    <g aria-hidden="true">
-      {weeks.map((w) => (
-        <text className="ll-wk" key={w} textAnchor="middle" x={xScale(at(w))} y={innerHeight + 22}>
-          Wk {w}
-        </text>
-      ))}
-    </g>
-  );
-}
-WeekAxis.__isPostOverlay = true;
 
 /**
  * A source that wasn't graded every week. Bklit's Line can't skip missing points (it draws
@@ -104,8 +86,7 @@ export function AccuracyChart({ weeks, sources }: AccuracyChartProps) {
   });
   const on = (k: string) => focus == null || focus === k;
   // Ace Lineup Lab is the spotlight: bold, filled, with markers; the rest are thin context lines
-  const bold = (k: string) => k === "lab";
-  const width = (k: string) => (bold(k) ? 3.5 : 1.75);
+  const width = (k: string) => (k === "lab" ? 3.5 : 1.75);
   const lab = full.find((s) => s.key === "lab");
 
   return (
@@ -131,18 +112,18 @@ export function AccuracyChart({ weeks, sources }: AccuracyChartProps) {
             dashFromIndex={s.key === "mod" ? 0 : undefined}
             dataKey={s.key}
             key={s.key}
-            markers={{ fill: "var(--chart-background)", radius: bold(s.key) ? 4.5 : 3.5, ringGap: 0, stroke: dim(s.color, on(s.key)), strokeWidth: 2.5 }}
+            markers={{ fill: "var(--chart-background)", radius: 4.5, ringGap: 0, stroke: dim(s.color, on(s.key)), strokeWidth: 2.5 }}
             showHighlight={false}
-            showMarkers={bold(s.key)}
+            showMarkers={s.key === "lab"}
             stroke={dim(s.color, on(s.key))}
             strokeWidth={width(s.key)}
           />
         ))}
         {partial.map((s) => (
-          <PartialLine dots={bold(s.key)} floor={floor} key={s.key} src={s} stroke={dim(s.color, on(s.key))} weeks={weeks} width={width(s.key)} />
+          <PartialLine dots={s.key === "lab"} floor={floor} key={s.key} src={s} stroke={dim(s.color, on(s.key))} weeks={weeks} width={width(s.key)} />
         ))}
         <YLabels floor={floor} step={step} ticks={ticks} />
-        <WeekAxis weeks={weeks} />
+        <WeekAxis weeks={weeks.map((w) => ({ w }))} />
         <ChartTooltip
           content={({ point }) => <AccTip floor={floor} row={point as Row} sources={sources} />}
           showDatePill={false}
@@ -177,19 +158,16 @@ function AccTip({ row, sources, floor }: { row: Row; sources: AccSource[]; floor
     .map((s) => ({ s, v: (row[s.key] as number) + floor }))
     .sort((a, b) => a.v - b.v);
   return (
-    <div className="ll-tip">
-      <div className="ll-tip-h">{`Week ${row.w} · avg miss`}</div>
-      <div className="ll-tip-r">
-        {list.map(({ s, v }) => (
-          <div key={s.key}>
-            <span>
-              <i style={{ background: s.color }} />
-              {s.name}
-            </span>
-            <b>{v.toFixed(2)}</b>
-          </div>
-        ))}
-      </div>
-    </div>
+    <Tip title={`Week ${row.w} · avg miss`}>
+      {list.map(({ s, v }) => (
+        <div key={s.key}>
+          <span>
+            <i style={{ background: s.color }} />
+            {s.name}
+          </span>
+          <b>{v.toFixed(2)}</b>
+        </div>
+      ))}
+    </Tip>
   );
 }

@@ -27,7 +27,7 @@ export interface BallChartProps {
 
 const OTHER = "_other";
 const HOVER = 6;
-// donut box is 150px, or 120px on narrow phones (styles.css); the hole keeps the ring the same weight
+// donut box is 150px, or 120px on narrow phones (.pie-w in index.html); the hole keeps the ring the same weight
 const SMALL = "(max-width: 420px)";
 function useBox() {
   const [small, setSmall] = useState(() => matchMedia(SMALL).matches);
@@ -56,9 +56,9 @@ export function BallChart({ pies }: BallChartProps) {
         const pct = (s: BallSeg) => Math.round((100 * s.n) / total);
         const idx = pie.seg.findIndex((s) => keyOf(s, pi) === hot);
         return (
-          <figure className="ll-pie" key={pie.label}>
+          <figure className="pie" key={pie.label}>
             <figcaption>{pie.label}</figcaption>
-            <div aria-label={`${pie.label}: ${pie.seg.map((s) => `${s.name} ${pct(s)}%`).join(", ")}`} className="ll-pie-w" role="img">
+            <div aria-label={`${pie.label}: ${pie.seg.map((s) => `${s.name} ${pct(s)}%`).join(", ")}`} className="pie-w" role="img">
               <PieChart
                 data={pie.seg.map((s) => ({ color: s.c, label: s.name, value: s.n }))}
                 hoveredIndex={idx >= 0 ? idx : null}
@@ -73,12 +73,12 @@ export function BallChart({ pies }: BallChartProps) {
                 <PieCenter>
                   {({ isHovered, data }) =>
                     isHovered ? (
-                      <div className="ll-pie-c">
+                      <div className="pie-c">
                         <b>{Math.round((100 * data.value) / total)}%</b>
                         <span>{data.label}</span>
                       </div>
                     ) : (
-                      <div className="ll-pie-c">
+                      <div className="pie-c">
                         <b>{pie.perGame.toFixed(1)}</b>
                         <span>{pie.unit}/game</span>
                       </div>

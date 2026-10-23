@@ -123,25 +123,17 @@
 .ll-wk-chart { height: 270px; }
 .ll-us-chart { height: 250px; }
 .ll-acc-chart { height: 260px; }
-/* Who gets the ball: same grid as the hand-built .pies/.pie in index.html */
+/* Who gets the ball: reuses index.html's .pie / .pie-w / .pie-c / .pie-leg */
 .ll-pies { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px 28px; margin-top: 14px; }
-.ll-pie { margin: 0; display: grid; grid-template-columns: 150px 1fr; gap: 6px 18px; align-items: center; }
-.ll-pie figcaption { grid-column: 1 / -1; font-family: var(--f-display); font-weight: 800; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-.ll-pie-w { width: 150px; height: 150px; }
-.ll-pie-w path { stroke: var(--wkbg, var(--surface)); stroke-width: 1.5px; }
-.ll-pie-c { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 84px; }
-.ll-pie-c b { font-family: var(--f-mono); font-size: 1.35rem; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ink); }
-.ll-pie-c span { font-size: .72rem; line-height: 1.2; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 84px; }
-.ll-pies .pie-leg li { cursor: default; }
-.ll-acc-chart svg text { font-family: var(--f-display); }
+.ll-pies .pie path { transition: none; } /* Motion animates the slices; index.html's transition would fight it */
+.ll-pies .pie-c span { max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ll-ytick { fill: var(--chart-label); font-family: var(--f-mono) !important; font-size: 12px; }
 .ll-acc-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
 .ll-acc-key { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 2px; border: 0; background: none; color: var(--ink); font: 600 .88rem var(--f-body); cursor: pointer; transition: opacity .15s ease-out; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 .ll-acc-key i { width: 14px; height: 3px; border-radius: 2px; flex: none; }
 .ll-acc-key i.dash { background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px) !important; }
 .ll-acc-key:focus-visible { outline: 2px solid var(--chart-1); outline-offset: 2px; border-radius: 4px; }
-.ll-us-chart svg text { font-family: var(--f-display); }
-.ll-wk-chart svg text { font-family: var(--f-display); }
+.ll-island svg text { font-family: var(--f-display); }
 .ll-val { font-family: var(--f-mono) !important; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--chart-background); stroke-width: 4px; stroke-linejoin: round; }
 .ll-gap { font-family: var(--f-display-cond) !important; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
 .ll-wk { fill: var(--chart-foreground); font-size: 14px; text-transform: uppercase; }
@@ -170,4 +162,3 @@
 
 /* touch: the chart is a control, not text — no long-press selection or gray tap flash */
 .ll-island svg { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
-@media (max-width: 420px) { .ll-pie { grid-template-columns: 120px 1fr; } .ll-pie-w { width: 120px; height: 120px; } }

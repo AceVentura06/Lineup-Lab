@@ -1675,8 +1675,8 @@ Total      = Pts/game × Games left</div>
 // Chart islands (built from charts/ into assets/charts): fetched only when a page first shows one,
 // so the home page and tables never download React.
 (function(){var go=false;function load(){if(go||!document.querySelector('[data-island]'))return;go=true;
-  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=b2fb4f91fc';document.head.appendChild(l);
-  import('./assets/charts/islands.js?v=b2fb4f91fc').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
+  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=e8e63ce1c5';document.head.appendChild(l);
+  import('./assets/charts/islands.js?v=e8e63ce1c5').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
   document.addEventListener('DOMContentLoaded',function(){load();if(!go)new MutationObserver(function(_,o){load();if(go)o.disconnect();}).observe(document.body,{childList:true,subtree:true});});})();
 </script>
 <script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data","ticker-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
@@ -2401,20 +2401,21 @@ function sharePies(d){const tot={tgt:d.tgt,car:d.rush};if(!d.g||(!tot.tgt&&!tot.
   // color follows the player: assigned once, in order of total touches, so the same player is the same color in both
   const ids=[...new Set([...T,...C].map(x=>x.p).sort((a,b)=>((b.s.rec_tgt||0)+(b.s.rush_att||0))-((a.s.rec_tgt||0)+(a.s.rush_att||0))).map(p=>p.key))];
   const col=k=>`var(${PIE_C[ids.indexOf(k)]})`;
-  const pie=(rows,total,label,unit)=>{if(!total)return '';const sum=rows.reduce((a,x)=>a+x.n,0),oth=Math.max(0,total-sum);
-    const seg=[...rows.map(x=>({k:x.p.key,name:x.p.name,pos:x.p.pos,n:x.n,c:col(x.p.key)})),...(oth>0?[{k:'',name:'Everyone else',pos:'',n:oth,c:'var(--pc-oth)'}]:[])];
+  // the top players' slices plus "Everyone else"; drawn below as the fallback and handed to the Bklit island
+  const segs=(rows,total)=>{const oth=Math.max(0,total-rows.reduce((a,x)=>a+x.n,0));
+    return [...rows.map(x=>({k:x.p.key,name:x.p.name,pos:x.p.pos,n:x.n,c:col(x.p.key)})),...(oth>0?[{k:'',name:'Everyone else',pos:'',n:oth,c:'var(--pc-oth)'}]:[])];};
+  const pie=(seg,total,label,unit)=>{if(!total)return '';
     const all=seg.reduce((a,x)=>a+x.n,0);let a=0;
     const arcs=seg.map(x=>{const a0=a/all*Math.PI*2;a+=x.n;const a1=a/all*Math.PI*2;
       return `<path d="${arcPath(80,80,50,78,a0,a1)}" fill="${x.c}" data-k="${esc(x.k)}"><title>${esc(x.name)}: ${Math.round(x.n/all*100)}% (${x.n} ${unit})</title></path>`;}).join('');
     return `<figure class="pie"><figcaption>${label}</figcaption><div class="pie-w"><svg viewBox="0 0 160 160" role="img" aria-label="${esc(label)}: ${seg.map(x=>`${x.name} ${Math.round(x.n/all*100)}%`).join(', ')}">${arcs}</svg>
       <div class="pie-c"><b>${n1(total/d.g)}</b><span>${unit}/game</span></div></div>
       <ul class="pie-leg">${seg.map(x=>`<li${x.k?` data-k="${esc(x.k)}"`:''}><i style="background:${x.c}"></i>${x.k?`<button class="plink" data-k="${esc(x.k)}">${esc(x.name)}</button>`:`<span class="muted">${x.name}</span>`}<span class="muted pie-pos">${x.pos}</span><b class="num">${Math.round(x.n/all*100)}%</b></li>`).join('')}</ul></figure>`;};
+  const P=[[segs(T,tot.tgt),tot.tgt,'Target share','targets'],[segs(C,tot.car),tot.car,'Carry share','carries']];
   // real Bklit donuts (assets/charts) mount into .ll-island, beside the hand-built ones (the fallback),
   // not inside .pies, so the old hover script below never touches them
-  const isl=(rows,total,label,unit)=>{if(!total)return null;const sum=rows.reduce((a,x)=>a+x.n,0),oth=Math.max(0,total-sum);
-    return {label,unit,perGame:total/d.g,seg:[...rows.map(x=>({k:x.p.key,name:x.p.name,pos:x.p.pos,n:x.n,c:col(x.p.key)})),...(oth>0?[{k:'',name:'Everyone else',pos:'',n:oth,c:'var(--pc-oth)'}]:[])]};};
-  const island=esc(JSON.stringify({pies:[isl(T,tot.tgt,'Target share','targets'),isl(C,tot.car,'Carry share','carries')].filter(Boolean)}));
-  return `<div class="has-island"><div class="pies">${pie(T,tot.tgt,'Target share','targets')}${pie(C,tot.car,'Carry share','carries')}</div><div class="ll-island" data-island="ball" data-props="${island}"></div></div>`;}
+  const island=esc(JSON.stringify({pies:P.filter(x=>x[1]).map(([seg,total,label,unit])=>({label,unit,perGame:total/d.g,seg}))}));
+  return `<div class="has-island"><div class="pies">${P.map(x=>pie(...x)).join('')}</div><div class="ll-island" data-island="ball" data-props="${island}"></div></div>`;}
 // hovering a slice or a legend row lights up that player in both charts
 document.addEventListener('mouseover',e=>{const w=e.target.closest&&e.target.closest('.pies');if(!w)return;const t=e.target.closest('[data-k]');const k=t&&t.dataset.k;
   w.classList.toggle('hl',!!k);w.querySelectorAll('[data-k]').forEach(el=>el.classList.toggle('on',!!k&&el.dataset.k===k));});
