@@ -1,6 +1,6 @@
 {
-  "hash": "7de340b7eb5abef8",
-  "updated": "2026-10-23T06:01:57.491Z",
+  "hash": "cd84b0c7ad34c1ef",
+  "updated": "2026-10-23T11:35:10.533Z",
   "season": 2026,
   "week": 7,
   "through": "Weeks 1–6 plus 1 of 14 week 7 games",
@@ -11,11 +11,11 @@
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "111 players"
+      "detail": "112 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "44 players"
+      "detail": "45 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -38,12 +38,12 @@
       "detail": "14 week 7 games, 14 with lines"
     },
     "Weather": {
-      "ok": false,
-      "detail": "Unexpected token 'U', \"Unexpected\"... is not valid JSON"
+      "ok": true,
+      "detail": "6 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "493 players"
+      "detail": "509 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "191 players with news, 360 of 376 stories with photos (ESPN 1639 articles scanned; ESPN 473, CBS Sports 15, Yahoo Sports 28, ProFootballTalk 21)"
+      "detail": "191 players with news, 367 of 381 stories with photos (ESPN 1642 articles scanned; ESPN 485, CBS Sports 15, Yahoo Sports 27, ProFootballTalk 21)"
     }
   }
 }
