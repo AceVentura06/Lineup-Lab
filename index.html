@@ -1024,6 +1024,48 @@ tr.sdet>td{background:var(--surface-2);padding-top:6px;padding-bottom:12px}
 .sdet-in{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:baseline;font-size:.95rem}
 .sdet-in b{font-family:var(--f-mono);font-weight:600}
 
+/* --- skeleton loaders: gray shapes of what's coming, shown while data downloads.
+   They fade in after 150ms (a cached load never flashes them), the sweep is transform-only so it stays smooth
+   while the page is busy parsing data, and with reduced motion it's a slow pulse instead of a sweep. --- */
+.sk{display:block;position:relative;overflow:hidden;height:.85em;max-width:100%;border-radius:4px;background:var(--surface-2);
+  animation:sk-in 200ms cubic-bezier(.23,1,.32,1) 150ms both}
+.sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);animation:sk-sweep 1.3s linear infinite}
+:root[data-theme="dark"] .sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)}
+@keyframes sk-in{from{opacity:0}}
+@keyframes sk-sweep{to{transform:translateX(100%)}}
+@keyframes sk-pulse{50%{opacity:.55}}
+@media (prefers-reduced-motion:reduce){.sk::after{display:none}.sk{animation:sk-in 200ms ease 150ms both,sk-pulse 1.8s ease-in-out 350ms infinite}}
+.sk-i{display:inline-block;vertical-align:middle;height:.9em}
+.sk-lines{display:flex;flex-direction:column;gap:.5em}
+.sk-row{display:flex;align-items:center;gap:12px;min-height:29px}
+.sk-row>.sk-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.sk-row>.sk:last-child{flex:none}
+.sk-row.two{min-height:46px}
+.sk-row.three{min-height:66px}
+.sk-pill{flex:none;height:22px;border-radius:4px}
+.sk-th{flex:none;aspect-ratio:16/9;height:auto;border-radius:4px}
+.sk-btn{height:44px;border-radius:6px}
+.hm-pcol.sk-pc{--c:var(--line)}
+.sk-pc .hm-li{min-height:29px;align-items:center}
+.sk-tk{display:flex;align-items:center;gap:26px;padding:0 16px;height:100%;min-height:41px}
+#hmSub .sk-lines{gap:16px}
+@media (min-width:761px){#hmSub .sk:nth-child(3){display:none}}
+html[data-loading] .tk-track{animation:none}
+.sk-tk .sk{background:rgba(255,255,255,.22)}
+.sk-tk .sk::after{background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent)}
+html[data-loading] .tk-pause{visibility:hidden}
+.sk-tbl td{padding:12px 8px}
+#p-boot{display:none}
+html[data-boot] #p-boot{display:block}
+/* news photos: sweep the gray tile until the photo arrives */
+.nthumb:not(.ph){position:relative}
+.nthumb:not(.ph):not(.ok)::before{content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:sk-sweep 1.3s linear infinite}
+:root[data-theme="dark"] .nthumb:not(.ph):not(.ok)::before{background:linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)}
+.nthumb img{position:relative}
+@media (prefers-reduced-motion:reduce){.nthumb::before{display:none}}
+
 /* --- mobile-native baseline --- */
 html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 button,a,label,select,summary,[role="button"],.chip,.btn,.sx,.tm-card,th.sortable,tr.dvprow,input[type=checkbox],input[type=range]{touch-action:manipulation!important}
@@ -1118,7 +1160,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
       <div class="ctl hsearch"><label class="sr" for="hSearch">Find a player</label><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="hSearch" enterkeyhint="search" autocapitalize="none" autocorrect="off" class="pick" type="search" list="hSearchList" placeholder="Find a player" autocomplete="off" spellcheck="false"><datalist id="hSearchList"></datalist></div>
       <button type="button" class="srch-btn" id="srchBtn" aria-label="Find a player" aria-expanded="false"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg></button>
       <div class="ctx">
-        <button type="button" class="ctx-btn" id="ctxBtn" aria-expanded="false" aria-controls="ctxPop"><span class="ctx-wk"><span class="ctx-wl">Week</span><span class="ctx-ws">Wk</span> <span id="ctxWk"></span></span><i aria-hidden="true">|</i><span id="ctxSc"></span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
+        <button type="button" class="ctx-btn" id="ctxBtn" aria-expanded="false" aria-controls="ctxPop"><span class="ctx-wk"><span class="ctx-wl">Week</span><span class="ctx-ws">Wk</span> <span id="ctxWk"><span class="sk sk-i" style="width:1.1em" aria-hidden="true"></span></span></span><i aria-hidden="true">|</i><span id="ctxSc"></span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
         <div class="pop ctx-pop" id="ctxPop" hidden>
           <div class="ctl ctl-sc"><span class="label">Scoring</span>
             <div class="seg" id="scoringSeg" role="group" aria-label="Scoring format">
@@ -1173,6 +1215,49 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
     <div class="hm-grid3"><div class="card" id="hmSoft"></div><div class="card" id="hmLast"></div><div class="card" id="hmAcc"></div></div>
     <div class="hm-row"><div class="card hm-inj" id="hmInj"></div><div class="card hm-news" id="hmNews"></div></div>
   </section>
+
+  <section class="panel" id="p-boot" aria-busy="true" aria-label="Loading"></section>
+  <script>
+  // ---- skeleton loaders: drawn now, before the data files finish downloading; the app's first render replaces them ----
+  window.SK=(function(){
+    var W=['72%','58%','80%','64%','70%','54%','76%','62%'];
+    function b(w,h,c,st){return '<span class="sk'+(c?' '+c:'')+'" style="width:'+w+(h?';height:'+h:'')+(st?';'+st:'')+'"></span>';}
+    function rep(n,f){var o='';for(var i=0;i<n;i++)o+=f(i);return o;}
+    function head(t,link){return '<div class="hm-head">'+(t?'<h3>'+t+'</h3>':b('9em','1.15em'))+(link?b('5em','.8em'):'')+'</div>';}
+    function row(i,o){return '<div class="sk-row'+(o.three&&i%2===0?' three':o.two?' two':'')+'">'+(o.pill?b('34px','','sk-pill'):'')+(o.thumb?b(o.thumb,'','sk-th'):'')
+      +'<span class="sk-col">'+(o.kick?b('7em','.65em'):'')+b(W[i%8])+(o.two?b('42%','.7em'):'')+(o.three&&i%2===0?b('66%','.7em'):'')+'</span>'+(o.num===false?'':b('2.2em','1em'))+'</div>';}
+    function list(n,o){o=o||{};return '<div class="hm-list" aria-hidden="true">'+rep(n,function(i){return row(i,o);})+'</div>';}
+    function lines(ws,h){return '<span class="sk-lines" aria-hidden="true">'+ws.map(function(w){return b(w,h);}).join('')+'</span>';}
+    function rows(n,cols){return rep(n,function(i){return '<tr class="sk-tbl" aria-hidden="true">'+rep(cols,function(c){return '<td>'+b(c===0?W[i%8]:'70%')+'</td>';})+'</tr>';});}
+    function table(n,cols){return '<div class="tbl-wrap"><table><tbody>'+rows(n,cols)+'</tbody></table></div>';}
+    function news(n){return '<div class="card" aria-hidden="true">'+head('Latest News')+list(n,{thumb:'96px',kick:1,two:1,num:false})+'</div>';}
+    return {b:b,list:list,lines:lines,rows:rows,table:table,news:news,head:head,
+      home:function(){var $=function(i){return document.getElementById(i);};
+        $('hmTitle').innerHTML=b('3.1em','.8em','','margin:.06em 0');
+        $('hmSub').innerHTML=lines(['100%','88%','52%'],'.85em');
+        $('hmTeam').innerHTML=head(0,1)+'<div class="sk-lines" aria-hidden="true">'+b('100%')+b('72%')+'</div>'+b('150px','','sk-btn');
+        $('hmTop').innerHTML=head(0,1)+'<div class="chips hm-pick" aria-hidden="true">'+b('184px','37px')+'</div><div class="hm-pos4" aria-hidden="true">'
+          +rep(4,function(c){return '<div class="hm-pcol sk-pc'+(c?'':' on')+'">'+b('7em','1.1em')+rep(5,function(i){return '<div class="hm-li">'+b(W[(i+c)%8].replace('%','')*0.6+'%','1em')+b('2.2em','1.2em')+'</div>';})+'</div>';})+'</div>';
+        $('hmSoft').innerHTML=head('Softest Matchups',1)+list(4,{pill:1,two:1});
+        $('hmLast').innerHTML=head(0)+list(6,{pill:1});
+        $('hmAcc').innerHTML=head('Who Called It',1)+lines(['9em','5.5em','11em'],'.8em').replace('width:5.5em;height:.8em','width:5.5em;height:2.4em')+'<div style="border-top:1px solid var(--line);margin-top:14px;padding-top:12px">'+lines(['100%','70%'])+'</div>';
+        $('hmInj').innerHTML=head('Injury Watch')+list(6,{pill:1,two:1,three:1,num:false});
+        $('hmNews').innerHTML=head('Latest News')+'<div class="sk-lines" aria-hidden="true">'+b('100%','','sk-th','max-height:300px')+b('9em','.75em')+b('92%','1.1em')+'</div>'+'<div style="margin-top:14px">'+list(4,{thumb:'104px',kick:1,two:1,num:false})+'</div>';},
+      page:function(player){return (player?'<div class="card" aria-hidden="true" style="min-height:180px">'+lines(['5em','9em'],'.9em')+'<div style="margin-top:14px">'+b('60%','2.2em')+'</div></div>'
+          :'<div aria-hidden="true">'+b('8em','2.2em')+'<div style="margin-top:12px">'+lines(['70%','46%'],'.9em')+'</div></div>')
+        +'<div class="card" style="margin-top:18px" aria-hidden="true">'+head(0,1)+list(8,{pill:1})+'</div>';}};
+  })();
+  (function(){
+    var h=decodeURIComponent(location.hash.slice(1));
+    if(h&&h!=='home'){   // opened straight to another page: show a page-shaped skeleton instead of the home one
+      document.documentElement.setAttribute('data-boot','');document.getElementById('p-home').hidden=true;
+      document.getElementById('p-boot').innerHTML=SK.page(/^(player|team)=/.test(h));
+    }else{document.getElementById('p-home').setAttribute('aria-busy','true');SK.home();}
+    document.documentElement.setAttribute('data-loading','');
+    var tk=document.getElementById('ticker'),tt=document.getElementById('tkTrack');
+    if(tk&&tt){tt.innerHTML='<div class="sk-tk" aria-hidden="true">'+[9,8,10,7,9].map(function(w){return SK.b('34px','20px','sk-pill')+SK.b(w+'em','.9em');}).join('')+'</div>';tk.hidden=false;}
+  })();
+  </script>
 
   <!-- START / SIT -->
   <section class="panel" id="p-week" role="tabpanel" hidden>
@@ -1352,7 +1437,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
       <p class="note" style="margin-top:4px;max-width:78ch">Every week the site saves each source's projections right before kickoff, then compares them with what players actually scored. Graded on fantasy-relevant players every source projected, in the scoring format chosen above. Weeks 2–5 were rebuilt afterward from what was known at the time, for this site's model and Sleeper only; ESPN, CBS and FantasyPros are graded from Week 6 on.</p>
     </div>
     <div class="chips" id="accWeeks"></div>
-    <div id="accBody"><p class="muted">Loading…</p></div>
+    <div id="accBody" aria-busy="true"></div>
     <div class="card" id="accBlend" hidden></div>
   </section>
 
@@ -1910,7 +1995,7 @@ function renderAccBlend(){const el=$('#accBlend');if(!el)return;const B=SD.blend
     <p class="note" style="margin-top:8px">The Ace Lineup Lab grades above are what the site projected at the time; weeks before this tuning started used a 50/50 split.</p>`;}
 function renderAcc(){
   renderAccBlend();loadAcc();const body=$('#accBody'),wk=$('#accWeeks');
-  if(!ACC){body.innerHTML='<p class="muted">Loading…</p>';wk.innerHTML='';return;}
+  if(!ACC){body.innerHTML=SK.table(7,5);body.setAttribute('aria-busy','true');wk.innerHTML='';return;}body.removeAttribute('aria-busy');
   const ws=Object.keys(ACC.weeks||{}).map(Number).sort((a,b)=>a-b);
   if(!ws.length){wk.innerHTML='';body.innerHTML=`<div class="card"><h3>No grades yet</h3><p class="muted" style="margin-top:6px">The first grades show up once Week ${S.week}'s games are final. Projections are being saved before each kickoff.</p></div>`;return;}
   if(ui.accW==null||(ui.accW!=='season'&&!ws.includes(ui.accW)))ui.accW='season';
@@ -1959,7 +2044,9 @@ function newsThumb(src,url,img){const sc=SRC_C[src]||'var(--muted)',lab=esc(SRC_
     :`<a class="nthumb ph" href="${esc(url)}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true" style="--sc:${sc}">${lab}</a>`;}
 // a photo that fails to load falls back to the source tile
 document.addEventListener('error',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&t.parentElement&&t.parentElement.classList.contains('nthumb'))t.parentElement.classList.add('broken');},true);
-function fillNews(p){loadNews(()=>{const el=$('#pNews');if(!el||ui.tab!=='player'||ui.player!==p.key)return;
+document.addEventListener('load',e=>{const t=e.target;if(t&&t.tagName==='IMG'&&t.parentElement&&t.parentElement.classList.contains('nthumb'))t.parentElement.classList.add('ok');},true);
+function fillNews(p){if(!NEWS&&typeof NEWS_DATA==='undefined'){const el=$('#pNews');if(el)el.innerHTML=SK.news(3);}
+  loadNews(()=>{const el=$('#pNews');if(!el||ui.tab!=='player'||ui.player!==p.key)return;
   const list=(NEWS.news||{})[p.key];
   if(!list||!list.length){el.innerHTML='';return;}
   el.innerHTML=`<div class="card"><h3 style="margin-bottom:6px">Latest news</h3><ul class="news">${list.map(([t,src,url,iso,txt,img])=>`<li>${newsThumb(src,url,img)}<div class="ntext">
@@ -2650,7 +2737,7 @@ function renderHome(){
     ${tops.length?`<div class="hm-list">${tops.map(x=>`<div class="hm-li" style="align-items:center"><span style="display:flex;gap:10px;align-items:center"><span class="pos ${x.pos}">${x.pos}</span>${pname(x.p)}</span><b class="hm-pr">${n1(x.v)}</b></div>`).join('')}</div>`
       :'<p class="hm-empty">Top scorers show up once the first week is played.</p>'}`;
   // accuracy
-  loadAcc();let acc='<p class="hm-empty">Loading…</p>';
+  loadAcc();let acc=SK.lines(['9em','5.5em','11em'],'.8em').replace('width:5.5em;height:.8em','width:5.5em;height:2.4em');
   if(ACC){const ws=Object.keys(ACC.weeks||{}).map(Number).sort((a,b)=>a-b);
     if(!ws.length)acc=`<p class="hm-empty">Grades show up once Week ${SD.week}'s games are final.</p>`;
     else{const last=ws[ws.length-1],rows=accAgg([last]).sort((a,b)=>a.mae-b.mae),season=accAgg(ws).sort((a,b)=>a.mae-b.mae),best=rows[0];
@@ -2791,7 +2878,7 @@ function renderSites(){
     $('#sitesWk').textContent=wk;$('#yahooNote').hidden=true;chips($('#posSites'),ui.posS,'posS');
     $('#sitesNote').textContent=wk>SD.week?`The sites haven't posted Week ${wk} projections yet. They usually come out early that week.`:`Projections weren't saved for Week ${wk}. Saved weeks: ${(SD.pastWeeks||[]).join(', ')||'none yet'}.`;
     $('#sitesBody').innerHTML=`<tr><td colspan="13" class="muted">Nothing to show for Week ${wk}. Change the Week box at the top to ${SD.week} for this week.</td></tr>`;return;}
-  if(past&&!(window.PASTWK&&PASTWK[wk])){$('#sitesBody').innerHTML='<tr><td colspan="13" class="muted">Loading…</td></tr>';loadPastWeek(wk,renderSites);return;}
+  if(past&&!(window.PASTWK&&PASTWK[wk])){$('#sitesBody').innerHTML=SK.rows(10,13);loadPastWeek(wk,renderSites);return;}
   $('#sitesWk').textContent=wk;
   if(past){const P=PASTWK[wk];
     $('#sitesNote').textContent=P.failed?'That week could not be loaded.':`Saved right before each kickoff · ${scName()} scoring · Scored is what each player actually put up.${P.backfilled?' This week was rebuilt afterward from what was known at the time, so only Sleeper and this site\'s model are shown.':''}`;
@@ -3620,6 +3707,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   window.heroChk=heroChk;
   window.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',()=>pad());chk();pad();})();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
+document.documentElement.removeAttribute('data-boot');document.documentElement.removeAttribute('data-loading');{const pb=$('#p-boot');if(pb)pb.remove();}$('#p-home').removeAttribute('aria-busy');
 })();
 </script>
 </body>
