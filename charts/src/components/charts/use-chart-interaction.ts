@@ -232,8 +232,15 @@ export function useChartInteraction({
     setSelection(null);
   }, [clearTooltip]);
 
+  // Lineup Lab patch: on phones a tap opens the tooltip and leaves it open, and a
+  // swipe that starts on the chart still scrolls the page. Browsers follow a tap
+  // with fake mouse events; a fake mousedown would start a drag and close the tooltip.
+  const lastTouchRef = useRef(0);
   const handleMouseDown = useCallback(
     (event: React.MouseEvent<SVGGElement>) => {
+      if (Date.now() - lastTouchRef.current < 800) {
+        return;
+      }
       const chartX = getChartX(event);
       if (chartX === null) {
         return;
@@ -255,8 +262,8 @@ export function useChartInteraction({
 
   const handleTouchStart = useCallback(
     (event: React.TouchEvent<SVGGElement>) => {
+      lastTouchRef.current = Date.now();
       if (event.touches.length === 1) {
-        event.preventDefault();
         const chartX = getChartX(event, 0);
         if (chartX === null) {
           return;
@@ -298,18 +305,9 @@ export function useChartInteraction({
 
   const handleTouchMove = useCallback(
     (event: React.TouchEvent<SVGGElement>) => {
-      if (event.touches.length === 1) {
-        event.preventDefault();
-        const chartX = getChartX(event, 0);
-        if (chartX === null) {
-          return;
-        }
-        lastHoveredXRef.current = chartX;
-        const tooltip = resolveTooltipFromX(chartX);
-        if (tooltip) {
-          scheduleTooltip(tooltip);
-        }
-      } else if (event.touches.length === 2) {
+      lastTouchRef.current = Date.now();
+      // one finger moving is a scroll: leave it to the browser
+      if (event.touches.length === 2) {
         event.preventDefault();
         const x0 = getChartX(event, 0);
         const x1 = getChartX(event, 1);
@@ -331,9 +329,9 @@ export function useChartInteraction({
   );
 
   const handleTouchEnd = useCallback(() => {
-    clearTooltip();
+    lastTouchRef.current = Date.now();
     setSelection(null);
-  }, [clearTooltip]);
+  }, []);
 
   const clearSelection = useCallback(() => {
     setSelection(null);
@@ -366,7 +364,7 @@ export function useChartInteraction({
 
   const interactionStyle: React.CSSProperties = {
     cursor: canInteract ? "crosshair" : "default",
-    touchAction: "none",
+    touchAction: "manipulation",
   };
 
   return {

@@ -2,6 +2,7 @@ import "./styles.css";
 import type { ComponentType } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
+import { UsageChart, type UsageChartProps } from "./islands/usage-chart";
 import { WeekChart, type WeekChartProps } from "./islands/week-chart";
 
 /*
@@ -13,6 +14,7 @@ import { WeekChart, type WeekChartProps } from "./islands/week-chart";
 // biome-ignore lint: each island takes its own props, parsed from data-props
 const ISLANDS: Record<string, ComponentType<any>> = {
   week: WeekChart as ComponentType<WeekChartProps>,
+  usage: UsageChart as ComponentType<UsageChartProps>,
 };
 
 const roots = new Map<HTMLElement, Root>();

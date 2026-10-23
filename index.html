@@ -1671,8 +1671,8 @@ Total      = Pts/game × Games left</div>
 // Chart islands (built from charts/ into assets/charts): fetched only when a page first shows one,
 // so the home page and tables never download React.
 (function(){var go=false;function load(){if(go||!document.querySelector('[data-island]'))return;go=true;
-  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=40a5aaefb2';document.head.appendChild(l);
-  import('./assets/charts/islands.js?v=40a5aaefb2').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
+  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=1453be62a3';document.head.appendChild(l);
+  import('./assets/charts/islands.js?v=1453be62a3').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
   document.addEventListener('DOMContentLoaded',function(){load();if(!go)new MutationObserver(function(_,o){load();if(go)o.disconnect();}).observe(document.body,{childList:true,subtree:true});});})();
 </script>
 <script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data","ticker-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
@@ -3461,13 +3461,15 @@ function usageCard(p){
   const col=x=>x.v==null?`<div class="us-col" role="img" aria-label="Week ${x.w}: ${x.kind==='bye'?'Bye':'Out'}"><span class="us-gap">${x.kind==='bye'?'Bye':'Out'}</span></div>`
     :`<div class="us-col has" tabindex="0" role="img" data-tip="${tipOf(x)}" aria-label="Week ${x.w}${esc(x.o?' '+x.o:'')}: ${x.v.toFixed(1)}% ${esc(U.title.toLowerCase())}"><i class="us-dot${x===last?' end':''}" style="bottom:${y(x.v)}px"></i><b class="us-lbl${x===hi||x===last?' on':''}" style="bottom:${y(x.v)+12}px">${Math.round(x.v)}%</b></div>`;
   const lab=x=>`<div class="wkl"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span></div>`;
-  return `<div class="card wkcard uscard" style="--uc:var(--${p.pos.toLowerCase()});--wkc:var(--uc)"><div class="wkhead"><h3>${U.title} by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season <b>${avg.toFixed(1)}%</b></span>`:''}</div>
+  // real Bklit chart (assets/charts) mounts into .ll-island; the hand-built chart below is the fallback
+  const island=esc(JSON.stringify({weeks:weeks.map(({w,o,v,kind})=>({w,o,v,kind})),avg,title:U.title}));
+  return `<div class="card wkcard uscard has-island" style="--uc:var(--${p.pos.toLowerCase()});--wkc:var(--uc)"><div class="wkhead"><h3>${U.title} by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season <b>${avg.toFixed(1)}%</b></span>`:''}</div>
     <div class="wkscroll"><div class="wkgrid" style="--n:${n}">
       <div class="us-plot" style="height:${H}px">${grid}${avg!=null?`<div class="wkline" style="bottom:${y(avg)}px"></div>`:''}
         <svg viewBox="0 0 ${n*100} ${H}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--uc)" stop-opacity=".28"/><stop offset="1" stop-color="var(--uc)" stop-opacity=".02"/></linearGradient></defs>${runs.map(area).join('')}${runs.map(r=>r.length>1?`<polyline points="${r.join(' ')}"/>`:'').join('')}</svg>
         <div class="us-cols" style="--n:${n}">${weeks.map(col).join('')}</div></div>
       <div class="wklabs" aria-hidden="true">${weeks.map(lab).join('')}</div>
-    </div></div><div class="wktip" aria-hidden="true"></div></div>`;}
+    </div></div><div class="wktip" aria-hidden="true"></div><div class="ll-island" data-island="usage" data-props="${island}"></div></div>`;}
 const WK_SEEN=new Set();
 function weekCard(p,projV){
   const cur=SD.week,sc=SCHED[p.team]||[],weeks=[];

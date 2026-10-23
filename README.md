@@ -68,8 +68,9 @@ The site itself is plain HTML. A few charts are "islands": small React component
   produces is scoped under `.ll-island`, so it can't restyle the rest of the site.
 - Chart colours come from the site's own tokens (`--line`, `--ink`, team colours…), so light/dark
   mode and team pages just work.
-- One local change to Bklit's `bar-chart.tsx`, marked "Lineup Lab patch": tapping a bar on a phone
-  opens its tooltip.
+- Two local changes to Bklit, each marked "Lineup Lab patch": in `bar-chart.tsx`, tapping a bar on a
+  phone opens its tooltip; in `use-chart-interaction.ts` (line and area charts), a tap opens the tooltip
+  and leaves it open, and a swipe that starts on the chart still scrolls the page.
 
 **Changing a chart:** edit `charts/src/islands/`, then `cd charts && npm install && npm run build`
 (or just push to `main` — `.github/workflows/charts.yml` rebuilds and commits the bundle).

@@ -121,6 +121,8 @@
 /* ---- Points by week island ---- */
 .ll-wk-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
 .ll-wk-chart { height: 270px; }
+.ll-us-chart { height: 250px; }
+.ll-us-chart svg text { font-family: var(--f-display); }
 .ll-wk-chart svg text { font-family: var(--f-display); }
 .ll-val { font-family: var(--f-mono) !important; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--chart-background); stroke-width: 4px; stroke-linejoin: round; }
 .ll-gap { font-family: var(--f-display-cond) !important; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
@@ -140,6 +142,7 @@
 @media (max-width: 600px) {
   .ll-wk-inner { --ll-col: 46px; }
   .ll-wk-chart { height: 240px; }
+  .ll-us-chart { height: 230px; }
   .ll-val { font-size: 12px; }
   .ll-wk { font-size: 11px; }
   .ll-opp { font-size: 11.5px; letter-spacing: 0; }
