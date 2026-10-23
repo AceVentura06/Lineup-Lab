@@ -6,8 +6,9 @@ A fantasy football evaluator: weekly start/sit projections, ESPN vs. Sleeper pro
 
 `.github/workflows/update.yml` runs `scripts/update.mjs` on GitHub's servers:
 
-- every 3 hours, all week
-- every hour on Sundays, noon to midnight Eastern
+- every 30 minutes, all week
+- every 15 minutes on Sundays, noon to midnight Eastern
+- extra runs Sunday late morning, after teams announce inactives, and early Tuesday, when the site moves to the next week
 - whenever you click **Actions → Update data → Run workflow**
 
 The script pulls from 14 sources and rewrites the files in `data/`:

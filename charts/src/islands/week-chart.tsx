@@ -106,8 +106,9 @@ function ValueLabels() {
   return (
     <g aria-hidden="true">
       {(data as unknown as Row[]).map((d, i) => {
-        const v = d.pts || d.proj;
-        if (!v) return null;
+        // test the week type, not the value: a real 0.0 game still gets its label
+        if (d.kind !== "played" && d.kind !== "proj") return null;
+        const v = d.kind === "proj" ? d.proj : d.pts;
         const x = (barScale(barXAccessor(d)) ?? 0) + bandWidth / 2;
         const faded = hoveredBarIndex != null && hoveredBarIndex !== i;
         return (
@@ -207,9 +208,9 @@ export function WeekChart({ weeks, avg, showSnaps, animate = true }: WeekChartPr
 }
 
 function WeekTip({ row, avg, showSnaps }: { row: Row; avg: number | null; showSnaps: boolean }) {
-  const v = row.pts || row.proj;
+  const v = row.kind === "proj" ? row.proj : row.pts;
   const title = `Week ${row.w}${row.o ? ` ${row.o}` : ""}`;
-  if (!v) {
+  if (row.kind !== "played" && row.kind !== "proj") {
     return (
       <div className="ll-tip">
         <div className="ll-tip-h">{title}</div>
