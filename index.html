@@ -3361,7 +3361,7 @@ function spark(p){// last 4 finished weeks (the current week is left out)
   return `<span class="spark" aria-label="Weekly points">${p.weeks.map((w,i)=>[w,i]).slice(0,Math.max(0,SD.week-1)).slice(-4).map(([w,i])=>w?`<i style="height:${Math.max(2,(wpts(w)/mx)*22)}px" title="Wk ${i+1}: ${n1(wpts(w))}"></i>`:'<i class="dnp" title="Did not play"></i>').join('')}</span>`;}
 ui.posT='All';ui.sortT='ppg';ui.qT='';
 function renderStats(){
-  $('#statsNote').textContent=`${STD.through||''} · ${scName()} scoring · Source: Sleeper`;
+  $('#statsNote').textContent='';
   chips($('#posStats'),ui.posT,'posT');
   const q=ui.qT.trim().toLowerCase();
   const use=p=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);return m?m.f(p):null;};
