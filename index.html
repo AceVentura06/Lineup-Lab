@@ -250,6 +250,9 @@ td.none{color:var(--muted)}
 @media (max-width:600px){#verdict .tooltbl .trk{display:block}#verdict .tooltbl th{white-space:normal}#verdict .tooltbl td,#verdict .tooltbl th{padding-left:6px;padding-right:6px}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.9rem}
 @media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:width .25s ease,left .25s ease,transform .25s ease}}
+/* accuracy leaderboard: bars fill from the left when the table appears, top row first */
+@keyframes lb-fill{from{transform:scaleX(0)}}
+@media (prefers-reduced-motion:no-preference){.bar.lb i{transform-origin:left;animation:lb-fill .35s cubic-bezier(.2,.8,.2,1) calc(var(--i,0)*30ms) both}}
 
 .mlist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
 .mlist li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -2164,7 +2167,7 @@ function renderAcc(){
     ${best?`<p style="margin:8px 0 12px"><b>${esc(ACC.sources[best.s])}</b> has been the most accurate${ui.accW==='season'?' so far':''}, missing by ${best.mae.toFixed(2)} points per player on average.</p>`:''}
     <div class="tbl-wrap"><table style="min-width:560px"><thead><tr><th>#</th><th>Source</th><th class="r">Avg miss</th><th></th><th class="r" title="Of the players a source ranked as starters, how many finished as starters">Right starters</th><th class="r" title="How well the source ordered players at each position (100 = perfect order)">Ranking order</th>${ui.accW==='season'?'<th class="r">Weeks</th>':''}</tr></thead><tbody>
     ${rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td>${label(r.s)}</td><td class="r big">${r.mae.toFixed(2)}</td>
-      <td style="width:28%"><div class="bar" aria-hidden="true"><i style="width:${Math.max(4,100*r.mae/maxM)}%;background:${SRC_COLOR[r.s]}"></i></div></td>
+      <td style="width:28%"><div class="bar lb" aria-hidden="true" style="--i:${i}"><i style="width:${Math.max(4,100*r.mae/maxM)}%;background:${SRC_COLOR[r.s]}"></i></div></td>
       <td class="r num">${r.hitP!=null?Math.round(100*r.hitP)+'%':'—'}</td><td class="r num">${r.rho!=null?Math.round(100*r.rho):'—'}</td>${ui.accW==='season'?`<td class="r num">${r.weeks}</td>`:''}</tr>`).join('')}
     </tbody></table></div><p class="note" style="margin-top:8px">Avg miss is points per player (lower is better). Right starters: of the players each source ranked as starters in a 12-team league, the share that finished as starters.</p></div>`;
   const chart=ui.accW==='season'&&ws.length>1?`<div class="card has-island"><h3>Average miss by week</h3><p class="note" style="margin:4px 0 8px">Lower is better.</p>${accChart(ws)}</div>`:'';
