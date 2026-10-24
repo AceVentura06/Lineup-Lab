@@ -989,6 +989,29 @@ h3{font-size:1.25rem;line-height:1.2}
 #hmTeam .btn{background:transparent;border:2px solid var(--gold);color:var(--gold)}
 :root[data-theme="dark"] #hmTeam .btn{border-color:var(--gold-hi);color:var(--gold-hi)}
 @media (max-width:600px){.hm-hero{padding:4px 0}.hm-btns .hm-go{flex:none;width:100%;justify-content:center}.hm-btns{flex-direction:column;align-items:stretch;gap:12px}.hm-link2{align-self:center}}
+/* home: "chalk talk" banner, styled like .team-hero (maroon gradient, gold-hi stripe, slanted right edge) with a play diagram behind the text */
+.hm-banner{position:relative;overflow:hidden;container-type:inline-size;min-height:420px;box-sizing:border-box;padding:48px 72px 48px 64px;display:flex;flex-direction:column;justify-content:center;gap:16px;
+  background:linear-gradient(90deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 55%,#000) 100%);box-shadow:inset 18px 0 0 var(--gold-hi);clip-path:polygon(0 0,100% 0,calc(100% - 48px) 100%,0 100%);color:var(--accent-ink)}
+.hm-row>.hm-hero{flex-basis:100%} /* the banner takes the whole row; Your team wraps below it */
+.hm-bt{display:flex;flex-direction:column;gap:14px;max-width:min(560px,52%)}
+.hm-bt>:not(.hm-play),.hm-banner>.hm-btns{position:relative}
+.hm-banner .hm-h1,.hm-banner .hm-sub,.hm-banner .hm-kick{color:var(--accent-ink)}
+.hm-banner .hm-sub{max-width:26em;overflow-wrap:anywhere}
+.hm-play{position:absolute;right:72px;top:50%;width:min(560px,48%);height:auto;transform:translateY(-50%);opacity:.95;pointer-events:none}
+@container (max-width:760px){.hm-bt{max-width:100%}.hm-play{right:-40px;width:420px;opacity:.32}}
+.hm-banner .hm-go.hm-pri{background:#fff;color:var(--gold)}
+.hm-banner .hm-link2,:root[data-theme="dark"] .hm-banner .hm-link2{color:#fff}
+.hm-banner .hm-go:focus-visible,.hm-banner .hm-link2:focus-visible{outline-color:#fff}
+@media (max-width:600px){
+  /* phone: the maroon moves to the text block so the buttons sit below it, back to the normal maroon button and link */
+  .hm-banner{min-height:0;padding:0;background:none;box-shadow:none;clip-path:none;overflow:visible;container-type:normal;color:inherit;gap:16px}
+  .hm-bt{position:relative;overflow:hidden;max-width:none;min-height:300px;box-sizing:border-box;justify-content:center;padding:28px 22px 28px 30px;
+    background:linear-gradient(90deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 55%,#000) 100%);box-shadow:inset 10px 0 0 var(--gold-hi)}
+  .hm-play{right:-90px;width:360px;opacity:.32}
+  .hm-banner .hm-go.hm-pri{background:var(--gold);color:#fff}
+  .hm-banner .hm-link2{color:var(--gold)}:root[data-theme="dark"] .hm-banner .hm-link2{color:var(--gold-hi)}
+  .hm-banner .hm-go:focus-visible,.hm-banner .hm-link2:focus-visible{outline-color:var(--gold)}
+}
 /* home: countdown and team total under the headline */
 .hm-pulse{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:22px;max-width:620px}
 .hm-pulse:not([hidden]){display:grid}
@@ -1284,10 +1307,15 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
     <div class="card hm-chg" id="hmChg" hidden></div>
     <div class="hm-row">
       <div class="hm-hero">
-        <div class="hm-kick" id="hmKick"></div>
-        <h1 class="hm-h1" id="hmTitle"></h1>
-        <p class="hm-sub" id="hmSub"></p>
-        <div class="hm-btns"><button class="hm-go hm-pri" data-go="week">Compare two players</button><button class="hm-link2" data-go="sites">See all projections</button></div>
+        <div class="hm-banner">
+          <div class="hm-bt">
+            <svg class="hm-play" viewBox="0 0 520 300" aria-hidden="true" focusable="false"><defs><marker id="hmAh" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fff"/></marker></defs><path d="M0 40H520M0 115H520M0 265H520" stroke="#fff" stroke-opacity=".16" stroke-width="2"/><path d="M0 190H520" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 8"/><g fill="none" stroke="#fff" stroke-width="3"><circle cx="200" cy="212" r="10"/><circle cx="230" cy="212" r="10"/><circle cx="260" cy="212" r="10"/><circle cx="290" cy="212" r="10"/><circle cx="320" cy="212" r="10"/><circle cx="352" cy="212" r="10"/><circle cx="260" cy="248" r="10"/><circle cx="260" cy="282" r="10"/><circle cx="56" cy="206" r="10"/><circle cx="420" cy="212" r="10"/><circle cx="476" cy="206" r="10"/></g><g stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"><path d="M207 160l16 16M223 160l-16 16M237 160l16 16M253 160l-16 16M267 160l16 16M283 160l-16 16M297 160l16 16M313 160l-16 16M202 120l16 16M218 120l-16 16M252 114l16 16M268 114l-16 16M322 120l16 16M338 120l-16 16M48 142l16 16M64 142l-16 16M468 142l16 16M484 142l-16 16M162 52l16 16M178 52l-16 16M352 52l16 16M368 52l-16 16"/></g><g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#hmAh)"><path d="M56 194V22"/><path d="M476 194V160L396 100"/><path d="M420 200V150H508"/><path d="M352 200V76"/><path d="M270 286C310 292 330 276 346 250"/></g><path d="M266 238L390 108" stroke="#fff" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round"/></svg>
+            <div class="hm-kick" id="hmKick"></div>
+            <h1 class="hm-h1" id="hmTitle"></h1>
+            <p class="hm-sub" id="hmSub"></p>
+          </div>
+          <div class="hm-btns"><button class="hm-go hm-pri" data-go="week">Compare two players</button><button class="hm-link2" data-go="sites">See all projections</button></div>
+        </div>
         <div class="hm-pulse" id="hmPulse" hidden></div>
       </div>
       <div class="card hm-team" id="hmTeam"></div>
