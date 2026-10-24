@@ -252,7 +252,7 @@ td.none{color:var(--muted)}
 @media (max-width:600px){#verdict .tooltbl .trk{display:block}#verdict .tooltbl th{white-space:normal}#verdict .tooltbl td,#verdict .tooltbl th{padding-left:6px;padding-right:6px}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:999px;font-weight:600;font-size:.9rem}
 @media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:width .25s ease,left .25s ease,transform .25s ease}}
-/* accuracy leaderboard: bars fill from the left when the table appears, top row first */
+/* accuracy leaderboard and trade verdict: bars fill from the left when they appear, top first */
 @keyframes lb-fill{from{transform:scaleX(0)}}
 @media (prefers-reduced-motion:no-preference){.bar.lb i{transform-origin:left;animation:lb-fill .35s cubic-bezier(.2,.8,.2,1) calc(var(--i,0)*30ms) both}}
 
@@ -2330,8 +2330,8 @@ function renderTrade(){
     ${lg!=null?`<div class="tlu ${lg>=0.3?'up':lg<=-0.3?'down':''}"><b>${lg>=0?'+':'−'}${f1(Math.abs(lg))}</b> pts a week for your starting lineup<span class="note">about ${lg>=0?'+':'−'}${Math.round(Math.abs(lg)*weeksLeft())} over the rest of the season</span></div>`
       :`<p class="note" style="margin-top:6px">Star your players or connect your league to see how this trade changes your starting lineup.</p>`}
     <div class="tbars">
-      <div><span class="label">You give</span><div class="bar"><i style="width:${100*G.val/W}%;background:var(--bad)"></i></div><b class="mono">${f1(G.val)}</b></div>
-      <div><span class="label">You get</span><div class="bar"><i style="width:${100*R.val/W}%;background:var(--good)"></i></div><b class="mono">${f1(R.val)}</b></div>
+      <div><span class="label">You give</span><div class="bar lb" style="--i:0"><i style="width:${100*G.val/W}%;background:var(--bad)"></i></div><b class="mono">${f1(G.val)}</b></div>
+      <div><span class="label">You get</span><div class="bar lb" style="--i:1"><i style="width:${100*R.val/W}%;background:var(--good)"></i></div><b class="mono">${f1(R.val)}</b></div>
     </div>
     <p style="margin-top:10px">${fairV?`Even in value: the sides are within ${Math.round(pct*100)}% of each other.`:`You ${winV?'gain':'give up'} about <b>${f1(Math.abs(d))}</b> points of trade value (${Math.round(pct*100)}% of the bigger side).`}</p>
     ${spots?`<p class="note" style="margin-top:6px">${spots}</p>`:''}${poTradeNote(RP)}</div>`;
