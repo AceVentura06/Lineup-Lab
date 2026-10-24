@@ -1740,7 +1740,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='tmNew
 
 const $=s=>document.querySelector(s);
 const n=v=>{v=parseFloat(v);return isFinite(v)?v:0};
-const f1=v=>(Math.round(v*10)/10).toFixed(1);
+const f1=v=>v==null?'—':(Math.round(v*10)/10).toFixed(1);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // ---- scoring rules. Defaults are ESPN's standard scoring (PPR). The stats arrive as Sleeper's standard PPR points, so
 // for offense each rule is applied as a difference from Sleeper's values (its only offensive difference: INT −1);
@@ -1762,7 +1762,6 @@ const PRESETS={ppr:{rec:1},half:{rec:.5},std:{rec:0}};
 function scPreset(){const c=SC();return Object.keys(PRESETS).find(k=>OFF_KEYS.every(f=>(PRESETS[k][f]??DEF_SC[f])===c[f]))||null;}
 const scAllDefaultBut=()=>Object.keys(DEF_SC).filter(f=>!OFF_KEYS.includes(f)).every(f=>SC()[f]===DEF_SC[f]);
 const scName=(short)=>(scAllDefaultBut()&&{ppr:'PPR',half:short?'Half':'Half-PPR',std:short?'Std':'Standard'}[scPreset()])||'Custom';
-const recPts=()=>SC().rec;
 // points to add to a Sleeper-standard PPR total for a stat line c {rec,py,ptd,pint,ry,rtd,recy,rectd,fl}
 function scDelta(c,pos,skipRec){if(!c||pos==='K'||pos==='DST'||pos==='DEF')return 0;const s=SC(),v=k=>+c[k]||0;
   return (skipRec?0:(s.rec-1)*v('rec'))+(pos==='TE'?s.te*v('rec'):0)+v('py')*(1/s.py-.04)+(s.ptd-4)*v('ptd')+(s.int+1)*v('pint')
@@ -1901,7 +1900,7 @@ function nameCell(p,star){
 function matchPill(p,detail=false){   // detail: also show points allowed (head-to-head only)
   if(!p.opp&&!p.team)return '<span class="muted">—</span>';
   const sc=(SCHED[p.team]||[])[S.week-1],d=sc&&sc!=='BYE'?dvpData().by[sc.replace('@','')]:null,i=DPOS.indexOf(p.pos);
-  const sub=detail&&d&&i>=0?`<span class="subn">${n1(d.avg[i])} pts/g allowed to ${p.pos}s</span>`:'';
+  const sub=detail&&d&&i>=0?`<span class="subn">${f1(d.avg[i])} pts/g allowed to ${p.pos}s</span>`:'';
   return `<span class="mpill"><span style="white-space:nowrap">${oppText(p,S.week)}${oppRankTag(p,S.week)}</span>${sub}</span>`;
 }
 
@@ -1998,7 +1997,7 @@ function renderH2H(){
   const opts=groups.map(([pos,g])=>g.map(x=>`<option value="${esc(label(x.p))}">${isMine(x.p)?'★ On my team':''}</option>`).join('')).join('');
   const A=byId.get(ui.a),B=byId.get(ui.b),wa=weekProj(A),wb=weekProj(B);
   const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';const pg=p.real&&PL.has(p.key);return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${pg?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name)}</div><div class="side-row"><div class="proj">${f1(w.proj)}</div>${pg?`<button class="side-pg" data-k="${esc(p.key)}" aria-label="Open ${esc(p.name)}'s player page">Player page<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}</div>
-    ${g&&g.implied!=null?`<div class="note">Vegas: team implied ${n1(g.implied)} pts (${g.spread>0?'+':''}${g.spread}, O/U ${g.total})${wt?' · '+esc(wt):''}</div>`:''}
+    ${g&&g.implied!=null?`<div class="note">Vegas: team implied ${f1(g.implied)} pts (${g.spread>0?'+':''}${g.spread}, O/U ${g.total})${wt?' · '+esc(wt):''}</div>`:''}
     ${e?`<div class="note">Experts: ${p.pos}${e[1]} (best ${e[3]}, worst ${e[4]})${e[5]?' · grade '+esc(e[5]):''}</div>`:''}
     <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p,true)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
   $('#sideA').className='side'+(wa.proj>=wb.proj?' win':'');$('#sideB').className='side'+(wb.proj>wa.proj?' win':'');
@@ -2057,12 +2056,15 @@ function poOf(p){const sc=p.team&&SCHED[p.team],i=DPOS.indexOf(p.pos);if(!sc||i<
     const f=(d.g*d.avg[i]+PO_SHRINK*lg)/(d.g+PO_SHRINK)/lg-1;ease+=w*f;
     return {wk,o,d,f,rk:d.rank[i],allow:d.avg[i]};});
   return {ease,wks,pts:rosBase(p)*ease,bye:wks.some(x=>x.bye)};}
+// a playoff schedule as a pill: label, colour and signed % vs an average schedule (Rest of Season table and player page)
+function poPill(po,bye){const pct=Math.round(po.ease*100),pc=(pct>0?'+':pct<0?'−':'')+Math.abs(pct);
+  const [lbl,cls]=po.bye?[bye,'p-bad']:po.ease>=PO_CUT?['Easy','p-good']:po.ease<=-PO_CUT?['Tough','p-bad']:['Neutral','p-mute'];
+  return {pct,pc,lbl,cls};}
 function poCell(r){const po=r.po;if(!po)return '<span class="muted">—</span>';
-  const pct=Math.round(po.ease*100),sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
-  const [lbl,cls]=po.bye?['Bye','p-bad']:po.ease>=PO_CUT?['Easy','p-good']:po.ease<=-PO_CUT?['Tough','p-bad']:['Neutral','p-mute'];
-  const tip=`${po.bye?'Has a bye during your playoffs. ':''}Playoff matchups ${sg(pct)}% vs an average schedule, about ${po.pts>=0?'+':'−'}${f1(Math.abs(po.pts))} pts per playoff week for ${r.p.name}`;
-  return `<span class="pill ${cls}" title="${esc(tip)}">${lbl} ${sg(pct)}%</span><div class="po-opps">${po.wks.map(w=>w.bye?`<span class="ork bad" title="Week ${w.wk}: bye">BYE</span>`
-    :w.d?`<button class="ork olink ${rkCls(w.rk)}" data-dvp="${esc(w.d.t)}" title="Week ${w.wk}: ${esc(TEAM_NAMES[w.d.t]||w.d.t)} allow ${n1(w.allow)} pts/game to ${r.p.pos}s (${ord(w.rk)} fewest of 32)">${esc(w.o)}</button>`
+  const {pc,lbl,cls}=poPill(po,'Bye');
+  const tip=`${po.bye?'Has a bye during your playoffs. ':''}Playoff matchups ${pc}% vs an average schedule, about ${po.pts>=0?'+':'−'}${f1(Math.abs(po.pts))} pts per playoff week for ${r.p.name}`;
+  return `<span class="pill ${cls}" title="${esc(tip)}">${lbl} ${pc}%</span><div class="po-opps">${po.wks.map(w=>w.bye?`<span class="ork bad" title="Week ${w.wk}: bye">BYE</span>`
+    :w.d?`<button class="ork olink ${rkCls(w.rk)}" data-dvp="${esc(w.d.t)}" title="Week ${w.wk}: ${esc(TEAM_NAMES[w.d.t]||w.d.t)} allow ${f1(w.allow)} pts/game to ${r.p.pos}s (${ord(w.rk)} fewest of 32)">${esc(w.o)}</button>`
     :`<span class="ork mid">${esc(w.o)}</span>`).join('<span class="muted"> · </span>')}</div>`;}
 function syncPo(){document.querySelectorAll('#poSeg [data-po]').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.po===poStart()));}
 function renderRos(){
@@ -2370,7 +2372,7 @@ function dvpData(){const si=['ppr','half','std'].indexOf(S.scoring);if(_dvp&&_dv
 const rkCls=r=>r>=22?'good':r<=10?'bad':'mid';
 // "(22nd)" after the opponent on the Projections tab
 function oppRankTag(r,wk){const sc=(SCHED[r.team]||[])[wk-1];if(!sc||sc==='BYE')return '';const d=dvpData().by[sc.replace('@','')];const i=DPOS.indexOf(r.pos);
-  if(!d||i<0)return '';const rk=d.rank[i];return ` <button class="ork olink ${rkCls(rk)}" data-dvp="${esc(d.t)}" title="${esc(TEAM_NAMES[d.t]||d.t)} allow ${n1(d.avg[i])} pts/game to ${r.pos}s (${ord(rk)} fewest of 32). Tap to see them week by week.">(${ord(rk)})</button>`;}
+  if(!d||i<0)return '';const rk=d.rank[i];return ` <button class="ork olink ${rkCls(rk)}" data-dvp="${esc(d.t)}" title="${esc(TEAM_NAMES[d.t]||d.t)} allow ${f1(d.avg[i])} pts/game to ${r.pos}s (${ord(rk)} fewest of 32). Tap to see them week by week.">(${ord(rk)})</button>`;}
 // ---- teams: an index of all 32, and a page per team (offense usage, schedule, and what its defense allows) ----
 const DIVS=[['AFC East',['BUF','MIA','NE','NYJ']],['AFC North',['BAL','CIN','CLE','PIT']],['AFC South',['HOU','IND','JAX','TEN']],['AFC West',['DEN','KC','LAC','LV']],
   ['NFC East',['DAL','NYG','PHI','WAS']],['NFC North',['CHI','DET','GB','MIN']],['NFC South',['ATL','CAR','NO','TB']],['NFC West',['ARI','LAR','SEA','SF']]];
@@ -2419,7 +2421,7 @@ function sharePies(d){const tot={tgt:d.tgt,car:d.rush};if(!d.g||(!tot.tgt&&!tot.
     const arcs=seg.map(x=>{const a0=a/all*Math.PI*2;a+=x.n;const a1=a/all*Math.PI*2;
       return `<path d="${arcPath(80,80,50,78,a0,a1)}" fill="${x.c}" data-k="${esc(x.k)}"><title>${esc(x.name)}: ${Math.round(x.n/all*100)}% (${x.n} ${unit})</title></path>`;}).join('');
     return `<figure class="pie"><figcaption>${label}</figcaption><div class="pie-w"><svg viewBox="0 0 160 160" role="img" aria-label="${esc(label)}: ${seg.map(x=>`${x.name} ${Math.round(x.n/all*100)}%`).join(', ')}">${arcs}</svg>
-      <div class="pie-c"><b>${n1(total/d.g)}</b><span>${unit}/game</span></div></div>
+      <div class="pie-c"><b>${f1(total/d.g)}</b><span>${unit}/game</span></div></div>
       <ul class="pie-leg">${seg.map(x=>`<li${x.k?` data-k="${esc(x.k)}"`:''}><i style="background:${x.c}"></i>${x.k?`<button class="plink" data-k="${esc(x.k)}">${esc(x.name)}</button>`:`<span class="muted">${x.name}</span>`}<span class="muted pie-pos">${x.pos}</span><b class="num">${Math.round(x.n/all*100)}%</b></li>`).join('')}</ul></figure>`;};
   const P=[[segs(T,tot.tgt),tot.tgt,'Target share','targets'],[segs(C,tot.car),tot.car,'Carry share','carries']];
   // real Bklit donuts (assets/charts) mount into .ll-island, beside the hand-built ones (the fallback),
@@ -2441,7 +2443,7 @@ function renderTeamGrid(){const wk=S.week,TD=teamData();
   // two conference blocks, each with its four divisions
   const card=([dv,ts])=>`<div class="tm-div"><h3>${dv.split(' ')[1]}</h3>${ts.map(t=>{const o=(SCHED[t]||[])[wk-1],d=TD[t];
     const line=!o?'':o==='BYE'?`Week ${wk}: bye`:`Week ${wk}: ${o.startsWith('@')?'at '+o.slice(1):'vs '+o}`;
-    return `<button class="tm-card" data-tm="${t}" style="${teamVars(t)}">${DARK_ALT.includes(t)?tmLogo(t,'lg-light')+tmLogo(t,'lg-dark',bannerLogo(t)):tmLogo(t)}<span><b>${esc(TEAM_NAMES[t])}</b><small>${esc(line)}${d&&d.ppg!=null?` · ${n1(d.ppg)} pts/game`:''}</small></span></button>`;}).join('')}</div>`;
+    return `<button class="tm-card" data-tm="${t}" style="${teamVars(t)}">${DARK_ALT.includes(t)?tmLogo(t,'lg-light')+tmLogo(t,'lg-dark',bannerLogo(t)):tmLogo(t)}<span><b>${esc(TEAM_NAMES[t])}</b><small>${esc(line)}${d&&d.ppg!=null?` · ${f1(d.ppg)} pts/game`:''}</small></span></button>`;}).join('')}</div>`;
   $('#tmGrid').innerHTML=[['AFC','American Football Conference'],['NFC','National Football Conference']].map(([c,full])=>
     `<section class="tm-conf ${c.toLowerCase()}" aria-label="${full}"><header class="tm-conf-h"><img class="tm-conf-logo" src="https://a.espncdn.com/combiner/i?img=/i/teamlogos/nfl/500/${c.toLowerCase()}.png&w=200&h=200" alt="" width="48" height="48" loading="lazy" onerror="this.remove()"><span class="tm-conf-tag">${c}</span><span class="tm-conf-name">${full}</span></header>
      <div class="tm-divs">${DIVS.filter(([dv])=>dv.startsWith(c)).map(card).join('')}</div></section>`).join('');}
@@ -2453,7 +2455,7 @@ function renderDvpTable(){const D=dvpData();
   document.querySelectorAll('table.dvp th.sortable').forEach(th=>String(th.dataset.sort)===String(k)?th.setAttribute('aria-sort',(k==='team')===(dir===1)?'ascending':'descending'):th.removeAttribute('aria-sort'));
   $('#dvpBody').innerHTML=rows.length?rows.map(d=>`<tr class="dvprow" data-t="${esc(d.t)}" tabindex="0">
     <td style="white-space:nowrap"><b>${esc(d.t)}</b> <span class="muted" style="font-size:.85rem">${esc(TEAM_NAMES[d.t]||'')}</span></td><td class="r num">${d.g}</td>
-    ${DPOS.map((p,i)=>`<td class="r${String(k)===String(i)?' scol':''}"><span class="num">${n1(d.avg[i])}</span> <span class="ork ${rkCls(d.rank[i])}">${ord(d.rank[i])}</span></td>`).join('')}</tr>`).join('')
+    ${DPOS.map((p,i)=>`<td class="r${String(k)===String(i)?' scol':''}"><span class="num">${f1(d.avg[i])}</span> <span class="ork ${rkCls(d.rank[i])}">${ord(d.rank[i])}</span></td>`).join('')}</tr>`).join('')
     :'<tr><td colspan="8" class="muted">No games played yet this season.</td></tr>';}
 
 function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(),d=TD[t],nm=TEAM_NAMES[t],wk=S.week;
@@ -2463,22 +2465,22 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   // hero + top tiles
   const ez=g?oppEase(g.opp):null;
   const heroWk=o==='BYE'?`<aside class="hero-wk"><span class="hw-l">Week ${wk}</span><span class="hw-v"><b>Bye</b><span>bench or replace their players</span></span></aside>`
-    :g&&g.implied!=null?`<aside class="hero-wk"><span class="hw-l">Week ${wk} ${g.home?'vs':'at'} ${esc(g.opp)}</span><span class="hw-v"><b>${n1(g.implied)}</b><span>implied points, league average ${n1(AD.avgImplied||0)}</span></span><span class="hw-s">${ez!=null?`<span class="pill ${({good:'p-good',bad:'p-bad',mid:'p-mute'})[easeCls(ez)]}">${easeLbl(ez)} matchup</span>`:''}<span>${esc(t)} ${g.spread>0?'+':''}${g.spread}, ${esc(kickText(g))}${g.weather?', '+esc(weatherText(g.weather)):g.roof==='dome'?', dome':''}</span></span></aside>`
+    :g&&g.implied!=null?`<aside class="hero-wk"><span class="hw-l">Week ${wk} ${g.home?'vs':'at'} ${esc(g.opp)}</span><span class="hw-v"><b>${f1(g.implied)}</b><span>implied points, league average ${f1(AD.avgImplied||0)}</span></span><span class="hw-s">${ez!=null?`<span class="pill ${({good:'p-good',bad:'p-bad',mid:'p-mute'})[easeCls(ez)]}">${easeLbl(ez)} matchup</span>`:''}<span>${esc(t)} ${g.spread>0?'+':''}${g.spread}, ${esc(kickText(g))}${g.weather?', '+esc(weatherText(g.weather)):g.roof==='dome'?', dome':''}</span></span></aside>`
     :o?`<aside class="hero-wk"><span class="hw-l">Week ${wk}</span><span class="hw-v"><b>${o.startsWith('@')?'at':'vs'} ${esc(opp)}</b></span></aside>`:'';
   const hero=`<div><button class="back" id="tmBack">${navDepth>0?esc(BACK_NM[ui.prev]||'Back'):'All teams'}</button></div>
    <div class="ph team-hero tm-hero has-shot">${tmLogo(t,'shot logo tm-logo '+bannerCls(t),bannerLogo(t))}<div><div class="meta">${esc(divOf(t))}${bye?` · Bye in week ${bye}`:''}${d.g?` · ${d.g} games`:''}${d.dst?` · <button class="plink tlink tm-dst" data-k="${esc(d.dst.key)}">D/ST page →</button>`:''}</div><h1>${esc(nm)}</h1></div>
      ${heroWk}</div>
    @@JUMP@@
    <div class="tiles">
-     <div class="tile"><span class="label">Points / game</span><span class="v">${d.ppg!=null?n1(d.ppg):'—'}</span><span class="s">${d.rk.ppg?`<b class="tr">${ord(d.rk.ppg)}</b> of 32 · real points`:'Not available'}</span></div>
-     <div class="tile"><span class="label">Fantasy pts / game</span><span class="v">${d.fpg!=null?n1(d.fpg):'—'}</span><span class="s">${d.rk.fpg?`<b class="tr">${ord(d.rk.fpg)}</b> · whole offense, ${scName(true)}`:''}</span></div>
+     <div class="tile"><span class="label">Points / game</span><span class="v">${d.ppg!=null?f1(d.ppg):'—'}</span><span class="s">${d.rk.ppg?`<b class="tr">${ord(d.rk.ppg)}</b> of 32 · real points`:'Not available'}</span></div>
+     <div class="tile"><span class="label">Fantasy pts / game</span><span class="v">${d.fpg!=null?f1(d.fpg):'—'}</span><span class="s">${d.rk.fpg?`<b class="tr">${ord(d.rk.fpg)}</b> · whole offense, ${scName(true)}`:''}</span></div>
      <div class="tile"><span class="label">Pass rate</span><span class="v">${d.passRate!=null?Math.round(d.passRate*100)+'%':'—'}</span><span class="s">${d.rk.pass?`<b class="tr">${ord(d.rk.pass)}</b> most pass-heavy`:''}</span></div>
-     <div class="tile"><span class="label">Defense allows</span><span class="v">${d.allow!=null?n1(d.allow):'—'}</span><span class="s">${d.rk.allow?`<b class="tr">${ord(d.rk.allow)}</b> of 32 (1st is stingiest) · to QB, RB, WR, TE`:''}</span></div>
+     <div class="tile"><span class="label">Defense allows</span><span class="v">${d.allow!=null?f1(d.allow):'—'}</span><span class="s">${d.rk.allow?`<b class="tr">${ord(d.rk.allow)}</b> of 32 (1st is stingiest) · to QB, RB, WR, TE`:''}</span></div>
    </div>`;
   // this week's game
   const game=o==='BYE'?`<div class="card"><h3>Week ${wk}</h3><p class="note" style="margin-top:4px">${esc(nm)} are on bye. Bench or replace their players this week.</p></div>`
    :g?`<div class="card"><h3 style="margin-bottom:12px">Week ${wk}: ${g.home?'vs':'at'} ${tlink(g.opp)}</h3><div class="kv">
-     ${g.implied!=null?`<div><span class="label">Vegas</span><b>${n1(g.implied)} implied pts</b><span class="note">${esc(t)} ${g.spread>0?'+':''}${g.spread} · total ${g.total} · league avg ${n1(AD.avgImplied||0)}</span></div>`:''}
+     ${g.implied!=null?`<div><span class="label">Vegas</span><b>${f1(g.implied)} implied pts</b><span class="note">${esc(t)} ${g.spread>0?'+':''}${g.spread} · total ${g.total} · league avg ${f1(AD.avgImplied||0)}</span></div>`:''}
      <div><span class="label">Kickoff and conditions</span><b>${esc(kickText(g))}</b><span class="note">${g.weather?esc(weatherText(g.weather)):({dome:'Dome',closed:'Roof closed'})[g.roof]||'Forecast not available yet'}${g.stadium?' · '+esc(g.stadium):''}</span></div>
      ${(()=>{const e=oppEase(g.opp);return e==null?'':`<div><span class="label">Matchup for this offense</span><b class="ork ${easeCls(e)}" style="font-size:1.05rem">${easeLbl(e)}</b><span class="note">${esc(g.opp)}'s defense ranks ${ord(Math.round(e))} on average vs QB, RB, WR and TE</span></div>`;})()}
    </div></div>`:'';
@@ -2489,14 +2491,14 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const usage=sk.length?`<div class="card" id="sec-ball"><h3>Who gets the ball</h3>${sharePies(d)}
     <div class="tbl-wrap"><table class="tooltbl tm-use"><thead><tr><th>Player</th><th class="r">G</th><th class="r">Snaps</th><th>Target share</th><th>Carry share</th><th class="r">Pts/g</th></tr></thead><tbody>
     ${sk.map((x,ix)=>`<tr${isMine(x.p)?' class="mine"':''}${ix>=8?' data-xtra hidden':''}><td style="white-space:nowrap"><span class="pos ${x.p.pos}">${x.p.pos}</span><button class="plink" data-k="${esc(x.p.key)}">${esc(x.p.name)}</button>${INJ[x.p.key]&&INJ[x.p.key]!=='Healthy'?` <span class="pill p-bad">${esc(INJ[x.p.key])}</span>`:''}</td>
-      <td class="r num">${x.p.gp}</td><td class="r num">${x.sn!=null?Math.round(x.sn*100)+'%':'—'}</td><td class="tm-bc">${bar(x.ts,'tg')}</td><td class="tm-bc">${bar(x.cs,'cr')}</td><td class="r num"><b>${n1(x.pg)}</b></td></tr>`).join('')}
+      <td class="r num">${x.p.gp}</td><td class="r num">${x.sn!=null?Math.round(x.sn*100)+'%':'—'}</td><td class="tm-bc">${bar(x.ts,'tg')}</td><td class="tm-bc">${bar(x.cs,'cr')}</td><td class="r num"><b>${f1(x.pg)}</b></td></tr>`).join('')}
     </tbody></table></div>${sk.length>8?`<button class="btn sm tm-xtra" type="button" style="margin-top:10px">Show ${sk.length-8} more players</button>`:''}</div>`:'';
   // where the fantasy points come from
   const mixTot=['QB','RB','WR','TE','K'].reduce((a,p)=>a+Math.max(0,d.pts[p]),0);
   const mix=mixTot>0?`<div class="card" id="sec-mix"><h3 style="margin-bottom:12px">Where the fantasy points come from</h3>
     <div class="tm-mix" role="img" aria-label="${['QB','RB','WR','TE','K'].map(p=>`${p} ${Math.round(Math.max(0,d.pts[p])/mixTot*100)}%`).join(', ')}">${['QB','RB','WR','TE','K'].map(p=>{const f=Math.max(0,d.pts[p])/mixTot;return f<.005?'':`<i style="width:${f*100}%;background:var(--${p.toLowerCase()})">${f>=.09?p:''}</i>`;}).join('')}</div>
     <div class="tm-leg">${['QB','RB','WR','TE','K'].map(p=>{const f=Math.max(0,d.pts[p])/mixTot,lg=Object.values(TD).filter(x=>x.g).map(x=>{const s=['QB','RB','WR','TE','K'].reduce((a,q)=>a+Math.max(0,x.pts[q]),0);return s?Math.max(0,x.pts[p])/s:0;});const avg=lg.reduce((a,b)=>a+b,0)/(lg.length||1);
-      return `<span><span class="pos ${p}">${p}</span> <b class="num">${Math.round(f*100)}%</b> <span class="muted">· ${n1(d.g?d.pts[p]/d.g:0)}/g · league ${Math.round(avg*100)}%</span></span>`;}).join('')}</div></div>`:'';
+      return `<span><span class="pos ${p}">${p}</span> <b class="num">${Math.round(f*100)}%</b> <span class="muted">· ${f1(d.g?d.pts[p]/d.g:0)}/g · league ${Math.round(avg*100)}%</span></span>`;}).join('')}</div></div>`:'';
   // schedule strip
   const poS=poStart(),played=new Map((dd?dd.weeks:[]).map(w=>[w.w,w]));
   const schedCard=sched.length?`<div class="card" id="sec-sched"><h3>Schedule</h3><p class="note" style="margin:4px 0 12px">Fantasy playoffs (${poWeeks()}) are outlined.</p>
@@ -2506,13 +2508,13 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
       return `<button class="tm-wk${pl?' past':' '+easeCls(e)}${po?' po':''}${cur?' cur':''}" data-tm="${ot}"><span class="label">Wk ${w}</span><b>${x.startsWith('@')?'@':'vs'} ${esc(ot)}</b><small>${pl?'Played':easeLbl(e)}</small></button>`;}).join('')}</div></div>`:'';
   // defense: the defense-vs-position chart
   const defCard=dd?`<div class="card" id="sec-def"><h3>What the ${esc(nm.split(' ').pop())} defense allows</h3><p class="note" style="margin:4px 0 12px">Longer bars give up more; rank 1st allows the fewest of 32.</p>
-    <div class="dvp-bars">${DPOS.map((p,i)=>`<div class="dvp-b"><span class="pos ${p}">${p}</span><span class="dvp-track" aria-hidden="true"><i class="${rkCls(dd.rank[i])}" style="width:${Math.max(4,(dd.rank[i]/32)*100)}%"></i></span><span class="num"><b>${n1(dd.avg[i])}</b></span><span class="ork ${rkCls(dd.rank[i])}">${ord(dd.rank[i])}</span></div>`).join('')}</div>
+    <div class="dvp-bars">${DPOS.map((p,i)=>`<div class="dvp-b"><span class="pos ${p}">${p}</span><span class="dvp-track" aria-hidden="true"><i class="${rkCls(dd.rank[i])}" style="width:${Math.max(4,(dd.rank[i]/32)*100)}%"></i></span><span class="num"><b>${f1(dd.avg[i])}</b></span><span class="ork ${rkCls(dd.rank[i])}">${ord(dd.rank[i])}</span></div>`).join('')}</div>
     <details class="tools-d" style="margin-top:14px"><summary><span>Week by week</span><span class="muted">${dd.weeks.length} games</span></summary><div class="tbl-wrap" style="margin:0 12px"><table class="tooltbl" style="min-width:600px"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
-    ${dd.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${tlink(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=dd.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=dd.avg[i]*.75?'color:var(--bad)':''}">${n1(x)}</td>`).join('')}</tr>`).join('')}
-    <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${dd.avg.map(x=>`<td class="r num"><b>${n1(x)}</b></td>`).join('')}</tr>
+    ${dd.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${tlink(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=dd.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=dd.avg[i]*.75?'color:var(--bad)':''}">${f1(x)}</td>`).join('')}</tr>`).join('')}
+    <tr style="border-top:2px solid var(--line)"><td colspan="2"><b>Per game</b></td>${dd.avg.map(x=>`<td class="r num"><b>${f1(x)}</b></td>`).join('')}</tr>
     <tr><td colspan="2"><b>Rank</b></td>${dd.rank.map(r=>`<td class="r"><span class="ork ${rkCls(r)}">${ord(r)}</span></td>`).join('')}</tr>
     </tbody></table></div><p class="note" style="margin:8px 16px 14px">Green weeks gave up well above their usual amount to that position; red weeks well below.</p></details>
-    ${d.dst?(()=>{const r=ppgRank(d.dst),x=d.dst;return `<button class="plink dst-link" data-k="${esc(x.key)}"><span class="pos DST">DST</span><span><b>${esc(nm.split(' ').pop())} D/ST</b><small>${n1(ppg(x))} pts/game${r?` · DST${r.r} of ${r.n}`:''}${x.d?` · ${x.d.sack} sacks, ${x.d.int+x.d.fr} takeaways`:''}</small></span><span class="dst-go">Open →</span></button>`;})():''}
+    ${d.dst?(()=>{const r=ppgRank(d.dst),x=d.dst;return `<button class="plink dst-link" data-k="${esc(x.key)}"><span class="pos DST">DST</span><span><b>${esc(nm.split(' ').pop())} D/ST</b><small>${f1(ppg(x))} pts/game${r?` · DST${r.r} of ${r.n}`:''}${x.d?` · ${x.d.sack} sacks, ${x.d.int+x.d.fr} takeaways`:''}</small></span><span class="dst-go">Open →</span></button>`;})():''}
     </div>`:`<div class="card"><h3>Defense</h3><p class="note">No games played yet this season.</p></div>`;
   // injuries
   const ord2={Out:0,IR:1,Doubtful:2,Questionable:3};
@@ -2535,9 +2537,9 @@ document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches&&e.
 function renderTicker(){const el=$('#ticker'),tr=$('#tkTrack');if(!el||!tr)return;
   const T=(typeof TICKER_DATA!=='undefined'&&TICKER_DATA)||{},items=[],lw=SD.week-1;
   if(lw>=1){const top={};for(const p of PL.values()){const w=p.weeks[lw-1];if(!w)continue;const v=wpts(w);if(!top[p.pos]||v>top[p.pos].v)top[p.pos]={p,v};}
-    const S1=['QB','RB','WR','TE','K','DST'].filter(x=>top[x]).map(x=>`<button class="plink tk-p" data-k="${esc(top[x].p.key)}"><span class="pos ${x}">${x}</span> ${esc(top[x].p.name)} <b>${n1(top[x].v)}</b></button>`);
+    const S1=['QB','RB','WR','TE','K','DST'].filter(x=>top[x]).map(x=>`<button class="plink tk-p" data-k="${esc(top[x].p.key)}"><span class="pos ${x}">${x}</span> ${esc(top[x].p.name)} <b>${f1(top[x].v)}</b></button>`);
     if(S1.length)items.push(`<span class="tk-h">Week ${lw} top scorers</span> ${S1.join('<span class="tk-dot">·</span>')}`);}
-  if(T.best)items.push(`<span class="tk-h">Most accurate, Week ${T.best.week}</span> <button class="tk-a" data-tab="acc">${esc(T.best.name)}, ${n1(T.best.miss)} pts off per player</button>`);
+  if(T.best)items.push(`<span class="tk-h">Most accurate, Week ${T.best.week}</span> <button class="tk-a" data-tab="acc">${esc(T.best.name)}, ${f1(T.best.miss)} pts off per player</button>`);
   for(const [t,src,url] of (T.latest||[]))items.push(`<span class="tk-h">${esc(src)}</span> <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)}</a>`);
   if(!items.length){el.hidden=true;return;}
   const one=items.map(x=>`<span class="tk-i">${x}</span>`).join('');
@@ -2936,12 +2938,12 @@ function renderHome(){
     return best&&{pos,...best};}).filter(Boolean);
   $('#hmSoft').innerHTML=`<div class="hm-head"><h3>Softest matchups</h3><button class="hm-link" data-go="dvp">All defenses</button></div>
     ${soft.length?`<div class="hm-list">${soft.map(x=>`<div class="hm-li" style="align-items:center"><span style="display:flex;gap:10px;align-items:center"><span class="pos ${x.pos}">${x.pos}</span><span>${pname(x.r.p)}<br><span class="hm-sm">${oppText(x.r.p,wk)} · proj ${f1(x.r.proj)}</span></span></span>
-      <button class="ork olink good" data-dvp="${esc(x.d.t)}" title="${esc(TEAM_NAMES[x.d.t]||x.d.t)} allow ${n1(x.d.avg[DPOS.indexOf(x.pos)])} pts/game to ${x.pos}s">${ord(x.rk)} vs ${x.pos}</button></div>`).join('')}</div>`
+      <button class="ork olink good" data-dvp="${esc(x.d.t)}" title="${esc(TEAM_NAMES[x.d.t]||x.d.t)} allow ${f1(x.d.avg[DPOS.indexOf(x.pos)])} pts/game to ${x.pos}s">${ord(x.rk)} vs ${x.pos}</button></div>`).join('')}</div>`
       :'<p class="hm-empty">Matchup ranks show up after the first week of games.</p>'}`;
   // last week's top scorers
   const tops=[];if(lw>=1)for(const pos of DPOS){let b=null;for(const p of PL.values()){if(p.pos!==pos)continue;const w=p.weeks[lw-1];if(!w)continue;const v=wpts(w);if(!b||v>b.v)b={p,v};}if(b)tops.push({pos,...b});}
   $('#hmLast').innerHTML=`<div class="hm-head"><h3>Week ${Math.max(1,lw)} top scorers</h3></div>
-    ${tops.length?`<div class="hm-list">${tops.map(x=>`<div class="hm-li" style="align-items:center"><span style="display:flex;gap:10px;align-items:center"><span class="pos ${x.pos}">${x.pos}</span>${pname(x.p)}</span><b class="hm-pr">${n1(x.v)}</b></div>`).join('')}</div>`
+    ${tops.length?`<div class="hm-list">${tops.map(x=>`<div class="hm-li" style="align-items:center"><span style="display:flex;gap:10px;align-items:center"><span class="pos ${x.pos}">${x.pos}</span>${pname(x.p)}</span><b class="hm-pr">${f1(x.v)}</b></div>`).join('')}</div>`
       :'<p class="hm-empty">Top scorers show up once the first week is played.</p>'}`;
   // accuracy
   loadAcc();let acc=SK.lines(['9em','5.5em','11em'],'.8em').replace('width:5.5em;height:.8em','width:5.5em;height:2.4em');
@@ -3040,7 +3042,7 @@ function weatherM(p){const w=gameOf(p)?.weather;if(!w)return 1;const wind=w.wind
   else if(p.pos==='RB'&&wind>=20)m*=1.02;return m;}
 function weatherText(w){if(!w||w.wind==null)return '';const bits=[Math.round(w.temp)+'°F',Math.round(w.wind)+' mph wind'];if((w.precip||0)>=30)bits.push(w.precip+'% rain');return bits.join(', ');}
 function vegasCell(p){const g=gameOf(p);if(!g||g.implied==null)return '<span class="muted">—</span>';const w=g.weather;
-  const windy=w&&w.wind>=15;return `${n1(g.implied)}<span class="subn">${g.spread>0?'+':''}${g.spread} · O/U ${g.total}${windy?' · '+Math.round(w.wind)+' mph':''}</span>`;}
+  const windy=w&&w.wind>=15;return `${f1(g.implied)}<span class="subn">${g.spread>0?'+':''}${g.spread} · O/U ${g.total}${windy?' · '+Math.round(w.wind)+' mph':''}</span>`;}
 function xfpOf(p){const a=advOf(p.key);if(!a||!a.g||!['RB','WR','TE'].includes(p.pos))return null;
   const c=SC(),rp=c.rec+(p.pos==='TE'?c.te:0),x=a.xRec*rp+(a.xRecYd+a.xRushYd)/c.yd+c.td*(a.xRecTd+a.xRushTd);
   const s=p.s,act=s.rec*rp+(s.rec_yd+s.rush_yd)/c.yd+c.td*(s.rec_td+s.rush_td);
@@ -3175,7 +3177,7 @@ function renderBuySell(){const el=$('#rosBuySell');if(!el)return;
   const shown=rows.filter(r=>!pos||r.p.pos===pos);
   const tag=p=>isMine(p)?'<span class="pill p-gold">Yours</span>':LG&&!LG.has(p.key)?'<span class="pill p-good">Available</span>':'';
   const li=(r,kind)=>`<li><span class="pos ${r.p.pos}">${r.p.pos}</span><span class="bs-n"><button class="plink" data-k="${esc(r.p.key)}">${esc(r.p.name)}</button> <span class="muted">${esc(r.p.team)}</span> ${tag(r.p)}<br>
-      <span class="hm-sm">${n1(r.x.actPg)} pts/g · usage says ${n1(r.x.pg)}${rosR(r.p)?` · experts: ${r.p.pos}${rosR(r.p)} rest of season`:''}</span></span><b class="bs-d ${kind}" title="${n1(Math.abs(r.x.fpoe))} points a game ${r.x.fpoe<0?'below':'above'} what his usage predicts">${kind==='up'?'▲':'▼'} ${n1(Math.abs(r.x.fpoe))}</b></li>`;
+      <span class="hm-sm">${f1(r.x.actPg)} pts/g · usage says ${f1(r.x.pg)}${rosR(r.p)?` · experts: ${r.p.pos}${rosR(r.p)} rest of season`:''}</span></span><b class="bs-d ${kind}" title="${f1(Math.abs(r.x.fpoe))} points a game ${r.x.fpoe<0?'below':'above'} what his usage predicts">${kind==='up'?'▲':'▼'} ${f1(Math.abs(r.x.fpoe))}</b></li>`;
   const low=shown.filter(r=>r.x.fpoe<=-1.5).sort((a,b)=>a.x.fpoe-b.x.fpoe).slice(0,8),high=shown.filter(r=>r.x.fpoe>=1.5&&!elite(r)).sort((a,b)=>b.x.fpoe-a.x.fpoe).slice(0,8);
   el.innerHTML=`<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;align-items:baseline"><h3>Buy low / sell high</h3><div class="chips" role="group" aria-label="Position">${['All','RB','WR','TE'].map(x=>`<button class="chip" data-bsp="${x}" aria-pressed="${(pos||'All')===x}">${x}</button>`).join('')}</div>
     <span class="note">Points per game vs. expected points: what an average player scores with the same targets and carries, from where they happened on the field.</span></div>
@@ -3219,10 +3221,10 @@ function renderLineup(){
       const now=new Set(L2.start.filter(r=>r.x).map(r=>r.x.key));const out=L.start.find(r=>r.x&&!now.has(r.x.key));sugg.push({...o,gain,slot:slot.slot,out:out&&out.x});}}
     sugg.sort((a,b)=>b.gain-a.gain);
     {const per={},kept=[];for(const o of sugg){per[o.x.pos]=(per[o.x.pos]||0)+1;if(per[o.x.pos]<=3)kept.push(o);}sugg.length=0;sugg.push(...kept);}
-    $('#luWaivers').innerHTML=sugg.length?sugg.slice(0,12).map(o=>`<tr><td><span class="pos ${o.x.pos}">${o.x.pos}</span> ${pname(o.x)} <span class="muted">${esc(o.x.team||'')}</span>${o.x.real?' '+statusPill(o.x.p):''}</td><td class="r num">${o.own?`${n1(o.own.pct)}%<span class="subn">${o.own.src}</span>`:'<span class="muted">—</span>'}</td><td class="r big">${f1(o.x.proj)}</td><td>${o.out?`${esc(o.out.name)} (${f1(o.out.proj)})${o.out.pos!==o.x.pos?`<span class="subn">others shift to make room</span>`:''}`:`Empty ${SLOT_LBL[o.slot]} slot`}</td><td class="r num" style="color:var(--good);font-weight:700">+${f1(o.gain)}</td></tr>`).join(''):`<tr><td colspan="5" class="muted">No available player projects higher than your current starters. Nice roster.</td></tr>`;
+    $('#luWaivers').innerHTML=sugg.length?sugg.slice(0,12).map(o=>`<tr><td><span class="pos ${o.x.pos}">${o.x.pos}</span> ${pname(o.x)} <span class="muted">${esc(o.x.team||'')}</span>${o.x.real?' '+statusPill(o.x.p):''}</td><td class="r num">${o.own?`${f1(o.own.pct)}%<span class="subn">${o.own.src}</span>`:'<span class="muted">—</span>'}</td><td class="r big">${f1(o.x.proj)}</td><td>${o.out?`${esc(o.out.name)} (${f1(o.out.proj)})${o.out.pos!==o.x.pos?`<span class="subn">others shift to make room</span>`:''}`:`Empty ${SLOT_LBL[o.slot]} slot`}</td><td class="r num" style="color:var(--good);font-weight:700">+${f1(o.gain)}</td></tr>`).join(''):`<tr><td colspan="5" class="muted">No available player projects higher than your current starters. Nice roster.</td></tr>`;
   }else $('#luWaivers').innerHTML='<tr><td colspan="5" class="muted">Add your roster to see which pickups would start for you.</td></tr>';
   $('#luAvail').innerHTML=['QB','RB','WR','TE','K','DST'].map(pos=>{const list=avail.filter(o=>o.x.pos===pos).slice(0,4);
-    return `<div class="metric"><div class="top"><span class="label" style="color:var(--ink)">${pos}</span></div>${list.length?list.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px"><span>${pname(o.x)} <span class="muted" style="font-size:.8rem">${esc(o.x.team||'')}${o.own?` · ${n1(o.own.pct)}%`:''}</span></span><b class="mono">${f1(o.x.proj)}</b></div>`).join(''):`<span class="muted">${LG?'Nobody worth adding':'None under the threshold'}</span>`}</div>`;}).join('');
+    return `<div class="metric"><div class="top"><span class="label" style="color:var(--ink)">${pos}</span></div>${list.length?list.map(o=>`<div style="display:flex;justify-content:space-between;gap:8px"><span>${pname(o.x)} <span class="muted" style="font-size:.8rem">${esc(o.x.team||'')}${o.own?` · ${f1(o.own.pct)}%`:''}</span></span><b class="mono">${f1(o.x.proj)}</b></div>`).join(''):`<span class="muted">${LG?'Nobody worth adding':'None under the threshold'}</span>`}</div>`;}).join('');
 }
 function luAdd(){const v=$('#luAdd').value.trim().toLowerCase();if(!v)return;const pool=[...lineupPool().values()];
   const lab=x=>`${x.name}${x.team?' ('+x.team+')':''} · ${x.pos}`.toLowerCase();
@@ -3320,7 +3322,6 @@ const PL=new Map();
   });
 })();
 const SITEBY=new Map(SITES.map(r=>[r.key,r]));
-const adj=()=>({ppr:0,half:.5,std:1}[S.scoring]);
 const compS=s=>({rec:s.rec,py:s.pass_yd,ptd:s.pass_td,pint:s.pass_int,ry:s.rush_yd,rtd:s.rush_td,recy:s.rec_yd,rectd:s.rec_td,fl:s.fum_lost});
 const tot=p=>(p.pos==='K'||p.pos==='DST')&&p.weeks.some(w=>w&&(w.k||w.d))?p.weeks.reduce((a,w)=>a+(w?wpts(w):0),0):p.s.pts_ppr+scDelta(compS(p.s),p.pos);
 const ppg=p=>p.gp?tot(p)/p.gp:0;
@@ -3331,7 +3332,6 @@ const dPts=d=>{const c=SC();return d.sack*c.dsack+d.int*c.dint+d.fr*c.dfr+d.td*c
 const wpts=w=>!w?null:w.k?kPts(w.k):w.d?dPts(w.d):w.ppr+scDelta(w,w.pos);
 const dv=(a,b)=>b?a/b:null;
 const pct=v=>v==null?'—':(v*100).toFixed(1)+'%';
-const n1=v=>v==null?'—':(Math.round(v*10)/10).toFixed(1);
 const n2=v=>v==null?'—':v.toFixed(2);
 const QUAL={QB:p=>p.s.pass_att>=40,RB:p=>p.s.rush_att+p.s.rec_tgt>=12,WR:p=>p.s.rec_tgt>=6,TE:p=>p.s.rec_tgt>=6,K:p=>p.s.fga>=3,DST:p=>true};
 const snapM={k:'snap',l:'Snap share',f:p=>dv(p.s.off_snp,p.s.tm_off_snp),fmt:pct,why:'Share of his team\'s offensive plays he was on the field for. Playing time sets the ceiling on every other stat.'};
@@ -3339,46 +3339,46 @@ const METRICS={
  QB:[snapM,
   {k:'rfp',l:'Fantasy points from rushing',f:p=>dv(p.s.rush_yd*.1+p.s.rush_td*6,tot(p)),fmt:pct,why:'Rushing yards are worth about 2.5x passing yards in fantasy. QBs who run a lot have higher floors and ceilings.'},
   {k:'rsh',l:'Share of team carries',f:p=>dv(p.s.rush_att,p.s.tm_rush_att),fmt:pct,why:'How much of the team\'s run game goes through the QB, including scrambles and designed runs.'},
-  {k:'ra',l:'Rush attempts per game',f:p=>dv(p.s.rush_att,p.gp),fmt:n1,why:'Rushing volume is one of the most stable QB stats from week to week.'},
-  {k:'rzr',l:'Red-zone carries per game',f:p=>dv(p.s.rush_rz_att,p.gp),fmt:n1,why:'Goal-line rushing turns into 6-point TDs instead of 4-point passing TDs.'},
-  {k:'pa',l:'Pass attempts per game',f:p=>dv(p.s.pass_att,p.gp),fmt:n1,why:'Volume. More attempts means more chances for yards and TDs.'},
-  {k:'ypa',l:'Yards per attempt',f:p=>dv(p.s.pass_yd,p.s.pass_att),fmt:n1,why:'The best simple measure of passing efficiency.'},
+  {k:'ra',l:'Rush attempts per game',f:p=>dv(p.s.rush_att,p.gp),fmt:f1,why:'Rushing volume is one of the most stable QB stats from week to week.'},
+  {k:'rzr',l:'Red-zone carries per game',f:p=>dv(p.s.rush_rz_att,p.gp),fmt:f1,why:'Goal-line rushing turns into 6-point TDs instead of 4-point passing TDs.'},
+  {k:'pa',l:'Pass attempts per game',f:p=>dv(p.s.pass_att,p.gp),fmt:f1,why:'Volume. More attempts means more chances for yards and TDs.'},
+  {k:'ypa',l:'Yards per attempt',f:p=>dv(p.s.pass_yd,p.s.pass_att),fmt:f1,why:'The best simple measure of passing efficiency.'},
   {k:'tdr',l:'TD rate',f:p=>dv(p.s.pass_td,p.s.pass_att),fmt:pct,why:'TDs per attempt. Very high rates tend to drop back toward average (about 4.5%).'},
-  {k:'rzp',l:'Red-zone pass attempts per game',f:p=>dv(p.s.pass_rz_att,p.gp),fmt:n1,why:'Passing TD chances. More stable than the TD total itself.'},
-  {k:'cay',l:'Completed air yards per attempt',f:p=>dv(p.s.pass_air_yd,p.s.pass_att),fmt:n1,why:'How far downfield his completions travel. Deep passers have bigger weekly swings.'},
+  {k:'rzp',l:'Red-zone pass attempts per game',f:p=>dv(p.s.pass_rz_att,p.gp),fmt:f1,why:'Passing TD chances. More stable than the TD total itself.'},
+  {k:'cay',l:'Completed air yards per attempt',f:p=>dv(p.s.pass_air_yd,p.s.pass_att),fmt:f1,why:'How far downfield his completions travel. Deep passers have bigger weekly swings.'},
   {k:'int',l:'INT rate',f:p=>dv(p.s.pass_int,p.s.pass_att),fmt:pct,low:1,why:'Interceptions per attempt. Lower is better.'},
   {k:'sk',l:'Sack rate',f:p=>dv(p.s.pass_sack,p.s.pass_att+p.s.pass_sack),fmt:pct,low:1,why:'Sacks kill drives. High sack rates often mean a weak offensive line.'}],
  RB:[snapM,
   {k:'rsh',l:'Share of team carries',f:p=>dv(p.s.rush_att,p.s.tm_rush_att),fmt:pct,why:'The main RB workload stat. Backs with 60%+ of carries are true lead backs.'},
   {k:'tsh',l:'Target share',f:p=>dv(p.s.rec_tgt,p.s.tm_tgt),fmt:pct,why:'A target is worth about 2–3x a carry in PPR. Pass-catching backs have safer floors.'},
-  {k:'opp',l:'Opportunities per game',f:p=>dv(p.s.rush_att+p.s.rec_tgt,p.gp),fmt:n1,why:'Carries plus targets. Raw volume is the strongest predictor of RB scoring.'},
+  {k:'opp',l:'Opportunities per game',f:p=>dv(p.s.rush_att+p.s.rec_tgt,p.gp),fmt:f1,why:'Carries plus targets. Raw volume is the strongest predictor of RB scoring.'},
   {k:'rzs',l:'Red-zone carry share',f:p=>dv(p.s.rush_rz_att,p.s.tm_rz_rush),fmt:pct,why:'Who gets the ball near the goal line. This is where most RB touchdowns come from.'},
   {k:'rzt',l:'Red-zone targets per game',f:p=>dv(p.s.rec_rz_tgt,p.gp),fmt:n2,why:'Short-yardage receiving TDs.'},
-  {k:'ypc',l:'Yards per carry',f:p=>dv(p.s.rush_yd,p.s.rush_att),fmt:n1,why:'Efficiency. Noisier than volume and shaped heavily by the offensive line.'},
+  {k:'ypc',l:'Yards per carry',f:p=>dv(p.s.rush_yd,p.s.rush_att),fmt:f1,why:'Efficiency. Noisier than volume and shaped heavily by the offensive line.'},
   {k:'yco',l:'Yards after contact per carry',f:p=>dv(p.s.rush_yac,p.s.rush_att),fmt:n2,why:'The part of rushing yards the back creates himself, less dependent on blocking.'},
   {k:'btk',l:'Broken tackles per carry',f:p=>dv(p.s.rush_btkl,p.s.rush_att),fmt:pct,why:'Elusiveness. Backs who break tackles tend to keep their jobs.'},
   {k:'fd',l:'First-down rate',f:p=>dv(p.s.rush_fd,p.s.rush_att),fmt:pct,why:'Carries that move the chains. A sign the back is trusted in key spots.'},
-  {k:'ypt',l:'Yards per target',f:p=>dv(p.s.rec_yd,p.s.rec_tgt),fmt:n1,why:'Receiving efficiency.'}],
+  {k:'ypt',l:'Yards per target',f:p=>dv(p.s.rec_yd,p.s.rec_tgt),fmt:f1,why:'Receiving efficiency.'}],
  WR:null,TE:null,
  K:[{k:'fgp',l:'Field-goal rate',f:p=>dv(p.s.fgm,p.s.fga),fmt:pct,why:'Accuracy. Missed kicks cost points and can cost a kicker his job.'},
-  {k:'fga',l:'Field-goal attempts per game',f:p=>dv(p.s.fga,p.gp),fmt:n1,why:'Volume. Kickers on offenses that stall in the red zone get more tries.'},
+  {k:'fga',l:'Field-goal attempts per game',f:p=>dv(p.s.fga,p.gp),fmt:f1,why:'Volume. Kickers on offenses that stall in the red zone get more tries.'},
   {k:'f50',l:'50+ yard makes',f:p=>p.s.fgm_50p,fmt:v=>String(v),why:'Long field goals are often worth bonus points.'},
-  {k:'xpg',l:'Extra points per game',f:p=>dv(p.s.xpm,p.gp),fmt:n1,why:'A proxy for how many TDs his offense scores.'}],
- DST:[{k:'sk',l:'Sacks per game',f:p=>p.d?dv(p.d.sack,p.gp):null,fmt:n1,why:'Pass rush is the most stable defensive scoring source.'},
-  {k:'to',l:'Takeaways per game',f:p=>p.d?dv(p.d.int+p.d.fr,p.gp):null,fmt:n1,why:'Interceptions and fumble recoveries. Big points, but random from week to week.'},
-  {k:'pa',l:'Points allowed per game',f:p=>dv(p.s.pts_allow,p.gp),fmt:n1,low:1,why:'Most leagues score by points allowed tiers.'},
+  {k:'xpg',l:'Extra points per game',f:p=>dv(p.s.xpm,p.gp),fmt:f1,why:'A proxy for how many TDs his offense scores.'}],
+ DST:[{k:'sk',l:'Sacks per game',f:p=>p.d?dv(p.d.sack,p.gp):null,fmt:f1,why:'Pass rush is the most stable defensive scoring source.'},
+  {k:'to',l:'Takeaways per game',f:p=>p.d?dv(p.d.int+p.d.fr,p.gp):null,fmt:f1,why:'Interceptions and fumble recoveries. Big points, but random from week to week.'},
+  {k:'pa',l:'Points allowed per game',f:p=>dv(p.s.pts_allow,p.gp),fmt:f1,low:1,why:'Most leagues score by points allowed tiers.'},
   {k:'ya',l:'Yards allowed per game',f:p=>p.d?dv(p.d.ya,p.gp):null,fmt:v=>v==null?'—':Math.round(v)+'',low:1,why:'Overall defensive quality.'}]
 };
 METRICS.WR=[snapM,
   {k:'tsh',l:'Target share',f:p=>dv(p.s.rec_tgt,p.s.tm_tgt),fmt:pct,why:'The single best stat for predicting receiver scoring. 25%+ is elite.'},
-  {k:'tpg',l:'Targets per game',f:p=>dv(p.s.rec_tgt,p.gp),fmt:n1,why:'Raw volume.'},
+  {k:'tpg',l:'Targets per game',f:p=>dv(p.s.rec_tgt,p.gp),fmt:f1,why:'Raw volume.'},
   {k:'yptpa',l:'Yards per team pass attempt',f:p=>dv(p.s.rec_yd,p.s.tm_pass_att),fmt:n2,why:'Receiving yards relative to how often his team throws. Above 2.0 is elite.'},
   {k:'yps',l:'Receiving yards per snap',f:p=>dv(p.s.rec_yd,p.s.off_snp),fmt:n2,why:'How productive he is when he\'s on the field.'},
   {k:'cay',l:'Share of team completed air yards',f:p=>dv(p.s.rec_air_yd,p.s.tm_air),fmt:pct,why:'Downfield role. Air yards predict future yards, even when they aren\'t caught yet.'},
   {k:'rzs',l:'Red-zone target share',f:p=>dv(p.s.rec_rz_tgt,p.s.tm_rz_tgt),fmt:pct,why:'Where receiving TDs come from. More stable than TD totals.'},
-  {k:'ypt',l:'Yards per target',f:p=>dv(p.s.rec_yd,p.s.rec_tgt),fmt:n1,why:'Efficiency per look.'},
+  {k:'ypt',l:'Yards per target',f:p=>dv(p.s.rec_yd,p.s.rec_tgt),fmt:f1,why:'Efficiency per look.'},
   {k:'cr',l:'Catch rate',f:p=>dv(p.s.rec,p.s.rec_tgt),fmt:pct,why:'Catches per target. Depends partly on how deep he\'s targeted.'},
-  {k:'yac',l:'Yards after catch per reception',f:p=>dv(p.s.rec_yar,p.s.rec),fmt:n1,why:'What he creates with the ball in his hands.'},
+  {k:'yac',l:'Yards after catch per reception',f:p=>dv(p.s.rec_yar,p.s.rec),fmt:f1,why:'What he creates with the ball in his hands.'},
   {k:'fdt',l:'First downs per target',f:p=>dv(p.s.rec_fd,p.s.rec_tgt),fmt:pct,why:'Strongly tied to future target volume: QBs keep throwing to players who move the chains.'},
   {k:'dr',l:'Drop rate',f:p=>dv(p.s.rec_drop,p.s.rec_tgt),fmt:pct,low:1,why:'Drops per target. Lower is better.'}];
 METRICS.TE=METRICS.WR;
@@ -3386,12 +3386,12 @@ METRICS.TE=METRICS.WR;
 const ad=p=>advOf(p.key);
 const av=(p,f)=>{const a=ad(p);return a?f(a):null;};
 const ngs=(p,k)=>{const a=ad(p);return a&&a[k]?a[k]:null;};
-const XFP={k:'xfp',l:'Expected fantasy points per game',src:'Play-by-play',f:p=>xfpOf(p)?.pg??null,fmt:n1,why:'What his targets and carries are worth for an average player, based on depth and field position. The best single usage number.'};
+const XFP={k:'xfp',l:'Expected fantasy points per game',src:'Play-by-play',f:p=>xfpOf(p)?.pg??null,fmt:f1,why:'What his targets and carries are worth for an average player, based on depth and field position. The best single usage number.'};
 const FPOE={k:'fpoe',l:'Points over expected per game',src:'Play-by-play',neutral:1,f:p=>{const x=xfpOf(p);return x?x.fpoe:null;},fmt:v=>v==null?'—':(v>0?'+':'')+v.toFixed(1),why:'Actual minus expected. Big positives often cool off; big negatives often bounce back.'};
 METRICS.WR=[...METRICS.WR.slice(0,3),XFP,FPOE,
   {k:'wopr',l:'WOPR',src:'nflverse',f:p=>av(p,a=>a.tmTgt&&a.tmAy?1.5*a.tgt/a.tmTgt+.7*a.ay/a.tmAy:null),fmt:n2,why:'Target share plus air yards share in one number. Above 0.65 is elite.'},
   {k:'ays',l:'Air yards share',src:'nflverse',f:p=>av(p,a=>dv(a.ay,a.tmAy)),fmt:pct,why:'Share of the team\'s intended air yards, including incompletions. Predicts future yards.'},
-  {k:'adot',l:'Average depth of target',src:'nflverse',neutral:1,f:p=>av(p,a=>dv(a.ay,a.tgt)),fmt:n1,why:'How far downfield he\'s targeted. Deep roles score in bigger, less predictable chunks.'},
+  {k:'adot',l:'Average depth of target',src:'nflverse',neutral:1,f:p=>av(p,a=>dv(a.ay,a.tgt)),fmt:f1,why:'How far downfield he\'s targeted. Deep roles score in bigger, less predictable chunks.'},
   {k:'fr',l:'First-read target share',src:'FTN',f:p=>av(p,a=>dv(a.firstRead,a.tmFirst)),fmt:pct,why:'How often he is the QB\'s first read when the ball goes there first. A sign of a designed role.'},
   {k:'ezs',l:'End-zone target share',src:'Play-by-play',f:p=>av(p,a=>dv(a.ezTgt,a.tmEzTgt)),fmt:pct,why:'Targets thrown into the end zone. The most direct touchdown opportunity.'},
   {k:'dts',l:'Deep target share (20+ yards)',src:'Play-by-play',f:p=>av(p,a=>dv(a.deepTgt,a.tmDeep)),fmt:pct,why:'Share of the team\'s deep shots.'},
@@ -3414,7 +3414,7 @@ METRICS.RB=[...METRICS.RB.slice(0,4),XFP,FPOE,
 METRICS.QB=[...METRICS.QB.slice(0,3),
   {k:'epad',l:'EPA per dropback',src:'nflverse',f:p=>av(p,a=>a.att>=20?dv(a.passEpa,a.att+a.sacks):null),fmt:n2,why:'Expected points added per pass play. The best all-in-one QB efficiency stat.'},
   {k:'cpoe',l:'Completion % over expected',src:'nflverse',f:p=>av(p,a=>a.cpoeN>=20?a.cpoeW/a.cpoeN:null),fmt:v=>v==null?'—':(v>0?'+':'')+v.toFixed(1)+'%',why:'Accuracy beyond what the throw difficulty predicts.'},
-  {k:'rxfp',l:'Expected rushing points per game',src:'Play-by-play',f:p=>av(p,a=>a.g?(.1*a.xRushYd+6*a.xRushTd)/a.g:null),fmt:n1,why:'What his carries and scrambles are worth, including goal-line runs.'},
+  {k:'rxfp',l:'Expected rushing points per game',src:'Play-by-play',f:p=>av(p,a=>a.g?(.1*a.xRushYd+6*a.xRushTd)/a.g:null),fmt:f1,why:'What his carries and scrambles are worth, including goal-line runs.'},
   {k:'ttt',l:'Time to throw',src:'Next Gen Stats',neutral:1,f:p=>ngs(p,'ttt'),fmt:v=>v==null?'—':v.toFixed(2)+'s',why:'Seconds from snap to throw. Longer holds mean more deep shots, but also more sacks.'},
   {k:'aggr',l:'Aggressiveness',src:'Next Gen Stats',neutral:1,f:p=>ngs(p,'aggr')!=null?ngs(p,'aggr')/100:null,fmt:pct,why:'Share of throws into tight windows.'},
   {k:'iwr',l:'Interception-worthy throw rate',src:'FTN',low:1,f:p=>av(p,a=>a.ftnDb>=20?dv(a.intWorthy,a.ftnDb):null),fmt:pct,why:'Throws that should have been picked. Predicts future interceptions better than the INT total.'},
@@ -3430,7 +3430,7 @@ function ppgRank(p){const pool=[...PL.values()].filter(q=>q.pos===p.pos&&q.gp>=2
 const ord=n=>{const t=n%100;if(t>=11&&t<=13)return n+'th';return n+({1:'st',2:'nd',3:'rd'}[n%10]||'th');};
 function spark(p){// last 4 finished weeks (the current week is left out)
   const vals=p.weeks.slice(0,Math.max(0,SD.week-1)).map(wpts);const mx=Math.max(1,...vals.filter(v=>v!=null));
-  return `<span class="spark" aria-label="Weekly points">${p.weeks.map((w,i)=>[w,i]).slice(0,Math.max(0,SD.week-1)).slice(-4).map(([w,i])=>w?`<i style="height:${Math.max(2,(wpts(w)/mx)*22)}px" title="Wk ${i+1}: ${n1(wpts(w))}"></i>`:'<i class="dnp" title="Did not play"></i>').join('')}</span>`;}
+  return `<span class="spark" aria-label="Weekly points">${p.weeks.map((w,i)=>[w,i]).slice(0,Math.max(0,SD.week-1)).slice(-4).map(([w,i])=>w?`<i style="height:${Math.max(2,(wpts(w)/mx)*22)}px" title="Wk ${i+1}: ${f1(wpts(w))}"></i>`:'<i class="dnp" title="Did not play"></i>').join('')}</span>`;}
 ui.posT='All';ui.sortT='ppg';ui.qT='';
 function renderStats(){
   $('#statsNote').textContent='';
@@ -3445,8 +3445,8 @@ function renderStats(){
   const pgT=pageRows('stats',rows,450,9,ui.qT.trim());
   $('#statsBody').innerHTML=rows.length?pgT.shown.map((p,i)=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);const sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp);
     return `<tr><td class="rank">${i+1}</td><td style="white-space:nowrap">${starBtn(p.key)}<span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}" aria-label="${esc(p.name)}">${nmLabel(p.name,p.pos)}</button> <span class="muted" style="font-size:.85rem">${esc(p.team)}</span><span class="nm-sub">${esc(p.team)}</span></td>
-    <td class="r num">${p.gp}</td><td class="r big">${n1(ppg(p))}</td><td class="r num">${n1(tot(p))}</td><td class="r num">${sn==null?'—':Math.round(sn*100)+'%'}</td>
-    <td class="r num" title="${m?esc(m.l):''}">${m?m.fmt(m.f(p)):'—'} <span class="stub">${m?{rfp:'rush FP',rsh:'carries',tsh:'tgt share',fgp:'FG',to:'TO/g'}[m.k]:''}</span></td><td class="r num">${(()=>{const x=xfpOf(p);return x?n1(x.pg):'—'})()}</td><td>${spark(p)}</td></tr>`}).join('')+pgT.moreRow:'<tr><td colspan="9" class="muted">No players match.</td></tr>';
+    <td class="r num">${p.gp}</td><td class="r big">${f1(ppg(p))}</td><td class="r num">${f1(tot(p))}</td><td class="r num">${sn==null?'—':Math.round(sn*100)+'%'}</td>
+    <td class="r num" title="${m?esc(m.l):''}">${m?m.fmt(m.f(p)):'—'} <span class="stub">${m?{rfp:'rush FP',rsh:'carries',tsh:'tgt share',fgp:'FG',to:'TO/g'}[m.k]:''}</span></td><td class="r num">${(()=>{const x=xfpOf(p);return x?f1(x.pg):'—'})()}</td><td>${spark(p)}</td></tr>`}).join('')+pgT.moreRow:'<tr><td colspan="9" class="muted">No players match.</td></tr>';
 }
 $('#statSearch').oninput=e=>{ui.qT=e.target.value;renderStats();};
 document.querySelector('table.dir thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if(ui.sortT===th.dataset.sort)ui.dirT=-(ui.dirT||1);else{ui.sortT=th.dataset.sort;ui.dirT=1;}renderStats();};
@@ -3459,7 +3459,7 @@ function usageOf(pos){
   const QB={tile:'Pts from rushing',title:'Share of points from rushing',
     wk:e=>{const t=wpts(e);return t>0?Math.max(0,Math.min(100,100*((e.ry||0)*.1+(e.rtd||0)*6)/t)):null;},
     seas:q=>{const t=tot(q);return t>0?Math.max(0,rushPts(q)/t):null;},pool:q=>q.gp>=2&&QUAL.QB(q),
-    sub:q=>`${n1(rushPts(q))} of ${n1(tot(q))} pts`};
+    sub:q=>`${f1(rushPts(q))} of ${f1(tot(q))} pts`};
   const RB=share('csh','rush_att','tm_rush_att','Team carry share','Share of team carries','carries'),
     WR=share('tsh','rec_tgt','tm_tgt','Target share','Target share','targets');
   return {QB,RB,WR,TE:WR}[pos]||null;}
@@ -3510,17 +3510,17 @@ function weekCard(p,projV){
   const col=(x,i)=>{
     const where=x.o?' '+x.o:'';
     if(x.kind==='played'||x.kind==='proj'){const hh=h(x.v),proj=x.kind==='proj';
-      const rows=[[proj?'Projected':'Points',n1(x.v),proj?'hatch':'dot']];
+      const rows=[[proj?'Projected':'Points',f1(x.v),proj?'hatch':'dot']];
       if(!proj&&snaps&&x.snap!=null)rows.push(['Snap share',x.snap+'%']);
-      if(avg!=null){const d=x.v-avg;rows.push(['vs season avg',(d>=0?'+':'−')+n1(Math.abs(d)),d>=0.05?'up':d<=-0.05?'dn':'']);}
+      if(avg!=null){const d=x.v-avg;rows.push(['vs season avg',(d>=0?'+':'−')+f1(Math.abs(d)),d>=0.05?'up':d<=-0.05?'dn':'']);}
       const tip=esc(JSON.stringify({h:`Week ${x.w}${where}`,r:rows}));
-      return `<div class="wkcol has${proj?' proj':''}" style="--i:${i}" tabindex="0" role="img" data-tip="${tip}" aria-label="Week ${x.w}${esc(where)}: ${n1(x.v)} points${proj?' projected':''}"><i class="wkt"></i><i class="wkb${proj?' proj':''}" style="height:${hh}px"></i><b class="wkv" style="bottom:${hh+4}px"><span>${n1(x.v)}</span></b></div>`;}
+      return `<div class="wkcol has${proj?' proj':''}" style="--i:${i}" tabindex="0" role="img" data-tip="${tip}" aria-label="Week ${x.w}${esc(where)}: ${f1(x.v)} points${proj?' projected':''}"><i class="wkt"></i><i class="wkb${proj?' proj':''}" style="height:${hh}px"></i><b class="wkv" style="bottom:${hh+4}px"><span>${f1(x.v)}</span></b></div>`;}
     const lbl=x.kind==='bye'?'Bye':x.kind==='upcoming'?'Next':'Out';
     return `<div class="wkcol${x.kind==='upcoming'?' next':''}" style="--i:${i}" role="img" aria-label="Week ${x.w}${esc(where)}: ${lbl}"><i class="wkt"></i><span class="wkgap">${lbl}</span></div>`;};
   const lab=x=>`<div class="wkl${x.kind==='proj'||x.kind==='upcoming'?' now':''}"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span></div>`;
   // real Bklit chart (assets/charts) mounts into .ll-island; the hand-built chart below is the fallback
   const island=esc(JSON.stringify({weeks:weeks.map(({w,o,v,snap,kind})=>({w,o,v,snap,kind})),avg,showSnaps:snaps,animate:anim}));
-  return `<div class="card wkcard has-island"><div class="wkhead"><h3>Points by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season avg <b>${n1(avg)}</b></span>`:''}</div>
+  return `<div class="card wkcard has-island"><div class="wkhead"><h3>Points by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season avg <b>${f1(avg)}</b></span>`:''}</div>
     <div class="wkscroll"><div class="wkgrid" style="--n:${n}">
       <div class="wkplot${anim?' anim':''}" style="--n:${n};--h:${H}px;--st:${(0.44/Math.max(1,n)).toFixed(3)}s">${avg!=null?`<div class="wkline" style="bottom:${h(avg)}px"></div>`:''}${weeks.map(col).join('')}</div>
       <div class="wklabs" aria-hidden="true">${weeks.map(lab).join('')}</div>
@@ -3570,8 +3570,8 @@ function boxScore(p){
     if(me==null||!Number.isFinite(me)||!pool.includes(p))return '—';
     const better=pool.filter(q=>{const v=fn(q);return v!=null&&Number.isFinite(v)&&(o.low?v<me:v>me);}).length;return p.pos+(better+1);};
   const cell=(c,kind)=>{const [,fn,o={}]=c;
-    if(kind==='season')return o.fp?`<b>${n1(fn(p))}</b>`:o.show?o.show(p):fn(p);
-    if(kind==='pg')return o.noPg?'—':n1(fn(p)/g);
+    if(kind==='season')return o.fp?`<b>${f1(fn(p))}</b>`:o.show?o.show(p):fn(p);
+    if(kind==='pg')return o.noPg?'—':f1(fn(p)/g);
     return rankOf(fn,o);};
   return `<div class="tbl-wrap"><table style="min-width:600px"><thead><tr><th></th>${cols.map(c=>`<th class="r">${c[0]}</th>`).join('')}</tr></thead><tbody>
    <tr><td class="label">Season</td>${cols.map(c=>`<td class="r num">${cell(c,'season')}</td>`).join('')}</tr>
@@ -3632,8 +3632,8 @@ function dstOppCard(p){const sc=SCHED[p.team]||[],A=offAllow(),from=S.week,rows=
     if(x==='BYE'){rows.push(`<tr><td class="num">Wk ${w}</td><td colspan="5" class="muted">Bye</td><td></td></tr>`);continue;}
     const o=x.replace('@',''),a=A[o],g=w===S.week&&advWeek()&&AD.games?AD.games[p.team]:null;
     rows.push(`<tr${w===S.week?' class="cur"':''}><td class="num">Wk ${w}</td><td style="white-space:nowrap">${x.startsWith('@')?'at':'vs'} <button class="tlink" data-tm="${o}">${esc(o)}</button></td>
-      <td class="r num">${g&&g.implied!=null?n1(g.total-g.implied):'—'}</td><td class="r num">${a?n1(a.ptsG):'—'}</td><td class="r num">${a?n1(a.sackG):'—'}</td><td class="r num">${a?n1(a.toG):'—'}</td>
-      <td class="r" style="white-space:nowrap">${a?`<span class="num">${n1(a.dstG)}</span> <span class="ork ${rkCls(a.rk)}">${ord(a.rk)}</span>`:'—'}</td></tr>`);}
+      <td class="r num">${g&&g.implied!=null?f1(g.total-g.implied):'—'}</td><td class="r num">${a?f1(a.ptsG):'—'}</td><td class="r num">${a?f1(a.sackG):'—'}</td><td class="r num">${a?f1(a.toG):'—'}</td>
+      <td class="r" style="white-space:nowrap">${a?`<span class="num">${f1(a.dstG)}</span> <span class="ork ${rkCls(a.rk)}">${ord(a.rk)}</span>`:'—'}</td></tr>`);}
   if(!rows.length)return '';
   return `<div class="card"><h3>Upcoming opponents</h3><p class="note" style="margin:4px 0 0">D/ST points come from sacks, turnovers and holding the score down, so this grades the offenses ${esc(p.name.split(' ').pop())} face. Per game this season; the rank is out of 32 and 32nd gives opposing D/STs the most.</p>
    <div class="tbl-wrap"><table class="tooltbl dst-opp" style="min-width:560px"><thead><tr><th>Week</th><th>Opponent</th><th class="r" title="The opponent's implied points from this week's betting line">Opp. implied</th><th class="r">Opp. pts/g</th><th class="r">Sacks allowed</th><th class="r">Turnovers</th><th class="r">D/ST pts allowed</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>
@@ -3654,30 +3654,29 @@ function renderPlayer(){
      ${frac!=null?`<div class="pbar" aria-hidden="true"><i class="${cls}" style="width:${Math.max(4,frac*100)}%"></i></div><span class="rk">${m.neutral?ord(rk.r)+' highest':ord(rk.r)} of ${rk.n} ${p.pos}s</span>`:'<span class="rk">Not enough volume to rank</span>'}
      <span class="why">${esc(m.why)}</span><span><span class="src">${esc(m.src||'Sleeper')}</span></span></div>`}).filter(Boolean);
   const ms=msA.slice(0,4).join(''),msMore=msA.slice(4).join('');
-  const g=gameOf(p),e=ecrOf(p),prc=practiceOf(p),wp=weekProj(realPlayers().find(x=>x.key===p.key)||{pos:p.pos,real:false,b:0}),xf=xfpOf(p);
+  const rp=realPlayers().find(x=>x.key===p.key),g=gameOf(p),e=ecrOf(p),prc=practiceOf(p),wp=weekProj(rp||{pos:p.pos,real:false,b:0}),xf=xfpOf(p);
   const site2=SITEBY.get(p.key),sv2=site2?siteVals(site2):null;
   const thisWeek=(g||e||prc||sv2)?`<div class="card" id="sec-week"><h3 style="margin-bottom:12px">This week${g?`: ${g.home?'vs':'at'} ${esc(g.opp)}`:''}</h3><div class="kv">
-     ${g&&g.implied!=null?`<div><span class="label">Vegas</span><b>${n1(g.implied)} implied pts</b><span class="note">${esc(p.team)} ${g.spread>0?'+':''}${g.spread} · total ${g.total}</span></div>`:''}
+     ${g&&g.implied!=null?`<div><span class="label">Vegas</span><b>${f1(g.implied)} implied pts</b><span class="note">${esc(p.team)} ${g.spread>0?'+':''}${g.spread} · total ${g.total}</span></div>`:''}
      ${g?`<div><span class="label">Kickoff and conditions</span><b>${esc(kickText(g))}</b><span class="note">${g.weather?esc(weatherText(g.weather)):({dome:'Dome',closed:'Roof closed'})[g.roof]||'Forecast not available yet'}${g.stadium?' · '+esc(g.stadium):''}</span></div>`:''}
      ${prc?`<div><span class="label">Injury report</span><b>${esc(prc[1]||'No game status')}</b><span class="note">Practice: ${({DNP:'did not practice',LP:'limited',FP:'full'})[prc[0]]||'—'}${prc[2]?' · '+esc(prc[2]):''}</span></div>`:''}
      ${e?`<div><span class="label">FantasyPros experts</span><b>${p.pos}${e[1]??'—'} · grade ${esc(e[5]||'—')}</b><span class="note">Best ${e[3]}, worst ${e[4]} overall · spread ±${e[2]}</span></div>`:''}
-     ${sv2?`<div><span class="label">Each site</span><b>${[['espn','ESPN'],['sleeper','Sleeper'],['cbs','CBS'],['fp','FantasyPros']].filter(([k])=>sv2[k]!=null).map(([k,l])=>l+' '+n1(sv2[k])).join(', ')}</b><span class="note">${wp.model?'Our model '+n1(wp.model)+', blended into '+n1(wp.proj):'Blended into '+n1(wp.proj)}</span></div>`:''}
+     ${sv2?`<div><span class="label">Each site</span><b>${[['espn','ESPN'],['sleeper','Sleeper'],['cbs','CBS'],['fp','FantasyPros']].filter(([k])=>sv2[k]!=null).map(([k,l])=>l+' '+f1(sv2[k])).join(', ')}</b><span class="note">${wp.model?'Our model '+f1(wp.model)+', blended into '+f1(wp.proj):'Blended into '+f1(wp.proj)}</span></div>`:''}
    </div>@@TOOLS@@</div>`:'';
-  const cons=consensus(realPlayers().find(x=>x.key===p.key)||{real:false});
+  const cons=consensus(rp||{real:false});
   const toolsCard=cons?`<details class="tools-d"><summary><span>How each tool voted</span><span class="muted">${cons.n.start} start, ${cons.n.flex} flex, ${cons.n.sit} sit</span></summary><p class="note" style="margin:0 16px 8px">Average rank: ${p.pos}${Math.round(cons.avg)}.</p>
    <div class="tbl-wrap"><table class="tooltbl"><tbody>${cons.tools.map(t=>`<tr><td>${esc(t.name)}</td><td class="r num">${p.pos}${Math.round(t.rank)}</td><td><span class="pill ${({start:'p-good',flex:'p-gold',sit:'p-mute'})[t.vote]}">${t.vote[0].toUpperCase()+t.vote.slice(1)}</span></td><td class="note">${esc(t.detail||'')}</td></tr>`).join('')}</tbody></table></div></details>`:'';
-  const poP=realPlayers().find(x=>x.key===p.key),po=poP?poOf(poP):null;
-  const poCard=po?(()=>{const pct=Math.round(po.ease*100),sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
-    const [lbl,cls]=po.bye?['Bye in playoffs','p-bad']:po.ease>=PO_CUT?['Easy','p-good']:po.ease<=-PO_CUT?['Tough','p-bad']:['Neutral','p-mute'];
-    return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h3>Playoff schedule · ${poWeeks()}</h3><span class="pill ${cls}">${lbl} ${sg(pct)}%</span></div>
+  const po=rp?poOf(rp):null;
+  const poCard=po?(()=>{const {pct,pc,lbl,cls}=poPill(po,'Bye in playoffs');
+    return `<div class="card"><div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between"><h3>Playoff schedule · ${poWeeks()}</h3><span class="pill ${cls}">${lbl} ${pc}%</span></div>
     <p class="note" style="margin:4px 0 12px">${po.bye?`He has a bye during your playoffs, so you'd need a fill-in that week. `:''}His opponents ${po.ease>=0?'give up':'hold'} ${p.pos}s to about ${Math.abs(pct)}% ${po.ease>=0?'more':'fewer'} points than an average schedule: roughly ${po.pts>=0?'+':'−'}${f1(Math.abs(po.pts))} pts per playoff week for him. The last week counts most. <button class="hm-link" data-go="settings">Change weeks</button></p>
     <div class="tiles">${po.wks.map(w=>w.bye?`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v" style="color:var(--bad)">Bye</span><span class="s">No game</span></div>`
-      :w.d?`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v"><button class="ork olink ${rkCls(w.rk)}" style="font-size:1.2rem" data-dvp="${esc(w.d.t)}">${esc(w.o)}</button></span><span class="s">Allow ${n1(w.allow)} pts/game to ${p.pos}s · ${ord(w.rk)} fewest of 32</span></div>`
+      :w.d?`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v"><button class="ork olink ${rkCls(w.rk)}" style="font-size:1.2rem" data-dvp="${esc(w.d.t)}">${esc(w.o)}</button></span><span class="s">Allow ${f1(w.allow)} pts/game to ${p.pos}s · ${ord(w.rk)} fewest of 32</span></div>`
       :`<div class="tile"><span class="label">Week ${w.wk}</span><span class="v">${esc(w.o)}</span><span class="s">No defense data yet</span></div>`).join('')}</div></div>`;})():'';
   const xfpCard=xf?`<div class="card"><h3 style="margin-bottom:12px">Expected fantasy points</h3>
-   <div class="tiles"><div class="tile"><span class="label">Expected / game</span><span class="v">${n1(xf.pg)}</span><span class="s">from usage alone</span></div>
-   <div class="tile"><span class="label">Actual / game</span><span class="v">${n1(xf.actPg)}</span><span class="s">receiving + rushing</span></div>
-   <div class="tile"><span class="label">Over expected</span><span class="v" style="color:${xf.fpoe>=0?'var(--good)':'var(--bad)'}">${xf.fpoe>=0?'+':''}${n1(xf.fpoe)}</span><span class="s">${Math.abs(xf.fpoe)<1.5?'Scoring about as his usage predicts':xf.fpoe>0?'Outscoring his usage; may cool off':'Underscoring his usage; may bounce back'}</span></div></div></div>`:'';
+   <div class="tiles"><div class="tile"><span class="label">Expected / game</span><span class="v">${f1(xf.pg)}</span><span class="s">from usage alone</span></div>
+   <div class="tile"><span class="label">Actual / game</span><span class="v">${f1(xf.actPg)}</span><span class="s">receiving + rushing</span></div>
+   <div class="tile"><span class="label">Over expected</span><span class="v" style="color:${xf.fpoe>=0?'var(--good)':'var(--bad)'}">${xf.fpoe>=0?'+':''}${f1(xf.fpoe)}</span><span class="s">${Math.abs(xf.fpoe)<1.5?'Scoring about as his usage predicts':xf.fpoe>0?'Outscoring his usage; may cool off':'Underscoring his usage; may bounce back'}</span></div></div></div>`:'';
   // positional ranks for the top boxes (Position + number, e.g. RB3)
   const tr=(()=>{const peers=[...PL.values()].filter(q=>q.pos===p.pos);
     const rk=(pool,fn)=>{const me=fn(p);if(me==null||!Number.isFinite(me)||!pool.includes(p))return null;return p.pos+(1+pool.filter(q=>{const v=fn(q);return Number.isFinite(v)&&v>me;}).length);};
@@ -3694,11 +3693,11 @@ function renderPlayer(){
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
   const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${rkTxt(tr.share,p.pos)}</b>, `:''}${US.sub(p)}</span></div>`:'';
   // the week's answer, in the banner: projection, what the tools say, kickoff
-  const me=realPlayers().find(x=>x.key===p.key);
+  const me=rp;
   const heroWk=(()=>{if(!me)return '';const bye=onBye(me),st=effStatus(me),out=!bye&&(st==='Out'||st==='IR');
     const opp=g?`${g.home?'vs':'at'} ${esc(g.opp)}`:sv?esc(oppText(site)):'';
     let call='';if(cons&&!bye&&!out){const n=cons.n,c=n.start>=n.flex&&n.start>=n.sit?['Start','p-good',n.start]:n.flex>=n.sit?['Flex','p-gold',n.flex]:['Sit','p-mute',n.sit];call=`<span class="pill ${c[1]}">${c[0]}: ${c[2]} of ${cons.total} tools</span>`;}
-    return `<aside class="hero-wk"><span class="hw-l">Week ${S.week}${opp?' '+opp:''}</span><span class="hw-v"><b>${bye?'Bye':out?esc(st):tr.projV!=null?n1(tr.projV):'—'}</b>${!bye&&!out&&tr.proj?`<span>projected, ${rkTxt(tr.proj,p.pos)}</span>`:''}</span>${call||g?`<span class="hw-s">${call}${g?`<span>${esc(kickText(g))}</span>`:''}</span>`:''}</aside>`;})();
+    return `<aside class="hero-wk"><span class="hw-l">Week ${S.week}${opp?' '+opp:''}</span><span class="hw-v"><b>${bye?'Bye':out?esc(st):tr.projV!=null?f1(tr.projV):'—'}</b>${!bye&&!out&&tr.proj?`<span>projected, ${rkTxt(tr.proj,p.pos)}</span>`:''}</span>${call||g?`<span class="hw-s">${call}${g?`<span>${esc(kickText(g))}</span>`:''}</span>`:''}</aside>`;})();
   const wkSec=thisWeek?thisWeek.replace('@@TOOLS@@',toolsCard):toolsCard?`<div class="card" id="sec-week"><h3>This week</h3>${toolsCard}</div>`:'';
   el.innerHTML=`<div><button class="back" id="backBtn">${esc(navDepth>0||ui.prev?BACK_NM[ui.prev]||'Back':'Projections')}</button></div>
    <div class="ph team-hero${p.pos==='DST'?' dst-hero':''}${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg ${bannerCls(p.team)}" src="${bannerLogo(p.team)}" alt="" width="500" height="500" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="shot${isLogo(headshotOf(p))?' logo '+bannerCls(p.team):''}" src="${p.pos==='DST'?bannerLogo(p.team):headshotOf(p)}" alt="" ${p.pos==='DST'||isLogo(headshotOf(p))?'width="500" height="500"':'width="350" height="254"'} fetchpriority="high" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}${p.pos==='DST'?`<div><div class="meta"><span class="pos DST">DST</span> Fantasy D/ST · ${p.gp} games</div><h1>${esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())} D/ST</h1>${TEAM_NAMES[p.team]?`<div class="meta"><button class="tlink" data-tm="${esc(p.team)}">Team page →</button></div>`:''}</div>`
@@ -3706,11 +3705,11 @@ function renderPlayer(){
      ${heroWk}</div>
    ${jumpNav([['sec-season','Season'],['sec-week','This week'],['sec-trend','Week by week'],['sec-usage','Usage'],...(po?[['sec-po','Playoffs']]:[]),['pNews','News']])}
    <div class="tiles">
-     <div class="tile"><span class="label">Pts / game</span><span class="v">${n1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${rkTxt(tr.ppg,p.pos)}</b>`:''}</span></div>
-     <div class="tile"><span class="label">Total pts</span><span class="v">${n1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${rkTxt(tr.tot,p.pos)}</b>, `:''}${scName()}</span></div>
+     <div class="tile"><span class="label">Pts / game</span><span class="v">${f1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${rkTxt(tr.ppg,p.pos)}</b>`:''}</span></div>
+     <div class="tile"><span class="label">Total pts</span><span class="v">${f1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${rkTxt(tr.tot,p.pos)}</b>, `:''}${scName()}</span></div>
      ${shareTile||''}
      ${!shareTile&&sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${rkTxt(tr.snap,p.pos)}</b>, `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
-     <div class="tile"><span class="label">Week-to-week swing</span><span class="v">±${n1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${rkTxt(tr.cons,p.pos)}</b>, `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
+     <div class="tile"><span class="label">Week-to-week swing</span><span class="v">±${f1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${rkTxt(tr.cons,p.pos)}</b>, `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
    </div>
    <div class="card" id="sec-season"><h3 style="margin-bottom:10px">Season stats</h3>${boxScore(p)}</div>
    ${wkSec}
