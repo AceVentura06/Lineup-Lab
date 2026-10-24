@@ -1,8 +1,10 @@
-// Run with: node --test scripts/accuracy.test.mjs
+// Run with: node --test scripts/accuracy.test.mjs (update.yml runs it after every data refresh)
 // Small hand-worked cases for the grading and blend math the site's default weights come from.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { actualsFrom, gradeWeek, tuneBlend } from './accuracy.mjs';
+import { projectAll } from './model.mjs';
 
 // stats rows are "name|pos|weeks", weeks as "ppr:receptions;..." with "-" for no game
 const stats = rows => ({ fields: ['name', 'pos', 'weeks'], rows: rows.join('\n') });
@@ -36,4 +38,14 @@ test('tuneBlend picks the model when it is right, pulled halfway to the default 
   assert.equal(b.pos.RB.n, 30);
   assert.equal(b.pos.RB.w, 0.25); // best is 0% sites; (30*0 + 30*0.5) / 60
   assert.equal(b.pos.RB.model, 0);
+});
+
+// The updater saves each week's projections by running index.html's own script in Node (model.mjs).
+// If a page change uses a browser feature that runner lacks, update.mjs only logs it and the run stays
+// green, so the accuracy history would stop growing unnoticed. This turns that into a failing test.
+test('the page model still runs in Node on the current data', () => {
+  const load = f => { const g = {}; new Function('g', readFileSync(new URL(`../data/${f}.js`, import.meta.url), 'utf8').replace(/^var (\w+)=/m, 'g.$1='))(g); return g; };
+  const data = Object.assign({}, ...['sites-data', 'stats-data', 'ctx-data', 'adv-data'].map(load));
+  const r = projectAll(data);
+  assert.ok(Object.keys(r.players).length > 50, 'expected projections for the week\'s players');
 });

@@ -49,3 +49,7 @@ jobs:
             git pull --rebase -X theirs
             git push
           fi
+      # after the commit, so a broken model never holds back fresh data; a red run means the accuracy
+      # history stopped saving (see scripts/accuracy.test.mjs)
+      - name: Check the page model still runs
+        run: node --test scripts/accuracy.test.mjs
