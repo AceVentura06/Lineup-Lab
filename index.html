@@ -103,6 +103,8 @@ p{margin:0}
 .pos{display:inline-block;min-width:34px;text-align:center;font-family:var(--f-display);font-weight:800;font-size:.8rem;padding:1px 6px;border-radius:4px;color:var(--surface);letter-spacing:.04em}
 .pos.QB{background:var(--qb)}.pos.RB{background:var(--rb)}.pos.WR{background:var(--wr)}.pos.TE{background:var(--te)}.pos.K{background:var(--k)}.pos.DST{background:var(--dst)}
 .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:.75rem;font-weight:700;white-space:nowrap}
+.hint{position:fixed;z-index:100;padding:5px 9px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:.8rem;font-weight:600;white-space:nowrap;pointer-events:none}
+.pill[data-hint]{cursor:help}
 .p-good{background:var(--good-soft);color:var(--good)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-gold{background:#E4E9F3;color:#34466B}.p-mute{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
 .ex{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border:1px dashed var(--line);border-radius:4px;padding:0 4px;margin-left:4px}
 
@@ -1870,10 +1872,18 @@ function statusPill(p){
   const pr=p.real?practiceOf(p):null;
   if(pr){const st=effStatus(p),pc=pr[0];const cls=st==='Out'||st==='Doubtful'||st==='IR'?'p-bad':st==='Questionable'||pc==='DNP'||pc==='LP'?'p-warn':'p-good';
     const lab=(st==='Questionable'?'Q':st==='Doubtful'?'D':st==='Out'?'Out':st==='IR'?'IR':'')+(pc?(st&&st!=='Healthy'?' · ':'')+pc:'');
-    if(lab&&lab!=='FP')return `<span class="pill ${cls}" title="Practice: ${({DNP:'did not practice',LP:'limited',FP:'full'})[pc]||'—'}${pr[2]?' ('+esc(pr[2])+')':''}">${esc(lab)}</span>`;}
+    const tip=[INJ_TIP[st],INJ_TIP[pc]].filter(Boolean).join(' - ')+(pr[2]?` (${pr[2]})`:'');
+    if(lab&&lab!=='FP')return `<span class="pill ${cls}" data-hint="${esc(tip)}">${esc(lab)}</span>`;}
   const m={Healthy:'',Questionable:'p-warn',Doubtful:'p-bad',Out:'p-bad',IR:'p-bad'}[p.status];
-  return m?`<span class="pill ${m}">${p.status==='Questionable'?'Q':p.status==='Doubtful'?'D':esc(p.status)}</span>`:'';
+  return m?`<span class="pill ${m}" data-hint="${INJ_TIP[p.status]}">${p.status==='Questionable'?'Q':p.status==='Doubtful'?'D':esc(p.status)}</span>`:'';
 }
+// what an injury pill's letters mean, shown in a small box while the pointer is over it
+const INJ_TIP={Questionable:'Questionable',Doubtful:'Doubtful',Out:'Out',IR:'Injured Reserve',DNP:'Did Not Practice',LP:'Limited Practice',FP:'Full Practice'};
+{const box=document.createElement('div');box.className='hint';box.setAttribute('role','tooltip');box.hidden=true;document.body.append(box);
+  document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-hint]');if(!t){box.hidden=true;return;}
+    box.textContent=t.dataset.hint;box.hidden=false;const r=t.getBoundingClientRect();
+    box.style.left=Math.max(8,Math.min(innerWidth-box.offsetWidth-8,r.left+r.width/2-box.offsetWidth/2))+'px';box.style.top=Math.max(8,r.top-box.offsetHeight-6)+'px';});
+  addEventListener('scroll',()=>{box.hidden=true;},{passive:true,capture:true});}
 // full name on wide screens; "K. Walker" (or just the last name when that's still long, "Saints" for defenses) on phones
 function nmLabel(name,pos){const w=String(name||'').trim().split(/\s+/),last=w.slice(1).join(' ');
   let short=pos==='DST'?w[w.length-1]:w.length>1?w[0][0]+'. '+last:name;if(short.length>11&&last)short=last;
