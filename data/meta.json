@@ -1,9 +1,9 @@
 {
-  "hash": "5229a92708a470aa",
-  "updated": "2026-10-25T14:21:22.327Z",
+  "hash": "26660a0d25bc4da8",
+  "updated": "2026-10-25T17:52:02.578Z",
   "season": 2026,
   "week": 7,
-  "through": "Weeks 1–6 plus 1 of 14 week 7 games",
+  "through": "Weeks 1–6 plus 2 of 14 week 7 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "452 players"
+      "detail": "471 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "402 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "392 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "182 players with news, 342 of 350 stories with photos (ESPN 1642 articles scanned; ESPN 471, CBS Sports 14, Yahoo Sports 8, ProFootballTalk 12)"
+      "detail": "174 players with news, 325 of 335 stories with photos (ESPN 1639 articles scanned; ESPN 440, CBS Sports 17, Yahoo Sports 23, ProFootballTalk 18)"
     }
   }
 }
