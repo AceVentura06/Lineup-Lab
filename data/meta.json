@@ -1,21 +1,21 @@
 {
-  "hash": "d24acc41724e4172",
-  "updated": "2026-10-26T03:54:24.976Z",
+  "hash": "9e2aeb7372e862b1",
+  "updated": "2026-10-26T06:10:35.721Z",
   "season": 2026,
   "week": 7,
   "through": "Weeks 1–6 plus 13 of 14 week 7 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
-      "detail": "7309 player-weeks"
+      "detail": "7377 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "112 players"
+      "detail": "124 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "45 players"
+      "detail": "47 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -23,7 +23,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "6686 targets, 5425 carries"
+      "detail": "6745 targets, 5482 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "194 players with news, 365 of 388 stories with photos (ESPN 1638 articles scanned; ESPN 528, CBS Sports 17, Yahoo Sports 25, ProFootballTalk 25)"
+      "detail": "191 players with news, 365 of 385 stories with photos (ESPN 1636 articles scanned; ESPN 528, CBS Sports 17, Yahoo Sports 26, ProFootballTalk 25)"
     }
   }
 }
