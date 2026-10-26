@@ -1,9 +1,9 @@
 {
-  "hash": "3751a336601c4d79",
-  "updated": "2026-10-25T23:15:31.205Z",
+  "hash": "87fa868792d8e595",
+  "updated": "2026-10-26T00:04:54.521Z",
   "season": 2026,
   "week": 7,
-  "through": "Weeks 1–6 plus 9 of 14 week 7 games",
+  "through": "Weeks 1–6 plus 12 of 14 week 7 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
@@ -39,7 +39,7 @@
     },
     "Weather": {
       "ok": true,
-      "detail": "7 outdoor games forecast"
+      "detail": "1 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "387 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "386 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "182 players with news, 329 of 356 stories with photos (ESPN 1635 articles scanned; ESPN 477, CBS Sports 16, Yahoo Sports 34, ProFootballTalk 21)"
+      "detail": "185 players with news, 345 of 367 stories with photos (ESPN 1637 articles scanned; ESPN 507, CBS Sports 15, Yahoo Sports 31, ProFootballTalk 20)"
     }
   }
 }
