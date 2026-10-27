@@ -1,6 +1,6 @@
 {
-  "hash": "fe960d258b9894cd",
-  "updated": "2026-10-27T07:49:13.086Z",
+  "hash": "d7076ec97ca243a2",
+  "updated": "2026-10-27T13:31:29.146Z",
   "season": 2026,
   "week": 8,
   "through": "Weeks 1–7",
@@ -35,7 +35,7 @@
     },
     "Betting lines": {
       "ok": true,
-      "detail": "14 week 8 games, 12 with lines"
+      "detail": "14 week 8 games, 14 with lines"
     },
     "Weather": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "414 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "415 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "195 players with news, 375 of 386 stories with photos (ESPN 1642 articles scanned; ESPN 529, CBS Sports 18, Yahoo Sports 22, ProFootballTalk 19)"
+      "detail": "193 players with news, 374 of 378 stories with photos (ESPN 1644 articles scanned; ESPN 514, CBS Sports 15, Yahoo Sports 11, ProFootballTalk 21)"
     }
   }
 }
