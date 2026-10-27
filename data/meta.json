@@ -1,6 +1,6 @@
 {
-  "hash": "163a81b6d2c8f45f",
-  "updated": "2026-10-26T23:09:52.841Z",
+  "hash": "dad41c60505ff760",
+  "updated": "2026-10-27T02:03:49.695Z",
   "season": 2026,
   "week": 7,
   "through": "Weeks 1–6 plus 13 of 14 week 7 games",
@@ -39,7 +39,7 @@
     },
     "Weather": {
       "ok": true,
-      "detail": "1 outdoor games forecast"
+      "detail": "0 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "386 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "384 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "199 players with news, 387 of 403 stories with photos (ESPN 1637 articles scanned; ESPN 569, CBS Sports 20, Yahoo Sports 24, ProFootballTalk 15)"
+      "detail": "203 players with news, 388 of 405 stories with photos (ESPN 1640 articles scanned; ESPN 556, CBS Sports 19, Yahoo Sports 30, ProFootballTalk 18)"
     }
   }
 }
