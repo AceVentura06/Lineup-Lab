@@ -1002,6 +1002,21 @@ h3{font-size:1.25rem;line-height:1.2}
 .hm-banner .hm-go.hm-pri{background:#fff;color:var(--gold)}
 .hm-banner .hm-link2,:root[data-theme="dark"] .hm-banner .hm-link2{color:#fff}
 .hm-banner .hm-go:focus-visible,.hm-banner .hm-link2:focus-visible{outline-color:#fff}
+/* the play draws itself each time Home opens: defense, then offense, then routes, then the throw */
+@media (prefers-reduced-motion:no-preference){
+  .hm-x path,.hm-o circle{transform-box:fill-box;transform-origin:center}
+  .hm-x{animation:hm-fade .4s ease-out both}
+  .hm-o circle{animation:hm-pop .35s cubic-bezier(.2,.8,.2,1) calc(150ms + var(--i,0)*30ms) both}
+  .hm-r path{stroke-dasharray:1;animation:hm-draw .55s cubic-bezier(.4,0,.2,1) calc(600ms + var(--i,0)*90ms) both}
+  .hm-pass{stroke-dasharray:1;animation:hm-draw .45s cubic-bezier(.4,0,.2,1) 1.15s both}
+  .hm-o circle:nth-child(2){--i:1}.hm-o circle:nth-child(3){--i:2}.hm-o circle:nth-child(4){--i:3}.hm-o circle:nth-child(5){--i:4}.hm-o circle:nth-child(6){--i:5}
+  .hm-o circle:nth-child(7){--i:6}.hm-o circle:nth-child(8){--i:7}.hm-o circle:nth-child(9){--i:8}.hm-o circle:nth-child(10){--i:9}.hm-o circle:nth-child(11){--i:10}
+  .hm-r path:nth-child(2){--i:1}.hm-r path:nth-child(3){--i:2}.hm-r path:nth-child(4){--i:3}.hm-r path:nth-child(5){--i:4}
+}
+@keyframes hm-fade{from{opacity:0}}
+@keyframes hm-pop{from{opacity:0;transform:scale(.4)}}
+/* the arrowhead waits for its line to arrive */
+@keyframes hm-draw{from{stroke-dashoffset:1;marker-end:none}99%{marker-end:none}to{stroke-dashoffset:0}}
 @media (max-width:600px){
   /* phone: the maroon moves to the text block so the buttons sit below it, back to the normal maroon button and link */
   .hm-banner{min-height:0;padding:0;background:none;box-shadow:none;clip-path:none;overflow:visible;container-type:normal;color:inherit;gap:16px}
@@ -1302,7 +1317,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
       <div class="hm-hero">
         <div class="hm-banner">
           <div class="hm-bt">
-            <svg class="hm-play" viewBox="0 0 520 300" aria-hidden="true" focusable="false"><defs><marker id="hmAh" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fff"/></marker></defs><path d="M0 40H520M0 115H520M0 265H520" stroke="#fff" stroke-opacity=".16" stroke-width="2"/><path d="M0 190H520" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 8"/><g fill="none" stroke="#fff" stroke-width="3"><circle cx="200" cy="212" r="10"/><circle cx="230" cy="212" r="10"/><circle cx="260" cy="212" r="10"/><circle cx="290" cy="212" r="10"/><circle cx="320" cy="212" r="10"/><circle cx="352" cy="212" r="10"/><circle cx="260" cy="248" r="10"/><circle cx="260" cy="282" r="10"/><circle cx="56" cy="206" r="10"/><circle cx="420" cy="212" r="10"/><circle cx="476" cy="206" r="10"/></g><g stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"><path d="M207 160l16 16M223 160l-16 16M237 160l16 16M253 160l-16 16M267 160l16 16M283 160l-16 16M297 160l16 16M313 160l-16 16M202 120l16 16M218 120l-16 16M252 114l16 16M268 114l-16 16M322 120l16 16M338 120l-16 16M48 142l16 16M64 142l-16 16M468 142l16 16M484 142l-16 16M162 52l16 16M178 52l-16 16M352 52l16 16M368 52l-16 16"/></g><g fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#hmAh)"><path d="M56 194V22"/><path d="M476 194V160L396 100"/><path d="M420 200V150H508"/><path d="M352 200V76"/><path d="M270 286C310 292 330 276 346 250"/></g><path d="M266 238L390 108" stroke="#fff" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round"/></svg>
+            <svg class="hm-play" viewBox="0 0 520 300" aria-hidden="true" focusable="false"><defs><marker id="hmAh" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fff"/></marker><mask id="hmPm" maskUnits="userSpaceOnUse"><path class="hm-pass" d="M266 238L390 108" stroke="#fff" stroke-width="6" pathLength="1"/></mask></defs><path d="M0 40H520M0 115H520M0 265H520" stroke="#fff" stroke-opacity=".16" stroke-width="2"/><path d="M0 190H520" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 8"/><g class="hm-o" fill="none" stroke="#fff" stroke-width="3"><circle cx="200" cy="212" r="10"/><circle cx="230" cy="212" r="10"/><circle cx="260" cy="212" r="10"/><circle cx="290" cy="212" r="10"/><circle cx="320" cy="212" r="10"/><circle cx="352" cy="212" r="10"/><circle cx="260" cy="248" r="10"/><circle cx="260" cy="282" r="10"/><circle cx="56" cy="206" r="10"/><circle cx="420" cy="212" r="10"/><circle cx="476" cy="206" r="10"/></g><g class="hm-x" stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"><path d="M207 160l16 16M223 160l-16 16M237 160l16 16M253 160l-16 16M267 160l16 16M283 160l-16 16M297 160l16 16M313 160l-16 16M202 120l16 16M218 120l-16 16M252 114l16 16M268 114l-16 16M322 120l16 16M338 120l-16 16M48 142l16 16M64 142l-16 16M468 142l16 16M484 142l-16 16M162 52l16 16M178 52l-16 16M352 52l16 16M368 52l-16 16"/></g><g class="hm-r" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#hmAh)"><path d="M56 194V22" pathLength="1"/><path d="M476 194V160L396 100" pathLength="1"/><path d="M420 200V150H508" pathLength="1"/><path d="M352 200V76" pathLength="1"/><path d="M270 286C310 292 330 276 346 250" pathLength="1"/></g><path d="M266 238L390 108" stroke="#fff" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round" mask="url(#hmPm)"/></svg>
             <div class="hm-kick" id="hmKick"></div>
             <h1 class="hm-h1" id="hmTitle"></h1>
             <p class="hm-sub" id="hmSub"></p>
