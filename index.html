@@ -1904,7 +1904,9 @@ const INJ_TIP={Questionable:'Questionable',Doubtful:'Doubtful',Out:'Out',IR:'Inj
     box.style.left=Math.max(8,Math.min(innerWidth-box.offsetWidth-8,r.left+r.width/2-box.offsetWidth/2))+'px';box.style.top=Math.max(8,r.top-box.offsetHeight-6)+'px';});
   addEventListener('scroll',()=>{box.hidden=true;},{passive:true,capture:true});}
 // full name on wide screens; "K. Walker" (or just the last name when that's still long, "Saints" for defenses) on phones
-function nmLabel(name,pos){const w=String(name||'').trim().split(/\s+/),last=w.slice(1).join(' ');
+// a person's last name is everything after the first name, so suffixes stay: "Walker III", "St. Brown", "Cooper Jr."
+const lastName=n=>{const w=String(n||'').trim().split(/\s+/);return w.length>1?w.slice(1).join(' '):w[0]||'';};
+function nmLabel(name,pos){const w=String(name||'').trim().split(/\s+/),last=w.length>1?lastName(name):'';
   let short=pos==='DST'?w[w.length-1]:w.length>1?w[0][0]+'. '+last:name;if(short.length>11&&last)short=last;
   return `<span class="nm-f">${esc(name)}</span><span class="nm-s" aria-hidden="true">${esc(short)}</span>`;}
 function nameCell(p,star){
@@ -2050,7 +2052,7 @@ function renderH2H(){
     else msg+=TW===W||diff<1?` <b style="font-size:1rem">${tv} of ${tt}</b> tools pick ${esc(TW.name)}.`:` But <b style="font-size:1rem">${tv} of ${tt}</b> tools pick ${esc(TW.name)}, so it's closer than the projection says.`;}
   const tblT=names.length?`<div class="tbl-wrap" style="margin-top:10px"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div><p class="note" style="margin-top:6px">Each tool's projected points this week, with the rank that gives the player at his position. ESPN's analysts and CBS's experts publish rankings only. When the players play different positions, ranks are compared against each position's starter cutoff.</p>`:'';
   // the call first, as a band; how each tool voted sits underneath, folded away
-  const last=P=>esc(P.name.split(' ').slice(-1)[0]),tvA=va>=vb;
+  const last=P=>esc(lastName(P.name)),tvA=va>=vb;
   const tally=va+vb>0&&!(wa.proj===0&&wb.proj===0)?`<div class="vd-tally" role="img" aria-label="${Math.max(va,vb)} of ${va+vb} tools pick ${esc((tvA?A:B).name)}">
     <div class="vd-sq">${'<i class="on"></i>'.repeat(Math.max(va,vb))}${'<i></i>'.repeat(Math.min(va,vb))}</div>
     <div class="vd-who"><span><b>${last(tvA?A:B)}:</b> ${esc((tvA?aN:bN).join(', ')||'none')}</span><span><b>${last(tvA?B:A)}:</b> ${esc((tvA?bN:aN).join(', ')||'none')}</span></div></div>`:'';
@@ -3293,7 +3295,7 @@ function toolsFor(p){
   // ESPN drops players to the bottom once their game has kicked off, so skip it then
   const er=sameWk&&!kickedOff(p)?ESPNR[k]:null;if(er)add('ESPN analysts',er[0],`${er[1]} analysts · best ${p.pos}${er[2]}, worst ${p.pos}${er[3]}`);
   const c=advWeek()&&AD.cbs&&AD.cbs.ranks?AD.cbs.ranks[k]:null;
-  if(c)add('CBS experts',c[0],CBSX.map((n,i)=>c[i+1]!=null?`${n.split(' ').pop()} ${p.pos}${c[i+1]}`:'').filter(Boolean).join(' · '));
+  if(c)add('CBS experts',c[0],CBSX.map((n,i)=>c[i+1]!=null?`${lastName(n)} ${p.pos}${c[i+1]}`:'').filter(Boolean).join(' · '));
   if(t.espn[k])add('ESPN projection',t.espn[k].rank,`${f1(t.espn[k].val)} pts`,t.espn[k].val);
   if(t.sleeper[k])add('Sleeper projection',t.sleeper[k].rank,`${f1(t.sleeper[k].val)} pts`,t.sleeper[k].val);
   if(t.cbsProj[k])add('CBS projection',t.cbsProj[k].rank,`${f1(t.cbsProj[k].val)} pts`,t.cbsProj[k].val);
