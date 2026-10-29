@@ -140,9 +140,9 @@
 .ll-opp { fill: var(--chart-label); font-family: var(--f-display-cond) !important; font-size: 14px; letter-spacing: .03em; text-transform: uppercase; }
 .ll-axis.now .ll-wk, .ll-axis.now .ll-opp { fill: var(--chart-1); }
 .ll-tip { min-width: 150px; }
-.ll-tip-h { padding: 8px 12px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: .92rem; white-space: nowrap; }
+.ll-tip-h { padding: 8px 12px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: var(--t-md); white-space: nowrap; }
 .ll-tip-r { display: flex; flex-direction: column; gap: 6px; padding: 9px 12px 10px; }
-.ll-tip-r div { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: .88rem; }
+.ll-tip-r div { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: var(--t-sm); }
 .ll-tip-r span { display: flex; align-items: center; gap: 7px; color: var(--chart-tooltip-muted); }
 .ll-tip-r i { width: 8px; height: 8px; border-radius: 50%; background: var(--chart-1); flex: none; }
 .ll-tip-r i.hatch { border-radius: 2px; background: repeating-linear-gradient(135deg, var(--chart-1) 0 1.5px, transparent 1.5px 3.5px); box-shadow: inset 0 0 0 1px var(--chart-1); }
