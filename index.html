@@ -1019,6 +1019,15 @@ h3{font-size:var(--t-lg);line-height:1.2}
   .hm-o circle:nth-child(7){--i:6}.hm-o circle:nth-child(8){--i:7}.hm-o circle:nth-child(9){--i:8}.hm-o circle:nth-child(10){--i:9}.hm-o circle:nth-child(11){--i:10}
   .hm-r path:nth-child(2){--i:1}.hm-r path:nth-child(3){--i:2}.hm-r path:nth-child(4){--i:3}.hm-r path:nth-child(5){--i:4}
 }
+/* switching tabs fades the new page in (opacity only: a transform would move the fixed bars inside panels);
+   a new Start/Sit verdict settles in and its tally squares fill left to right. Short, ease-out, no bounce. */
+@media (prefers-reduced-motion:no-preference){
+  .panel:not([hidden]){animation:hm-fade 180ms var(--ease-out)}
+  .verdict{animation:vd-in 200ms var(--ease-out)}
+  .vd-sq i{animation:hm-fade 160ms var(--ease-out) calc(80ms + var(--i,0)*30ms) both}
+  .vd-sq i:nth-child(2){--i:1}.vd-sq i:nth-child(3){--i:2}.vd-sq i:nth-child(4){--i:3}.vd-sq i:nth-child(5){--i:4}.vd-sq i:nth-child(6){--i:5}.vd-sq i:nth-child(n+7){--i:6}
+}
+@keyframes vd-in{from{opacity:0;transform:scale(.98)}}
 @keyframes hm-fade{from{opacity:0}}
 @keyframes hm-pop{from{opacity:0;transform:scale(.4)}}
 /* the arrowhead waits for its line to arrive */
