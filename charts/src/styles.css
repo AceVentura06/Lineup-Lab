@@ -112,7 +112,9 @@
     --popover: var(--surface);
     --popover-foreground: var(--ink);
     --muted-foreground: var(--muted);
-    --radius: 0.625rem;
+    /* chart corners use the page tokens: tooltips are Tailwind rounded-xl */
+    --radius: var(--r-md);
+    --radius-xl: var(--r-md);
     display: block;
     color: var(--ink);
 }
