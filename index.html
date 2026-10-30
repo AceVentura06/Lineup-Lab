@@ -1003,8 +1003,10 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .hm-bt>:not(.hm-play),.hm-banner>.hm-btns{position:relative}
 .hm-banner .hm-h1,.hm-banner .hm-sub,.hm-banner .hm-kick{color:var(--accent-ink)}
 .hm-banner .hm-sub{max-width:26em;overflow-wrap:anywhere}
+/* the play's name sits in the top corner, clear of the diagram and the headline */
+.hm-bt>.hm-pname{position:absolute;top:18px;right:72px;margin:0;font-size:var(--t-xs);font-weight:700;letter-spacing:.02em;color:var(--accent-ink);opacity:.8}
 .hm-play{position:absolute;right:72px;top:50%;width:min(560px,48%);height:auto;transform:translateY(-50%);opacity:.95;pointer-events:none}
-@container (max-width:760px){.hm-bt{max-width:100%}.hm-play{right:-40px;width:420px;opacity:.32}}
+@container (max-width:760px){.hm-bt{max-width:100%}.hm-play{right:0;width:420px;max-width:100%;opacity:.32}}
 .hm-banner .hm-go.hm-pri{background:#fff;color:var(--gold)}
 .hm-banner .hm-link2,:root[data-theme="dark"] .hm-banner .hm-link2{color:#fff}
 .hm-banner .hm-go:focus-visible,.hm-banner .hm-link2:focus-visible{outline-color:#fff}
@@ -1017,7 +1019,6 @@ h3{font-size:var(--t-lg);line-height:1.2}
   .hm-pass{stroke-dasharray:1;animation:hm-draw .45s cubic-bezier(.4,0,.2,1) 1.15s both}
   .hm-o circle:nth-child(2){--i:1}.hm-o circle:nth-child(3){--i:2}.hm-o circle:nth-child(4){--i:3}.hm-o circle:nth-child(5){--i:4}.hm-o circle:nth-child(6){--i:5}
   .hm-o circle:nth-child(7){--i:6}.hm-o circle:nth-child(8){--i:7}.hm-o circle:nth-child(9){--i:8}.hm-o circle:nth-child(10){--i:9}.hm-o circle:nth-child(11){--i:10}
-  .hm-r path:nth-child(2){--i:1}.hm-r path:nth-child(3){--i:2}.hm-r path:nth-child(4){--i:3}.hm-r path:nth-child(5){--i:4}
 }
 /* switching tabs fades the new page in (opacity only: a transform would move the fixed bars inside panels);
    a new Start/Sit verdict settles in and its tally squares fill left to right. Same curve, length and 30ms stagger as the banner players and leaderboard bars. */
@@ -1037,7 +1038,8 @@ h3{font-size:var(--t-lg);line-height:1.2}
   .hm-banner{min-height:0;padding:0;background:none;box-shadow:none;clip-path:none;overflow:visible;container-type:normal;color:inherit;gap:16px}
   .hm-bt{position:relative;overflow:hidden;max-width:none;min-height:300px;box-sizing:border-box;justify-content:center;padding:28px 22px 28px 30px;
     background:linear-gradient(90deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 55%,#000) 100%);box-shadow:inset 10px 0 0 var(--gold-hi)}
-  .hm-play{right:-90px;width:360px;opacity:.32}
+  .hm-play{right:0;width:100%;opacity:.32}
+  .hm-bt>.hm-pname{top:12px;right:16px}
   .hm-banner .hm-go.hm-pri{background:var(--gold);color:#fff}
   .hm-banner .hm-link2{color:var(--gold)}:root[data-theme="dark"] .hm-banner .hm-link2{color:var(--gold-hi)}
   .hm-banner .hm-go:focus-visible,.hm-banner .hm-link2:focus-visible{outline-color:var(--gold)}
@@ -1337,7 +1339,55 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
       <div class="hm-hero">
         <div class="hm-banner">
           <div class="hm-bt">
-            <svg class="hm-play" viewBox="0 0 520 300" aria-hidden="true" focusable="false"><defs><marker id="hmAh" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fff"/></marker><mask id="hmPm" maskUnits="userSpaceOnUse"><path class="hm-pass" d="M266 238L390 108" stroke="#fff" stroke-width="6" pathLength="1"/></mask></defs><path d="M0 40H520M0 115H520M0 265H520" stroke="#fff" stroke-opacity=".16" stroke-width="2"/><path d="M0 190H520" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 8"/><g class="hm-o" fill="none" stroke="#fff" stroke-width="3"><circle cx="200" cy="212" r="10"/><circle cx="230" cy="212" r="10"/><circle cx="260" cy="212" r="10"/><circle cx="290" cy="212" r="10"/><circle cx="320" cy="212" r="10"/><circle cx="352" cy="212" r="10"/><circle cx="260" cy="248" r="10"/><circle cx="260" cy="282" r="10"/><circle cx="56" cy="206" r="10"/><circle cx="420" cy="212" r="10"/><circle cx="476" cy="206" r="10"/></g><g class="hm-x" stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"><path d="M207 160l16 16M223 160l-16 16M237 160l16 16M253 160l-16 16M267 160l16 16M283 160l-16 16M297 160l16 16M313 160l-16 16M202 120l16 16M218 120l-16 16M252 114l16 16M268 114l-16 16M322 120l16 16M338 120l-16 16M48 142l16 16M64 142l-16 16M468 142l16 16M484 142l-16 16M162 52l16 16M178 52l-16 16M352 52l16 16M368 52l-16 16"/></g><g class="hm-r" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#hmAh)"><path d="M56 194V22" pathLength="1"/><path d="M476 194V160L396 100" pathLength="1"/><path d="M420 200V150H508" pathLength="1"/><path d="M352 200V76" pathLength="1"/><path d="M270 286C310 292 330 276 346 250" pathLength="1"/></g><path d="M266 238L390 108" stroke="#fff" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round" mask="url(#hmPm)"/></svg>
+            <svg class="hm-play" id="hmPlay" viewBox="0 0 520 300" aria-hidden="true" focusable="false"></svg><p class="hm-pname" id="hmPlayName"></p>
+<script>
+// The chalk-talk banner draws a different play on each visit. Coordinates are in the 520x300 viewBox: line of scrimmage at y=190,
+// the five linemen are fixed at y=212, skill players on the line at y=212 and off it at y=224 (7 on the line, outermost ends covered).
+// o: QB, backs and receivers; x: defenders; r: routes and ball-carrier paths (arrowheads); b: blocks (T-bar); ball: the pass, handoff or mesh.
+(function(){
+  var DL=[[215,170],[245,170],[275,170],[305,170]],ZONE=['M200 200l14 -16','M230 200l14 -16','M260 200l14 -16','M290 200l14 -16','M320 200l14 -16'];
+  var PLAYS=[
+    {n:'Post-Out',o:[[56,212],[352,224],[420,224],[476,212],[260,248],[260,282]],x:DL.concat([[210,130],[260,124],[330,130],[56,150],[476,150],[170,60],[360,60]]),
+      r:['M56 200V26','M352 212V80','M420 212V150H498','M476 200V160L396 100','M270 288C310 294 330 278 346 254'],ball:'M266 238L390 108'},
+    {n:'Four Verticals',o:[[40,212],[140,224],[380,224],[480,212],[260,250],[292,252]],x:DL.concat([[225,128],[295,128],[380,150],[40,150],[480,150],[180,60],[340,60]]),
+      r:['M40 200V26','M140 212V100L156 30','M380 212V100L364 30','M480 200V26','M302 244Q330 240 336 206'],ball:'M262 238L366 46'},
+    {n:'Mesh',o:[[40,212],[130,224],[390,224],[480,212],[260,250],[228,252]],x:DL.concat([[228,124],[292,124],[390,140],[40,150],[480,150],[170,60],[350,60]]),
+      r:['M40 200V26','M130 212L176 140H376','M390 212L346 150H142','M480 200V90L430 40','M222 258Q160 266 110 236'],ball:'M262 238L310 144'},
+    {n:'Smash',o:[[50,212],[140,224],[380,224],[470,212],[260,250],[292,252]],x:DL.concat([[220,126],[300,126],[380,146],[50,148],[470,148],[150,56],[370,56]]),
+      r:['M50 200V164L60 172','M140 212V112L76 52','M380 212V112L444 52','M470 200V164L460 172'],ball:'M256 238L88 66'},
+    {n:'Slant-Flat',o:[[50,212],[350,212],[450,224],[260,232],[230,258],[260,284]],x:[[210,170],[245,170],[280,170],[376,170],[200,128],[272,124],[350,128],[50,150],[450,150],[170,60],[380,60]],
+      r:['M50 200V178L132 126','M222 264Q160 272 104 244','M350 200V150','M450 212V120L400 62'],ball:'M254 224L130 132'},
+    {n:'Outside Zone Boot',o:[[60,212],[170,224],[460,212],[260,232],[290,256],[260,282]],x:DL.concat([[200,128],[262,124],[324,128],[60,150],[460,150],[170,60],[360,60]]),
+      b:ZONE.concat(['M296 246L330 222']),r:['M268 276Q330 268 388 236','M252 240Q206 264 150 256','M168 212L150 186L92 172','M60 200V26','M460 200V120L170 86'],ball:'M156 246L206 98'},
+    {n:'Read Option',o:[[50,212],[140,224],[390,224],[470,212],[260,250],[232,252]],x:[[190,170],[248,170],[300,170],[332,170],[225,128],[295,128],[390,148],[50,150],[470,150],[170,60],[350,60]],
+      b:ZONE.concat(['M50 200V172','M470 200V172','M140 212L148 178','M390 212L390 170']),r:['M240 246C262 238 275 226 275 202V168','M250 246Q180 244 150 170'],ball:'M258 254L242 252'},
+    {n:'RPO Bubble',o:[[40,212],[350,224],[410,224],[480,212],[260,250],[230,252]],x:[[210,170],[248,170],[300,170],[332,170],[240,126],[300,126],[370,140],[40,150],[480,150],[170,60],[400,60]],
+      b:ZONE.concat(['M410 212L388 168','M480 200V168']),r:['M238 246C262 238 275 226 275 202V168','M350 236Q366 262 432 252','M40 200V160L48 170'],ball:'M268 252L426 252'},
+    {n:'Power O',o:[[60,212],[350,212],[450,224],[260,232],[260,258],[260,284]],x:[[215,170],[248,170],[300,170],[380,170],[210,128],[275,124],[340,128],[60,150],[450,150],[180,60],[360,60]],
+      b:['M200 200l-8 -14','M260 200l-12 -14','M290 200l-12 -14','M320 200l-12 -14','M350 200L344 146','M226 222Q250 244 300 238Q330 230 336 180','M268 252Q340 244 370 184','M60 200V170','M450 212L430 176'],
+      r:['M262 272C300 268 335 250 335 200V156'],ball:'M262 240L266 266'},
+    {n:'WR Screen',o:[[40,212],[130,224],[390,224],[480,212],[260,250],[230,252]],x:DL.concat([[228,126],[296,126],[390,146],[40,150],[480,150],[170,60],[360,60]]),
+      b:['M290 200L298 142','M320 200L372 152','M390 212L470 162'],r:['M480 212L452 244','M40 200V40','M130 212V120'],ball:'M268 252L446 246'}
+  ];
+  var k=0,last=-1;try{var v=sessionStorage.getItem('hmPlay');if(v!=null)last=+v;}catch(e){}   // only the last play's number; nothing personal
+  do k=Math.floor(Math.random()*PLAYS.length);while(k===last&&PLAYS.length>1);
+  try{sessionStorage.setItem('hmPlay',k);}catch(e){}
+  var p=PLAYS[k],svg=document.getElementById('hmPlay');
+  var men=[[200,212],[230,212],[260,212],[290,212],[320,212]].concat(p.o).map(function(c){return '<circle cx="'+c[0]+'" cy="'+c[1]+'" r="10"/>';}).join('');
+  var xs=p.x.map(function(c){return 'M'+(c[0]-8)+' '+(c[1]-8)+'l16 16M'+(c[0]+8)+' '+(c[1]-8)+'l-16 16';}).join('');
+  var paths=(p.b||[]).map(function(d){return '<path d="'+d+'" pathLength="1" marker-end="url(#hmT)" style="--i:0"/>';})
+    .concat(p.r.map(function(d,i){return '<path d="'+d+'" pathLength="1" style="--i:'+i+'"/>';})).join('');
+  svg.innerHTML='<defs><marker id="hmAh" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fff"/></marker>'
+    +'<marker id="hmT" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M5 0V10" stroke="#fff" stroke-width="3"/></marker>'
+    +'<mask id="hmPm" maskUnits="userSpaceOnUse"><path class="hm-pass" d="'+p.ball+'" stroke="#fff" stroke-width="6" pathLength="1"/></mask></defs>'
+    +'<path d="M0 40H520M0 115H520M0 265H520" stroke="#fff" stroke-opacity=".16" stroke-width="2"/><path d="M0 190H520" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="8 8"/>'
+    +'<g class="hm-o" fill="none" stroke="#fff" stroke-width="3">'+men+'</g>'
+    +'<g class="hm-x" stroke="#fff" stroke-opacity=".7" stroke-width="3" stroke-linecap="round"><path d="'+xs+'"/></g>'
+    +'<g class="hm-r" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#hmAh)">'+paths+'</g>'
+    +'<path d="'+p.ball+'" stroke="#fff" stroke-width="2" stroke-dasharray="3 7" stroke-linecap="round" fill="none" mask="url(#hmPm)"/>';
+  document.getElementById('hmPlayName').textContent='Today’s play: '+p.n;
+})();
+</script>
             <div class="hm-kick" id="hmKick"></div>
             <h1 class="hm-h1" id="hmTitle"></h1>
             <p class="hm-sub" id="hmSub"></p>
