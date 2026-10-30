@@ -1,17 +1,17 @@
 {
-  "hash": "76de81ce36ffc8f9",
-  "updated": "2026-10-30T02:57:55.561Z",
+  "hash": "48a1d046355e35f0",
+  "updated": "2026-10-30T09:58:17.232Z",
   "season": 2026,
   "week": 8,
-  "through": "Weeks 1–7",
+  "through": "Weeks 1–7 plus 1 of 14 week 8 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
-      "detail": "7447 player-weeks"
+      "detail": "7521 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "116 players"
+      "detail": "117 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
@@ -23,7 +23,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "6804 targets, 5545 carries"
+      "detail": "6878 targets, 5594 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -31,7 +31,7 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "249 entries for week 8"
+      "detail": "278 entries for week 8"
     },
     "Betting lines": {
       "ok": true,
@@ -43,11 +43,11 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "467 players"
+      "detail": "486 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
-      "detail": "471 players"
+      "detail": "451 players"
     },
     "CBS Sports": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "183 players with news, 333 of 345 stories with photos (ESPN 1644 articles scanned; ESPN 433, CBS Sports 17, Yahoo Sports 26, ProFootballTalk 18)"
+      "detail": "182 players with news, 332 of 340 stories with photos (ESPN 1643 articles scanned; ESPN 439, CBS Sports 17, Yahoo Sports 28, ProFootballTalk 17)"
     }
   }
 }
