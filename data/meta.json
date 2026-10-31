@@ -1,6 +1,6 @@
 {
-  "hash": "22ee92c93a8865b5",
-  "updated": "2026-10-31T00:46:55.471Z",
+  "hash": "ba164af361b8d691",
+  "updated": "2026-10-31T06:21:02.966Z",
   "season": 2026,
   "week": 8,
   "through": "Weeks 1–7 plus 1 of 14 week 8 games",
@@ -31,7 +31,7 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "278 entries for week 8"
+      "detail": "320 entries for week 8"
     },
     "Betting lines": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "187 players with news, 353 of 369 stories with photos (ESPN 1644 articles scanned; ESPN 479, CBS Sports 21, Yahoo Sports 30, ProFootballTalk 23)"
+      "detail": "186 players with news, 353 of 364 stories with photos (ESPN 1643 articles scanned; ESPN 479, CBS Sports 21, Yahoo Sports 27, ProFootballTalk 17)"
     }
   }
 }
