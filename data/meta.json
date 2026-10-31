@@ -1,6 +1,6 @@
 {
-  "hash": "ba164af361b8d691",
-  "updated": "2026-10-31T06:21:02.966Z",
+  "hash": "d7afdc6622273208",
+  "updated": "2026-10-31T13:04:33.916Z",
   "season": 2026,
   "week": 8,
   "through": "Weeks 1–7 plus 1 of 14 week 8 games",
@@ -27,7 +27,7 @@
     },
     "FTN charting": {
       "ok": true,
-      "detail": "18143 charted plays"
+      "detail": "18325 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "483 players"
+      "detail": "476 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "186 players with news, 353 of 364 stories with photos (ESPN 1643 articles scanned; ESPN 479, CBS Sports 21, Yahoo Sports 27, ProFootballTalk 17)"
+      "detail": "183 players with news, 357 of 361 stories with photos (ESPN 1643 articles scanned; ESPN 457, CBS Sports 21, Yahoo Sports 20, ProFootballTalk 18)"
     }
   }
 }
