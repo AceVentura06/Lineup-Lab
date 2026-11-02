@@ -1,21 +1,21 @@
 {
-  "hash": "d31df5e731ae5798",
-  "updated": "2026-11-02T05:29:38.297Z",
+  "hash": "469bd119a1481572",
+  "updated": "2026-11-02T17:02:31.082Z",
   "season": 2026,
   "week": 8,
   "through": "Weeks 1–7 plus 13 of 14 week 8 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
-      "detail": "8295 player-weeks"
+      "detail": "8363 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "117 players"
+      "detail": "129 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "42 players"
+      "detail": "47 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -23,7 +23,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "7507 targets, 6216 carries"
+      "detail": "7566 targets, 6271 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "462 players"
+      "detail": "454 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "203 players with news, 394 of 402 stories with photos (ESPN 1641 articles scanned; ESPN 532, CBS Sports 17, Yahoo Sports 20, ProFootballTalk 21)"
+      "detail": "202 players with news, 390 of 392 stories with photos (ESPN 1643 articles scanned; ESPN 525, CBS Sports 19, Yahoo Sports 16, ProFootballTalk 22)"
     }
   }
 }
