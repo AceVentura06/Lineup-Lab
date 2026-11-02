@@ -729,6 +729,9 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .hm-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
 .hm-link{all:unset;cursor:pointer;font-size:var(--t-sm);font-weight:700;color:var(--gold)}@media (hover:hover) and (pointer:fine){.hm-link:hover{text-decoration:underline}}
 .hm-tt{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:9px 12px;align-items:center}
+/* a wide box fills out with the Start/Sit board's columns; narrow ones keep Pos · Player · Proj · Score */
+#hmTeam{container-type:inline-size}.hm-tt .xc{display:none}
+@container (min-width:760px){.hm-tt{grid-template-columns:auto minmax(150px,1.2fr) auto auto auto auto minmax(120px,1fr) auto auto;column-gap:20px}.hm-tt .xc{display:block}}
 .hm-tt .hd{font-size:var(--t-xs);font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .hm-pr{font-family:var(--f-display);font-weight:800;font-size:var(--t-lg);text-align:right}
 .hm-sm{font-size:var(--t-sm);color:var(--muted)}
@@ -779,7 +782,7 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .sc-d{font-weight:700;font-variant-numeric:tabular-nums}.sc-d.up{color:var(--good)}.sc-d.down{color:var(--bad)}
 .hm-tot{display:contents}
 .hm-rule{grid-column:1/-1;height:2px;background:var(--line);margin-top:2px}
-.hm-tot .tl{grid-column:1/3;font-family:var(--f-display-cond);text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-md);font-weight:700;align-self:center}
+.hm-tot .tl{grid-column:1/-3;font-family:var(--f-display-cond);text-transform:uppercase;letter-spacing:.04em;font-size:var(--t-md);font-weight:700;align-self:center}
 .hm-tot .tp{color:var(--muted)}
 @media (max-width:420px){.sc-s{white-space:normal;max-width:9.5em}}
 .hm-pos4{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
@@ -2953,12 +2956,17 @@ function renderHome(){
       if(sc.st==='bye')return `<span class="sc-s">Bye</span>`;
       if(sc.st==='wait')return `<span class="lvp sc-zero">—</span><span class="sc-s">Final · stats soon</span>`;
       return call(r);};
-    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span><span class="hm-pr">${f1(r.proj)}</span><span class="sc-c">${scoreCell(r)}</span>`;
+    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span>${xcols(r)}<span class="hm-pr">${f1(r.proj)}</span><span class="sc-c">${scoreCell(r)}</span>`;
+    // the Start/Sit board's columns, shown when the box is wide enough (see .hm-tt .xc)
+    const NA='<span class="muted">—</span>',maxHi=Math.max(1,...starters.map(x=>byKey.get(x.x.key).hi||0));
+    const xcols=r=>{const bye=onBye(r.p);return `<span class="xc num muted u-ta-r">${f1(r.b)}</span><span class="xc">${bye?NA:matchPill(r.p)}</span><span class="xc num u-ta-r">${bye?NA:vegasCell(r.p)}</span>
+      <span class="xc">${r.proj>0&&r.p.real?votesBar(consensus(r.p)):NA}</span>
+      <span class="xc"><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></span>`;};
     const LG=S.league,chk=LG?lineupCheck():null;
     $('#hmTeam').innerHTML=`<div class="hm-head"><h3>My team this week</h3><button class="hm-link" data-go="lineup">${LG?'League':'Edit roster'}</button></div>
       ${LG?`<div class="hm-sm u-mt-n6"><span class="lc-dot u-iblock u-mr-6"></span>${esc(LG.teamName)} · ${SRC_NAME[LG.src]} · synced ${agoMin(LG.synced)}</div>`:''}
       ${chk&&chk.moves.length?`<div><b class="u-t-md">Lineup check:</b> ${checkHTML(chk,2)}</div>`:chk?`<div class="lc-ok u-t-md">Your ${SRC_NAME[LG.src]} lineup matches the best projected lineup.</div>`:''}
-      <div class="hm-tt"><span class="hd">Pos</span><span class="hd">Player</span><span class="hd u-ta-r">Proj</span><span class="hd">${scoring?'Score':'Call'}</span>
+      <div class="hm-tt"><span class="hd">Pos</span><span class="hd">Player</span><span class="hd xc u-ta-r">Avg pts</span><span class="hd xc">Matchup</span><span class="hd xc u-ta-r">Vegas</span><span class="hd xc">Tools</span><span class="hd xc">Floor – ceiling</span><span class="hd u-ta-r">Proj</span><span class="hd">${scoring?'Score':'Call'}</span>
       ${starters.map(x=>row(byKey.get(x.x.key),x.slot)).join('')}
       <span class="hm-rule" aria-hidden="true"></span><div class="hm-tot" role="group" aria-label="Starters total"><span class="tl">${T.all?'Final':'Total'}${T.on?' <span class="livedot"></span>':''}</span>
         <span class="hm-pr tp">${f1(T.proj)}</span>
