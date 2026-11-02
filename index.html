@@ -1046,7 +1046,7 @@ h3{font-size:var(--t-lg);line-height:1.2}
 @supports (animation-timeline:view()){@media (prefers-reduced-motion:no-preference){
   :is(.card,.tile,.tbl-wrap):not(.verdict){animation:sc-fade linear both;animation-timeline:view()}
 }}
-@keyframes sc-fade{entry 0%{opacity:0}entry 100%{opacity:1}exit 0%{opacity:1}exit 100%{opacity:0}}
+@keyframes sc-fade{entry 0%{opacity:0}entry 40%{opacity:1}exit 60%{opacity:1}exit 100%{opacity:0}}
 @keyframes vd-in{from{opacity:0;transform:scale(.98)}}
 @keyframes hm-fade{from{opacity:0}}
 @keyframes hm-pop{from{opacity:0;transform:scale(.4)}}
