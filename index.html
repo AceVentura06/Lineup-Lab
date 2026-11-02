@@ -471,9 +471,6 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .team-hero .shot{position:absolute;right:70px;bottom:6px;height:calc(100% + 10px);max-height:190px;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));pointer-events:none}
 .team-hero.has-shot::after{display:none}
 .team-hero .shot.logo{bottom:50%;transform:translateY(50%);height:150px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5))}
-@media (max-width:600px){.team-hero .shot.logo{height:84px}}
-.team-hero.has-shot>.meta{padding-right:230px}
-@media (max-width:600px){.team-hero .shot{right:8px;max-height:120px}.team-hero.has-shot>.meta{padding-right:0}.team-hero.has-shot>div:not(.meta){padding-right:110px}}
 
 .teamed{position:relative}
 .teamed::before{content:"";position:fixed;left:0;right:0;top:0;height:560px;background:linear-gradient(180deg,color-mix(in srgb,var(--team) 22%,transparent),transparent);pointer-events:none;z-index:-1}
@@ -570,11 +567,6 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .dst-link .dst-go{font-weight:800;color:var(--t-accent,var(--turf));white-space:nowrap}
 @media (hover:hover) and (pointer:fine){.dst-link:hover{background:var(--surface-2)}}
 .dst-opp tr.cur td{background:color-mix(in srgb,var(--t-accent,var(--gold)) 10%,transparent);font-weight:700}
-/* player pages: a big, faint team logo behind the headshot and name, clipped by the banner */
-.team-hero .hero-bg{position:absolute;right:40px;top:50%;height:420px;width:auto;transform:translateY(-50%) rotate(-10deg);opacity:.16;pointer-events:none;user-select:none;transition:opacity .2s}
-@media (max-width:900px){.team-hero .hero-bg{height:340px;right:-20px}}
-@media (max-width:600px){.team-hero .hero-bg{height:250px;right:-50px}}
-.team-hero.stuck .hero-bg{opacity:.1;height:200px}
 /* team pages: a big team logo in the banner */
 .tm-hero{min-height:260px;align-items:center}
 .team-hero .shot.logo.tm-logo{height:230px;max-height:none;right:48px;bottom:50%;transform:translateY(50%) rotate(-4deg)}
@@ -587,21 +579,13 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .team-hero.stuck h1{font-size:var(--t-stat);line-height:1}
 .team-hero.stuck>div>.meta{font-size:var(--t-sm)}
 .team-hero.stuck>.meta{font-size:var(--t-md)}
-.team-hero.stuck .shot{max-height:74px}
-.team-hero.stuck .shot.logo{height:60px}
 .team-hero.stuck::after{display:none}
 .tm-hero.stuck{min-height:0}.team-hero.stuck .shot.logo.tm-logo{height:64px;transform:translateY(50%)}.tm-hero.stuck.has-shot>div:not(.meta),.tm-hero.stuck.has-shot>.meta{padding-right:90px}
 @media (max-width:600px){.team-hero.stuck .shot.logo.tm-logo{height:44px}.tm-hero.stuck.has-shot>div:not(.meta){padding-right:60px}}
 @media (max-width:600px){
   .team-hero.stuck h1{font-size:var(--t-lg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .team-hero.stuck>div>.meta{display:none}
-  .team-hero.stuck .shot{max-height:56px}
-  .team-hero.stuck .shot.logo{height:44px}
-  /* stuck bar: the photo gets a fixed 72x56 box at the right edge, and a long name ends with "..." just before it */
-  .team-hero.stuck:not(.tm-hero) .shot:not(.logo){width:72px;height:56px;object-position:bottom right}
-  .team-hero.stuck.has-shot:not(.tm-hero)>div:not(.meta){padding-right:60px}
 }
-@media (min-width:601px){.team-hero.stuck.has-shot:not(.tm-hero)>div:not(.meta){padding-right:165px}}
 
 /* ---- dark mode: set by data-theme on <html> (follows the phone/computer setting unless chosen in the header) ---- */
 :root[data-theme="dark"]{
@@ -1120,8 +1104,6 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .team-hero:has(>.hero-wk)::after{display:none}
 .team-hero .meta,.team-hero>div>.meta{font-family:var(--f-body);font-size:var(--t-base);font-weight:600;letter-spacing:0;text-transform:none}
 .team-hero.stuck>div>.meta,.team-hero.stuck>.meta{font-size:var(--t-md)}
-@media (min-width:901px){.team-hero.has-shot:not(.tm-hero)>.hero-wk{margin-right:230px}}
-@media (max-width:600px){.team-hero.has-shot:not(.tm-hero)>.hero-wk{width:auto;margin-right:96px}}
 @media (max-width:600px){.tm-hero .shot.logo.tm-logo{top:16px;bottom:auto;transform:none;height:72px}.tm-hero.stuck .shot.logo.tm-logo{top:50%;transform:translateY(-50%);height:44px}.tm-hero.has-shot>div:not(.meta){padding-right:84px}.tm-hero>.hero-wk{width:100%}}
 .pjump{display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--r-md);background:var(--surface-2);width:fit-content;max-width:100%}
 .pjump button{all:unset;cursor:pointer;padding:7px 14px;border-radius:var(--r-md);font-weight:700;font-size:var(--t-base);color:var(--muted)}
@@ -1129,6 +1111,39 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .pjump button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
 .teamed [id^="sec-"],#pNews{scroll-margin-top:calc(var(--tbh,64px) + 120px)}
 @media (max-width:600px){.pjump{flex-wrap:nowrap;overflow-x:auto;width:auto;scrollbar-width:none}.pjump button{white-space:nowrap}.hw-v b{font-size:var(--t-stat)}.hero-wk{width:100%}}
+/* player page header: identity only (photo, name, pos · team · bye); a long name wraps, never cut off */
+.team-hero.pl-hero{flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:16px}
+.team-hero.pl-hero::after{display:none}
+.pl-shot{flex:none;width:64px;height:64px;object-fit:cover;object-position:top;border-radius:var(--r-md);background:color-mix(in srgb,var(--team-ink) 14%,transparent)}
+.pl-shot.logo{object-fit:contain;padding:6px}
+.pl-id{min-width:0;display:flex;flex-direction:column;gap:6px}
+.pl-hero .meta,.team-hero.pl-hero .pl-id>.meta{padding-right:0;row-gap:4px;margin:0}
+.pl-id>.meta>span:not(.pos)::before{content:"·";margin-right:8px}  /* each dot wraps with the item after it */
+.team-hero.pl-hero h1{font-size:var(--t-stat);line-height:1;overflow-wrap:break-word;text-wrap:balance}
+.team-hero.stuck.pl-hero h1{white-space:normal;overflow:visible;text-overflow:clip}
+.team-hero.stuck.pl-hero .pl-shot{width:44px;height:44px}
+@media (max-width:600px){.team-hero.stuck.pl-hero h1{font-size:var(--t-lg)}}
+/* phones: the condensed display face, so a long surname fits whole on one line at 320px */
+@media (max-width:479px){.pl-shot{width:56px;height:56px}.team-hero.pl-hero h1{font-family:var(--f-display-cond);font-size:var(--t-stat)}.team-hero.pl-hero{gap:12px;padding-right:16px}}
+/* player page tabs */
+.ptabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
+.ptabs button{all:unset;cursor:pointer;padding:10px 14px;font-family:var(--f-display-cond);font-size:var(--t-base);text-transform:uppercase;letter-spacing:.03em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:background-color 100ms ease-out}
+.ptabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--gold)}
+:root[data-theme="dark"] .ptabs button[aria-selected="true"]{border-bottom-color:var(--gold-hi)}
+.ptabs button:active{background:var(--surface-2)}
+.ptabs button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+@media (hover:hover) and (pointer:fine){.ptabs button:hover{color:var(--ink)}}
+.ppanel{display:flex;flex-direction:column;gap:18px;min-width:0}
+.ppanel[hidden]{display:none}
+/* Overview stat strip: projection leads (wider, maroon edge, biggest number); no entrance motion, only a quick fade when the number changes */
+.pstrip{display:grid;grid-template-columns:minmax(0,1.3fr);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:12px}
+.teamed .pstrip .ps-lead{border:1px solid var(--gold);border-top-width:3px}
+.ps-v{font-family:var(--f-mono);font-size:var(--t-xl);font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;transition:opacity 120ms ease-out}
+.ps-lead .ps-v{font-size:var(--t-stat)}
+.ppanel .tiles .tile .v{font-size:var(--t-xl)}  /* the projection stays the biggest number on the page */
+.nfx .ps-v{opacity:.55}
+@media (prefers-reduced-motion:reduce){.ps-v{transition:none}.nfx .ps-v{opacity:1}}
+@media (max-width:479px){.pstrip{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row}.ps-lead{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;gap:12px}}
 .more-d{margin-top:12px}
 .more-d>summary{cursor:pointer;display:inline-flex;font-weight:700;color:var(--gold);padding:6px 0}
 :root[data-theme="dark"] .more-d>summary{color:var(--gold-hi)}
@@ -3755,20 +3770,17 @@ function renderPlayer(){
     return {share,cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
   const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${rkTxt(tr.share,p.pos)}</b>, `:''}${US.sub(p)}</span></div>`:'';
-  // the week's answer, in the banner: projection, what the tools say, kickoff
-  const me=rp;
-  const heroWk=(()=>{if(!me)return '';const bye=onBye(me),st=effStatus(me),out=!bye&&(st==='Out'||st==='IR');
-    const opp=g?`${g.home?'vs':'at'} ${esc(g.opp)}`:sv?esc(oppText(site)):'';
-    let call='';if(cons&&!bye&&!out){const n=cons.n,c=n.start>=n.flex&&n.start>=n.sit?['Start','p-good',n.start]:n.flex>=n.sit?['Flex','p-gold',n.flex]:['Sit','p-mute',n.sit];call=`<span class="pill ${c[1]}">${c[0]}: ${c[2]} of ${cons.total} tools</span>`;}
-    return `<aside class="hero-wk"><span class="hw-l">Week ${S.week}${opp?' '+opp:''}</span><span class="hw-v"><b>${bye?'Bye':out?esc(st):tr.projV!=null?f1(tr.projV):'—'}</b>${!bye&&!out&&tr.proj?`<span>projected, ${rkTxt(tr.proj,p.pos)}</span>`:''}</span>${call||g?`<span class="hw-s">${call}${g?`<span>${esc(kickText(g))}</span>`:''}</span>`:''}</aside>`;})();
+  // stat strip, first thing on Overview: this week's projection leads; a card whose number we don't have is left out
+  const wkBye=rp&&onBye(rp),wkSt=rp&&effStatus(rp),wkOut=!wkBye&&(wkSt==='Out'||wkSt==='IR');
+  const opp=g?`${g.home?'vs':'at'} ${esc(g.opp)}`:sv?esc(oppText(site)):'';
+  const leadV=!rp?null:wkBye?'Bye':wkOut?esc(wkSt):tr.projV>0?f1(tr.projV):null;
+  const strip=[leadV!=null&&`<div class="tile ps-lead"><span class="label">Wk ${S.week} proj${opp?' · '+opp:''}</span><b class="ps-v">${leadV}</b></div>`,
+    vals.length&&`<div class="tile"><span class="label">Season avg</span><b class="ps-v">${f1(ppg(p))}</b></div>`,
+    tr.ppg&&`<div class="tile"><span class="label">Position rank</span><b class="ps-v">${esc(tr.ppg)}</b><span class="s">by pts / game</span></div>`].filter(Boolean).join('');
   const wkSec=thisWeek?thisWeek.replace('@@TOOLS@@',toolsCard):toolsCard?`<div class="card" id="sec-week"><h3>This week</h3>${toolsCard}</div>`:'';
-  el.innerHTML=`<div><button class="back" id="backBtn">${esc(navDepth>0||ui.prev?BACK_NM[ui.prev]||'Back':'Projections')}</button></div>
-   <div class="ph team-hero${p.pos==='DST'?' dst-hero':''}${headshotOf(p)?' has-shot':''}">${p.pos!=='DST'&&teamLogo(p.team)?`<img class="hero-bg ${bannerCls(p.team)}" src="${bannerLogo(p.team)}" alt="" width="500" height="500" aria-hidden="true" onerror="if(!logoFb(this))this.remove()">`:''}${headshotOf(p)?`<img class="ld shot${isLogo(headshotOf(p))?' logo '+bannerCls(p.team):''}" src="${p.pos==='DST'?bannerLogo(p.team):headshotOf(p)}" alt="" ${p.pos==='DST'||isLogo(headshotOf(p))?'width="500" height="500"':'width="350" height="254"'} fetchpriority="high" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}${p.pos==='DST'?`<div><div class="meta"><span class="pos DST">DST</span> Fantasy D/ST · ${p.gp} games</div><h1>${esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())} D/ST</h1>${TEAM_NAMES[p.team]?`<div class="meta"><button class="tlink" data-tm="${esc(p.team)}">Team page →</button></div>`:''}</div>`
-     :`<div><div class="meta"><span class="pos ${p.pos}">${p.pos}</span> ${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')} · ${p.gp} games</div><h1>${esc(p.name)}</h1></div>`}
-     ${heroWk}</div>
-   ${jumpNav([['sec-season','Season'],['sec-week','This week'],['sec-trend','Week by week'],['sec-usage','Usage'],...(po?[['sec-po','Playoffs']]:[]),['pNews','News']])}
+  const shot=headshotOf(p),byeWk=(SCHED[p.team]||[]).indexOf('BYE')+1;
+  const ov=`${strip?`<div class="pstrip">${strip}</div>`:''}
    <div class="tiles">
-     <div class="tile"><span class="label">Pts / game</span><span class="v">${f1(ppg(p))}</span><span class="s">${tr.ppg?`<b class="tr">${rkTxt(tr.ppg,p.pos)}</b>`:''}</span></div>
      <div class="tile"><span class="label">Total pts</span><span class="v">${f1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${rkTxt(tr.tot,p.pos)}</b>, `:''}${scName()}</span></div>
      ${shareTile||''}
      ${!shareTile&&sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${rkTxt(tr.snap,p.pos)}</b>, `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
@@ -3776,13 +3788,19 @@ function renderPlayer(){
    </div>
    <div class="card" id="sec-season"><h3 class="u-mb-10">Season stats</h3>${boxScore(p)}</div>
    ${wkSec}
-   ${p.pos==='DST'?dstOppCard(p):''}
-   <div id="sec-trend" class="sec-anchor">${weekCard(p,tr.projV)}</div>
-   ${usageCard(p)}
    <div id="sec-usage" class="sec-anchor">${xfpCard}<div class="u-mt-20"><h2 class="u-mb-12">Usage and efficiency</h2>
    <div class="mgrid">${ms}</div>${msMore?`<details class="more-d"><summary>Show ${msA.length-4} more usage stats</summary><div class="mgrid">${msMore}</div></details>`:''}</div></div>
-   <div id="sec-po" class="sec-anchor">${poCard}</div>
    <div id="pNews"></div>`;
+  const sch=(p.pos==='DST'?dstOppCard(p):schedCard(p))+poCard;
+  if(pTabK!==p.key){pTab='ov';pTabK=p.key;}
+  const PT=[['ov','Overview',ov],['log','Game log',weekCard(p,tr.projV)+usageCard(p)],['schedule','Schedule',sch]].filter(t=>t[2]);
+  if(!PT.some(t=>t[0]===pTab))pTab='ov';
+  el.innerHTML=`<div><button class="back" id="backBtn">${esc(navDepth>0||ui.prev?BACK_NM[ui.prev]||'Back':'Projections')}</button></div>
+   <div class="ph team-hero pl-hero">${shot?`<img class="ld pl-shot${p.pos==='DST'||isLogo(shot)?' logo':''}" src="${p.pos==='DST'?bannerLogo(p.team):shot}" alt="" width="64" height="64" fetchpriority="high" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else this.remove();">`:''}
+     <div class="pl-id"><h1>${p.pos==='DST'?esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())+' D/ST':esc(p.name)}</h1>
+     <div class="meta"><span class="pos ${p.pos}">${p.pos}</span><span>${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')}</span>${byeWk?`<span>Bye wk ${byeWk}</span>`:''}</div></div></div>
+   <div class="ptabs" role="tablist" aria-label="Player sections">${PT.map(([id,l])=>`<button type="button" role="tab" id="pt-${id}" aria-controls="pp-${id}" aria-selected="${id===pTab}" tabindex="${id===pTab?0:-1}" data-ptab="${id}">${l}</button>`).join('')}</div>
+   ${PT.map(([id,,h])=>`<div class="ppanel" role="tabpanel" id="pp-${id}" aria-labelledby="pt-${id}"${id===pTab?'':' hidden'}>${h}</div>`).join('')}`;
   $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'sites');};
   fillNews(p);
   if(window.heroChk)setTimeout(window.heroChk,0);
@@ -3812,6 +3830,24 @@ new MutationObserver(ms=>{for(const m of ms){if(m.type==='childList')m.addedNode
 tcAll(document.body);
 // profile pages: a "back" link that names where it goes, a row of jump buttons, and plain-English ranks
 const BACK_NM={home:'Home',sites:'Projections',week:'Start / Sit',lineup:'My Lineup',stats:'Player Stats',ros:'Rest of Season',dvp:'Teams',trade:'Trades',acc:'Accuracy',model:'How It Works',settings:'Settings'};
+// the rest of a player's season, with how each defense treats his position (Schedule tab)
+function schedCard(p){const sc=SCHED[p.team];if(!sc)return '';const D=dvpData(),i=DPOS.indexOf(p.pos);
+  const rows=sc.map((o,j)=>[j+1,o]).filter(([w,o])=>w>=S.week&&o).map(([w,o])=>{if(o==='BYE')return `<tr><td>${w}</td><td class="u-c-bad">Bye</td><td></td></tr>`;
+    const d=i>=0&&D.by[o.replace('@','')];
+    return `<tr><td>${w}</td><td>${o.startsWith('@')?'at '+esc(o.slice(1)):'vs '+esc(o)}</td><td>${d?`<button class="ork olink ${rkCls(d.rank[i])}" data-dvp="${esc(d.t)}">${ord(d.rank[i])}</button> <span class="note">${f1(d.avg[i])} pts/game to ${p.pos}s</span>`:''}</td></tr>`;});
+  return rows.length?`<div class="card"><h3>Rest of season</h3><p class="note u-m-4-0-12">Defense rank is out of 32; 1st gives up the fewest points to ${p.pos}s.</p>
+   <div class="tbl-wrap"><table class="tooltbl"><thead><tr><th>Week</th><th>Opponent</th><th>Defense vs ${p.pos}</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`:'';}
+// player page tabs: Overview / Game log / Schedule; the open tab is kept while the same player re-renders
+let pTab='ov',pTabK=null;
+function pTabSel(id,focus){pTab=id;try{history.replaceState({...history.state,ptab:id},'',hashFor('player',ui.player,id));}catch(_){}   // replace, not push: switching tabs adds no Back step
+  document.querySelectorAll('#p-player [data-ptab]').forEach(b=>{const on=b.dataset.ptab===id;
+  b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;$('#pp-'+b.dataset.ptab).hidden=!on;if(on&&focus)b.focus();});
+  // scrolled past the tabs: bring them back up under the sticky banner, so the new tab opens at its top
+  const bar=$('#p-player .ptabs'),h=$('#p-player .pl-hero');if(bar&&h){const d=bar.getBoundingClientRect().top-h.getBoundingClientRect().bottom;if(d<0)window.scrollBy(0,d);}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-ptab]');if(b)pTabSel(b.dataset.ptab);});
+document.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('[data-ptab]');if(!b||!/^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key))return;
+  const all=[...b.parentNode.children],i=all.indexOf(b),j=e.key==='Home'?0:e.key==='End'?all.length-1:(i+(e.key==='ArrowRight'?1:-1)+all.length)%all.length;
+  e.preventDefault();pTabSel(all[j].dataset.ptab,true);});
 const jumpNav=items=>items.length>1?`<nav class="pjump" aria-label="On this page">${items.map(([id,l])=>`<button type="button" data-jump="${id}">${esc(l)}</button>`).join('')}</nav>`:'';
 document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(!b)return;const t=document.getElementById(b.dataset.jump);if(!t)return;
   t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
@@ -3870,16 +3906,17 @@ const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
-const hashFor=(t,k)=>t==='player'&&k?'#player='+slug(k):t==='dvp'?(k?'#team='+k:'#teams'):'#'+t;
+const hashFor=(t,k,pt)=>t==='player'&&k?'#player='+slug(k)+(pt&&pt!=='ov'?'&tab='+pt:''):t==='dvp'?(k?'#team='+k:'#teams'):'#'+t;
 function readHash(){const h=decodeURIComponent(location.hash.slice(1));
-  if(h.startsWith('player=')){const raw=h.slice(7);const k=[raw,raw.replace(/-/g,' ')].find(x=>PL.has(x));if(k)return {tab:'player',player:k};}
+  // #player=puka-nacua, plus &tab=log or &tab=schedule for a tab other than Overview
+  if(h.startsWith('player=')){const [raw,q]=h.slice(7).split('&tab=');const k=[raw,raw.replace(/-/g,' ')].find(x=>PL.has(x));if(k)return {tab:'player',player:k,ptab:q};}
   // #team=KC and #teams; older #dvp=KC and #dvp links still work
   const tm=/^(team|dvp)=(.+)$/.exec(h);if(tm){const t=tm[2].toUpperCase();return {tab:'dvp',player:TEAM_NAMES[t]?t:null};}
   if(h==='teams')return {tab:'dvp'};
   return TABS.includes(h)?{tab:h}:{tab:'home'};}
 // go to a tab; "sub" is the player on a player page, or the team on a team page
 function cur(){return ui.tab==='player'?ui.player:ui.tab==='dvp'?ui.dvpTeam||null:null;}
-function apply(tab,sub){ui.tab=tab;if(tab==='player'&&sub)ui.player=sub;if(tab==='dvp')ui.dvpTeam=sub||null;}
+function apply(tab,sub,ptab){ui.tab=tab;if(tab==='player'&&sub){ui.player=sub;pTab=ptab||'ov';pTabK=sub;}if(tab==='dvp')ui.dvpTeam=sub||null;}
 function go(tab,sub,push=true){
   if(tab===ui.tab&&(sub||null)===cur())push=false;   // same page: no extra Back step
   apply(tab,sub);
@@ -3891,10 +3928,10 @@ function go(tab,sub,push=true){
   if(tab==='dvp'&&sub)lastDvp=sub;}
 let lastDvp=null;
 window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Math.max(0,navDepth-1);
-  if(st.tab==='player'&&!PL.has(st.player))st.tab='home';apply(st.tab,st.player);render();
+  if(st.tab==='player'&&!PL.has(st.player))st.tab='home';apply(st.tab,st.player,st.ptab);render();
   const card=st.tab==='dvp'&&!st.player&&lastDvp&&document.querySelector(`.tm-card[data-tm="${lastDvp}"]`);if(card)card.scrollIntoView({block:'center'});else window.scrollTo(0,0);});
-(function(){const st=readHash();if(location.hash&&(st.tab!=='home'||location.hash==='#home')){apply(st.tab,st.player);render();}
-  try{history.replaceState({tab:ui.tab,player:cur()},'',hashFor(ui.tab,cur()));}catch(_){}})();
+(function(){const st=readHash();if(location.hash&&(st.tab!=='home'||location.hash==='#home')){apply(st.tab,st.player,st.ptab);render();}
+  const pt=ui.tab==='player'?pTab:null;try{history.replaceState({tab:ui.tab,player:cur(),ptab:pt},'',hashFor(ui.tab,cur(),pt));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);if(k==='blend')S.blendAuto=false;save();renderModel();});
 $('#blendAuto').onchange=e=>{S.blendAuto=e.target.checked;save();renderModel();};
 $('#resetW').onclick=()=>{S.w={...DEF_W};S.blendAuto=true;save();render();toast('Weights reset');};
