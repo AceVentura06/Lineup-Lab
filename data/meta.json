@@ -1,9 +1,9 @@
 {
-  "hash": "45de589e42628f0d",
-  "updated": "2026-11-01T23:49:50.621Z",
+  "hash": "ef8c97fffbbbc453",
+  "updated": "2026-11-02T00:42:01.981Z",
   "season": 2026,
   "week": 8,
-  "through": "Weeks 1–7 plus 9 of 14 week 8 games",
+  "through": "Weeks 1–7 plus 12 of 14 week 8 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
@@ -39,7 +39,7 @@
     },
     "Weather": {
       "ok": true,
-      "detail": "10 outdoor games forecast"
+      "detail": "1 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "197 players with news, 358 of 381 stories with photos (ESPN 1636 articles scanned; ESPN 488, CBS Sports 13, Yahoo Sports 33, ProFootballTalk 24)"
+      "detail": "201 players with news, 373 of 392 stories with photos (ESPN 1636 articles scanned; ESPN 521, CBS Sports 14, Yahoo Sports 27, ProFootballTalk 17)"
     }
   }
 }
