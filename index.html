@@ -1042,11 +1042,6 @@ h3{font-size:var(--t-lg);line-height:1.2}
   .vd-sq i{animation:hm-pop .35s cubic-bezier(.2,.8,.2,1) calc(var(--i,0)*30ms) both;transform-box:fill-box;transform-origin:center}
   .vd-sq i:nth-child(2){--i:1}.vd-sq i:nth-child(3){--i:2}.vd-sq i:nth-child(4){--i:3}.vd-sq i:nth-child(5){--i:4}.vd-sq i:nth-child(6){--i:5}.vd-sq i:nth-child(n+7){--i:6}
 }
-/* boxes fade in as they scroll into view and out as they leave; browsers without scroll timelines just show them */
-@supports (animation-timeline:view()){@media (prefers-reduced-motion:no-preference){
-  :is(.card,.tile,.tbl-wrap):not(.verdict){animation:sc-fade linear both;animation-timeline:view()}
-}}
-@keyframes sc-fade{entry 0%{opacity:0}entry 40%{opacity:1}exit 60%{opacity:1}exit 100%{opacity:0}}
 @keyframes vd-in{from{opacity:0;transform:scale(.98)}}
 @keyframes hm-fade{from{opacity:0}}
 @keyframes hm-pop{from{opacity:0;transform:scale(.4)}}
