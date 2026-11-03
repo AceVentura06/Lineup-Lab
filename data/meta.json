@@ -1,8 +1,8 @@
 {
-  "hash": "7eef47d9dd54bf81",
-  "updated": "2026-11-03T06:44:25.386Z",
+  "hash": "05d806e8ac628b49",
+  "updated": "2026-11-03T14:40:42.057Z",
   "season": 2026,
-  "week": 8,
+  "week": 9,
   "through": "Weeks 1–8",
   "sources": {
     "nflverse stats": {
@@ -27,23 +27,23 @@
     },
     "FTN charting": {
       "ok": true,
-      "detail": "18325 charted plays"
+      "detail": "20346 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "320 entries for week 8"
+      "detail": "no week 9 report yet (comes out Wednesday)"
     },
     "Betting lines": {
       "ok": true,
-      "detail": "14 week 8 games, 14 with lines"
+      "detail": "15 week 9 games, 15 with lines"
     },
     "Weather": {
       "ok": true,
-      "detail": "0 outdoor games forecast"
+      "detail": "10 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "454 players"
+      "detail": "274 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "423 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "424 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "197 players with news, 371 of 384 stories with photos (ESPN 1641 articles scanned; ESPN 490, CBS Sports 20, Yahoo Sports 24, ProFootballTalk 19)"
+      "detail": "198 players with news, 384 of 386 stories with photos (ESPN 1643 articles scanned; ESPN 492, CBS Sports 19, Yahoo Sports 9, ProFootballTalk 14)"
     }
   }
 }
