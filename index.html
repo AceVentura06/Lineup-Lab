@@ -471,6 +471,9 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .team-hero .shot{position:absolute;right:70px;bottom:6px;height:calc(100% + 10px);max-height:190px;width:auto;object-fit:contain;object-position:bottom;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45));pointer-events:none}
 .team-hero.has-shot::after{display:none}
 .team-hero .shot.logo{bottom:50%;transform:translateY(50%);height:150px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.5))}
+@media (max-width:600px){.team-hero .shot.logo{height:84px}}
+.team-hero.has-shot>.meta{padding-right:230px}
+@media (max-width:600px){.team-hero .shot{right:8px;max-height:120px}.team-hero.has-shot>.meta{padding-right:0}.team-hero.has-shot>div:not(.meta){padding-right:110px}}
 
 .teamed{position:relative}
 .teamed::before{content:"";position:fixed;left:0;right:0;top:0;height:560px;background:linear-gradient(180deg,color-mix(in srgb,var(--team) 22%,transparent),transparent);pointer-events:none;z-index:-1}
@@ -579,13 +582,21 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .team-hero.stuck h1{font-size:var(--t-stat);line-height:1}
 .team-hero.stuck>div>.meta{font-size:var(--t-sm)}
 .team-hero.stuck>.meta{font-size:var(--t-md)}
+.team-hero.stuck .shot{max-height:74px}
+.team-hero.stuck .shot.logo{height:60px}
 .team-hero.stuck::after{display:none}
 .tm-hero.stuck{min-height:0}.team-hero.stuck .shot.logo.tm-logo{height:64px;transform:translateY(50%)}.tm-hero.stuck.has-shot>div:not(.meta),.tm-hero.stuck.has-shot>.meta{padding-right:90px}
 @media (max-width:600px){.team-hero.stuck .shot.logo.tm-logo{height:44px}.tm-hero.stuck.has-shot>div:not(.meta){padding-right:60px}}
 @media (max-width:600px){
   .team-hero.stuck h1{font-size:var(--t-lg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .team-hero.stuck>div>.meta{display:none}
+  .team-hero.stuck .shot{max-height:56px}
+  .team-hero.stuck .shot.logo{height:44px}
+  /* stuck bar: the photo gets a fixed 72x56 box at the right edge, and a long name wraps just before it */
+  .team-hero.stuck:not(.tm-hero) .shot:not(.logo){width:72px;height:56px;object-position:bottom right}
+  .team-hero.stuck.has-shot:not(.tm-hero)>div:not(.meta){padding-right:60px}
 }
+@media (min-width:601px){.team-hero.stuck.has-shot:not(.tm-hero)>div:not(.meta){padding-right:165px}}
 
 /* ---- dark mode: set by data-theme on <html> (follows the phone/computer setting unless chosen in the header) ---- */
 :root[data-theme="dark"]{
@@ -1114,17 +1125,20 @@ h3{font-size:var(--t-lg);line-height:1.2}
 /* player page header: identity only (photo, name, pos · team · bye); a long name wraps, never cut off */
 .team-hero.pl-hero{flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:16px}
 .team-hero.pl-hero::after{display:none}
-.pl-shot{flex:none;width:64px;height:64px;object-fit:cover;object-position:top;border-radius:var(--r-md);background:color-mix(in srgb,var(--team-ink) 14%,transparent)}
-.pl-shot.logo{object-fit:contain;padding:6px}
+.team-hero.pl-hero{min-height:170px}
+.team-hero.stuck.pl-hero{min-height:0}
+@media (min-width:601px){.team-hero.has-shot.pl-hero>.pl-id{padding-right:260px}}
 .pl-id{min-width:0;display:flex;flex-direction:column;gap:6px}
 .pl-hero .meta,.team-hero.pl-hero .pl-id>.meta{padding-right:0;row-gap:4px;margin:0}
 .pl-id>.meta>span:not(.pos)::before{content:"·";margin-right:8px}  /* each dot wraps with the item after it */
 .team-hero.pl-hero h1{font-size:var(--t-stat);line-height:1;overflow-wrap:break-word;text-wrap:balance}
 .team-hero.stuck.pl-hero h1{white-space:normal;overflow:visible;text-overflow:clip}
-.team-hero.stuck.pl-hero .pl-shot{width:44px;height:44px}
 @media (max-width:600px){.team-hero.stuck.pl-hero h1{font-size:var(--t-lg)}}
 /* phones: the condensed display face, so a long surname fits whole on one line at 320px */
-@media (max-width:479px){.pl-shot{width:56px;height:56px}.team-hero.pl-hero h1{font-family:var(--f-display-cond);font-size:var(--t-stat)}.team-hero.pl-hero{gap:12px;padding-right:16px}}
+@media (max-width:479px){.team-hero.pl-hero{min-height:140px;gap:12px;padding-right:16px}.team-hero.pl-hero h1{font-family:var(--f-display-cond);font-size:var(--t-xl)}
+  .pl-hero:not(.stuck) .shot:not(.logo){max-height:110px}.team-hero.has-shot.pl-hero>.pl-id{padding-right:140px}}
+/* the narrowest phones: a smaller photo, so a long surname still fits whole beside it */
+@media (max-width:359px){.pl-city{display:none}.pl-hero:not(.stuck) .shot:not(.logo){max-height:96px}.team-hero.has-shot.pl-hero>.pl-id{padding-right:120px}}
 /* player page tabs */
 .ptabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;overscroll-behavior-x:contain}
 .ptabs button{all:unset;cursor:pointer;padding:10px 14px;font-family:var(--f-display-cond);font-size:var(--t-base);text-transform:uppercase;letter-spacing:.03em;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:background-color 100ms ease-out}
@@ -3795,12 +3809,13 @@ function renderPlayer(){
   if(pTabK!==p.key){pTab='ov';pTabK=p.key;}
   const PT=[['ov','Overview',ov],['log','Game log',weekCard(p,tr.projV)+usageCard(p)],['schedule','Schedule',sch]].filter(t=>t[2]);
   if(!PT.some(t=>t[0]===pTab))pTab='ov';
+  pLazy={};
   el.innerHTML=`<div><button class="back" id="backBtn">${esc(navDepth>0||ui.prev?BACK_NM[ui.prev]||'Back':'Projections')}</button></div>
-   <div class="ph team-hero pl-hero">${shot?`<img class="ld pl-shot${p.pos==='DST'||isLogo(shot)?' logo':''}" src="${p.pos==='DST'?bannerLogo(p.team):shot}" alt="" width="64" height="64" fetchpriority="high" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else this.remove();">`:''}
+   <div class="ph team-hero pl-hero${shot?' has-shot':''}">${shot?`<img class="ld shot${p.pos==='DST'||isLogo(shot)?' logo '+bannerCls(p.team):''}" src="${p.pos==='DST'?bannerLogo(p.team):shot}" alt="" ${p.pos==='DST'||isLogo(shot)?'width="500" height="500"':'width="350" height="254"'} fetchpriority="high" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}
      <div class="pl-id"><h1>${p.pos==='DST'?esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())+' D/ST':esc(p.name)}</h1>
-     <div class="meta"><span class="pos ${p.pos}">${p.pos}</span><span>${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}">${esc(TEAM_NAMES[p.team])}</button>`:esc(p.team||'')}</span>${byeWk?`<span>Bye wk ${byeWk}</span>`:''}</div></div></div>
+     <div class="meta"><span class="pos ${p.pos}">${p.pos}</span><span>${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}"><span class="pl-city">${esc(TEAM_NAMES[p.team].replace(/\s\S+$/,''))} </span>${esc(TEAM_NAMES[p.team].split(' ').pop())}</button>`:esc(p.team||'')}</span>${byeWk?`<span>Bye wk ${byeWk}</span>`:''}</div></div></div>
    <div class="ptabs" role="tablist" aria-label="Player sections">${PT.map(([id,l])=>`<button type="button" role="tab" id="pt-${id}" aria-controls="pp-${id}" aria-selected="${id===pTab}" tabindex="${id===pTab?0:-1}" data-ptab="${id}">${l}</button>`).join('')}</div>
-   ${PT.map(([id,,h])=>`<div class="ppanel" role="tabpanel" id="pp-${id}" aria-labelledby="pt-${id}"${id===pTab?'':' hidden'}>${h}</div>`).join('')}`;
+   ${PT.map(([id,,h])=>{const lazy=id!==pTab&&id!=='ov';if(lazy)pLazy[id]=h;return `<div class="ppanel" role="tabpanel" id="pp-${id}" aria-labelledby="pt-${id}"${id===pTab?'':' hidden'}>${lazy?'':h}</div>`;}).join('')}`;
   $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'sites');};
   fillNews(p);
   if(window.heroChk)setTimeout(window.heroChk,0);
@@ -3838,10 +3853,13 @@ function schedCard(p){const sc=SCHED[p.team];if(!sc)return '';const D=dvpData(),
   return rows.length?`<div class="card"><h3>Rest of season</h3><p class="note u-m-4-0-12">Defense rank is out of 32; 1st gives up the fewest points to ${p.pos}s.</p>
    <div class="tbl-wrap"><table class="tooltbl"><thead><tr><th>Week</th><th>Opponent</th><th>Defense vs ${p.pos}</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`:'';}
 // player page tabs: Overview / Game log / Schedule; the open tab is kept while the same player re-renders
-let pTab='ov',pTabK=null;
+// a hidden tab's markup waits in pLazy until the tab first opens, so its charts mount (and play their entrance) in view;
+// Overview always renders, since the news loads into it
+let pTab='ov',pTabK=null,pLazy={};
 function pTabSel(id,focus){pTab=id;try{history.replaceState({...history.state,ptab:id},'',hashFor('player',ui.player,id));}catch(_){}   // replace, not push: switching tabs adds no Back step
   document.querySelectorAll('#p-player [data-ptab]').forEach(b=>{const on=b.dataset.ptab===id;
   b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;$('#pp-'+b.dataset.ptab).hidden=!on;if(on&&focus)b.focus();});
+  if(pLazy[id]){$('#pp-'+id).innerHTML=pLazy[id];delete pLazy[id];}
   // scrolled past the tabs: bring them back up under the sticky banner, so the new tab opens at its top
   const bar=$('#p-player .ptabs'),h=$('#p-player .pl-hero');if(bar&&h){const d=bar.getBoundingClientRect().top-h.getBoundingClientRect().bottom;if(d<0)window.scrollBy(0,d);}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-ptab]');if(b)pTabSel(b.dataset.ptab);});
