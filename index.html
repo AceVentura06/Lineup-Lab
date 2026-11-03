@@ -32,18 +32,14 @@
 <meta name="apple-mobile-web-app-title" content="Lineup Lab">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FFFFFF" id="themeColor">
-<script>if(document.documentElement.getAttribute('data-theme')==='dark')document.getElementById('themeColor').setAttribute('content','#141414');</script>
+<script>if(document.documentElement.getAttribute('data-theme')==='dark')document.getElementById('themeColor').setAttribute('content','#1C1D20');</script>
 <!-- fonts are self-hosted (fonts/): no requests to Google. Preload the faces the first screen needs. -->
-<link rel="preload" href="fonts/cabin-condensed-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/cabin-condensed-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/cabin-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/special-gothic-expanded-one-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/special-gothic-condensed-one-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/asap-sharp-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="preload" href="fonts/archivo-latin-wdth-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/barlow-semi-condensed-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/fonts.css?v=2">
 <script>/* until those faces load, text shows as ghost bars instead of flashing a fallback font; capped so a slow network still gets readable text */
 (function(){var d=document.documentElement;if(!document.fonts)return;d.classList.add('fl');var done=function(){d.classList.remove('fl');};
-Promise.all(['400 1em "Cabin Condensed"','600 1em "Cabin Condensed"','700 1em "Cabin Condensed"','1em "Special Gothic Expanded One"','1em "Special Gothic Condensed One"','700 1em "Asap Sharp"'].map(function(f){return document.fonts.load(f);})).then(done,done);setTimeout(done,1200);})();</script>
+Promise.all(['400 1em "Barlow Semi Condensed"','600 1em "Barlow Semi Condensed"','700 1em "Barlow Semi Condensed"','800 expanded 1em "Archivo"'].map(function(f){return document.fonts.load(f);})).then(done,done);setTimeout(done,1200);})();</script>
 <style>
 [hidden]{display:none!important}
 /* fonts loading (html.fl): letters hidden, a bar in each text's own colour marks every line, so nothing flashes in a fallback face */
@@ -59,15 +55,23 @@ img{max-width:100%}
   --t-xs:clamp(.72rem,.69rem + .12vw,.78rem);--t-sm:clamp(.8rem,.77rem + .12vw,.86rem);--t-md:clamp(.88rem,.85rem + .12vw,.94rem);
   --t-base:clamp(1rem,.96rem + .1vw,1.05rem);--t-lg:clamp(1.12rem,1.05rem + .3vw,1.3rem);--t-xl:clamp(1.45rem,1.3rem + .6vw,1.9rem);
   --t-stat:clamp(1.9rem,1.5rem + 1.6vw,2.6rem);--t-hero:clamp(2.8rem,1.5rem + 5vw,5rem);
-  --bg:#F3F5F9; --surface:#FFFFFF; --surface-2:#E9EDF3; --line:#DCE2EB; --ink:#1F2329; --muted:#5E6B80;
-  --turf:#8C1D2F; --turf-soft:#F6E3E6; --gold:#8C1D2F; --gold-soft:#F6E3E6; --gold-hi:#E0707F; --accent-ink:#FFFFFF; --red:#D7263D;
-  --good:#1E8A4C; --good-soft:#DFF3E7; --warn:#A86200; --warn-soft:#FBEFD6; --bad:#C2312B; --bad-soft:#F9E1DF;
-  --qb:#7A3FA8; --rb:#1E8A4C; --wr:#1F6FEB; --te:#B85A12; --k:#5E6B80; --dst:#A3304F;
-  --s-espn:#C8352A; --s-yahoo:#6B3FC4; --s-sleeper:#138A8A; --s-cbs:#1F6FEB;
-  --f-display:"Special Gothic Expanded One","Arial Black",sans-serif;
-  --f-display-cond:"Special Gothic Condensed One","Arial Narrow",Impact,sans-serif;
-  --f-body:"Cabin Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"Asap Sharp","Cabin Condensed",system-ui,sans-serif;
+  /* Gossamer: orange leads, teal carries data, green marks good outcomes, graphite base. Text-bearing shades are AA-adjusted. */
+  --bg:#FAFAFA; --surface:#FFFFFF; --surface-2:#ECECEE; --line:#CDCDCF; --ink:#1A1B1E; --muted:#62656B;
+  --accent:#C93C18; --accent-fill:#EC4D25; --data:#2BCFCE; --data-ink:#0E7C7B; --ticker:#1A1B1E;
+  /* older names, kept so every rule follows the new accent */
+  --turf:var(--accent); --turf-soft:#FEF2EE; --gold:var(--accent); --gold-soft:#FEF2EE; --gold-hi:var(--accent-fill); --accent-ink:#FFFFFF; --red:var(--accent);
+  /* verdicts: Start green, Sit a red apart from the brand orange, Risky amber */
+  --good:#1A7A42; --good-soft:#E6F4EA; --warn:#9A5B00; --warn-soft:#FDF0D5; --bad:#C41E3A; --bad-soft:#FBE4E8;
+  --qb:#6B3FA0; --rb:#19733F; --wr:#1F5FC9; --te:#A34E0E; --k:#5A5E66; --dst:#A3304F;
+  --s-espn:#C8352A; --s-yahoo:#6B3FC4; --s-sleeper:#7A8699; --s-cbs:#1F6FEB;
+  /* Archivo runs expanded (font-stretch:125% on body); Barlow has no width axis so it ignores that */
+  --f-head:"Archivo","Arial Black",sans-serif;
+  /* --f-display was the old display face; labels, buttons and stat numbers now share bold Barlow */
+  --f-display:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-display-cond:"Barlow Semi Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow Semi Condensed",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Barlow Semi Condensed",system-ui,sans-serif;
+  --ease-out:cubic-bezier(.23,1,.32,1); --ease-spring:cubic-bezier(.34,1.56,.64,1);
   color-scheme:light;
 }
 
@@ -120,7 +124,7 @@ p{margin:0}
 .pill{display:inline-block;padding:1px 8px;border-radius:var(--r-pill);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
 .hint{position:fixed;z-index:100;padding:5px 9px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:var(--t-sm);font-weight:600;white-space:nowrap;pointer-events:none}
 .pill[data-hint]{cursor:help}
-.p-good{background:var(--good-soft);color:var(--good)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-gold{background:#E4E9F3;color:#34466B}.p-mute{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.p-good{background:var(--good-soft);color:var(--good)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-gold{background:var(--gold-soft);color:var(--accent)}.p-mute{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
 .ex{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border:1px dashed var(--line);border-radius:var(--r-sm);padding:0 4px;margin-left:4px}
 
 .tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
@@ -598,29 +602,25 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 
 /* ---- dark mode: set by data-theme on <html> (follows the phone/computer setting unless chosen in the header) ---- */
 :root[data-theme="dark"]{
-  --bg:#0A0A0A; --surface:#141414; --surface-2:#1C1C1C; --line:#2A2A2A; --ink:#E7EAEF; --muted:#9AA4B4;
-  --turf:#E0707F; --turf-soft:#3A1C23; --gold:#A8293F; --gold-soft:#3A1C23; --gold-hi:#E8828F; --accent-ink:#FFFFFF;
-  --good:#45C483; --good-soft:#15301F; --warn:#E3A63F; --warn-soft:#352812; --bad:#F06B62; --bad-soft:#3A1C1B;
-  --qb:#8A4FBA; --rb:#23945A; --wr:#2F78E8; --te:#C0641C; --k:#68758A; --dst:#B23C5C;
+  --bg:#111214; --surface:#1C1D20; --surface-2:#25262A; --line:#2C2D31; --ink:#FAFAFA; --muted:#939599;
+  --accent:#FF6B45; --accent-fill:#FF6B45; --data:#2BCFCE; --data-ink:#2BCFCE; --accent-ink:#1A1B1E;
+  --turf-soft:#3A221B; --gold-soft:#3A221B; --gold-hi:#FF8A6B;
+  --good:#4CC583; --good-soft:#15301F; --warn:#FFB547; --warn-soft:#3A2C14; --bad:#FF5A6E; --bad-soft:#3A1A20;
+  --qb:#B794E6; --rb:#4CC583; --wr:#6EA4FF; --te:#F09A55; --k:#A3A6AD; --dst:#F07C9C;
   color-scheme:dark;
 }
-:root[data-theme="dark"] .topbar{box-shadow:0 2px 10px rgba(0,0,0,.5)}
-:root[data-theme="dark"] .card,:root[data-theme="dark"] .tbl-wrap,:root[data-theme="dark"] .tile,:root[data-theme="dark"] .metric,:root[data-theme="dark"] .hm-install{box-shadow:0 0 0 1px var(--line)}
-:root[data-theme="dark"] .board .sub,:root[data-theme="dark"] .seg button,:root[data-theme="dark"] .tabs button,:root[data-theme="dark"] .lc-src button{color:#C2CAD6}
-@media (hover:hover) and (pointer:fine){:root[data-theme="dark"] .tabs button:hover:not([aria-selected="true"]){background:#2E3440;color:var(--ink)}}
-:root[data-theme="dark"] .tabs button[aria-selected="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{color:#fff}
-:root[data-theme="dark"] .p-gold{background:#24304A;color:#AFC0E2}
+:root[data-theme="dark"] .board .sub,:root[data-theme="dark"] .seg button,:root[data-theme="dark"] .tabs button,:root[data-theme="dark"] .lc-src button{color:var(--ink)}
+@media (hover:hover) and (pointer:fine){:root[data-theme="dark"] .tabs button:hover:not([aria-selected="true"]){background:color-mix(in srgb,var(--ink) 12%,var(--surface-2));color:var(--ink)}}
+:root[data-theme="dark"] .tabs button[aria-selected="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{color:var(--accent-ink)}
 :root[data-theme="dark"] .rank,:root[data-theme="dark"] .star.on,:root[data-theme="dark"] .tile:not(.teamed .tile) .tr,:root[data-theme="dark"] .hm-link,:root[data-theme="dark"] .tk-h{color:var(--gold-hi)}@media (hover:hover) and (pointer:fine){:root[data-theme="dark"] .hm-news a:hover{color:var(--gold-hi)}}
 :root[data-theme="dark"] .ticker .tk-h{color:#fff}
-:root[data-theme="dark"] .ticker .tk-tag{background:#050505}
 :root[data-theme="dark"] .hm-hero{background:#050505;box-shadow:0 0 0 1px var(--line)}
 :root[data-theme="dark"] .hm-find input{background:#F1F3F6;color:#1F2329}
 :root[data-theme="dark"] .lc-warn{color:#F2C873}
 :root[data-theme="dark"] .toast{background:#E7EAEF;color:#0A0A0A}
-:root[data-theme="dark"] .board select option{color:#E7EAEF;background:#141414}
+:root[data-theme="dark"] .board select option{color:#E7EAEF;background:#1C1D20}
 /* team colors: brighter versions read on dark cards; bars use the team's lighter color */
 :root[data-theme="dark"] .teamed{--t-accent:color-mix(in srgb,var(--team-hi) 78%,#fff)}
-:root[data-theme="dark"] .teamed .tile .tr{box-shadow:0 0 0 1px rgba(255,255,255,.25)}
 :root:not([data-theme="dark"]) .theme-dark-only{display:none}
 /* Settings */
 .topbar>.tabs .t-set{margin-left:auto}
@@ -800,7 +800,7 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
   .pin2 td:nth-child(2) .plink,.pin2 td:nth-child(2) .pname{max-width:98px}
   .pin2 td:nth-child(2) .nm-sub{display:block;font-size:var(--t-xs);color:var(--muted);padding-left:26px;line-height:1.2;margin-top:1px;overflow:hidden;text-overflow:ellipsis}
 }
-/* Asap Sharp's digits are equal-width already; this keeps columns lined up if a fallback font is used */
+/* tabular digits keep number columns lined up in Barlow and in any fallback font */
 .mono,.num,.big,.ork,.subn,.hm-pr,.hm-g .dd,.hm-g .row b{font-variant-numeric:tabular-nums}
 /* the formulas line up with spaces, so they stay in a true monospaced font */
 .formula{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important}
@@ -833,9 +833,8 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 @media (max-width:600px){.hm-hero{padding:20px;gap:12px}.hm-btns .hm-go{flex:1 1 40%;text-align:center}
   .hm-pick{display:flex}.hm-pos4 .hm-pcol:not(.on){display:none}.hm-pos4{grid-template-columns:1fr}}
 /* Points by week — Bklit-style bars (ported from bklit.com: ghost track, rounded caps, hover dim, panel tooltip, stagger grow) */
-.wkcard{position:relative;display:flex;flex-direction:column;gap:14px;--wkbg:var(--surface);--wkc:var(--t-accent,var(--gold));--wka:var(--team-stripe,var(--gold))}
-.teamed .wkcard{--wkbg:color-mix(in srgb,var(--t-accent) 7%,var(--surface))}
-:root[data-theme="dark"] .wkcard{--wkc:var(--t-accent,var(--gold-hi));--wka:var(--team-stripe,var(--gold-hi))}
+.wkcard{position:relative;display:flex;flex-direction:column;gap:14px;--wkbg:var(--surface);--wkc:var(--t-accent,var(--data));--wkc-ink:var(--t-accent,var(--data-ink));--wka:var(--accent)}
+:root[data-theme="dark"] .wkcard{--wkc:var(--t-accent,var(--data));--wkc-ink:var(--t-accent,var(--data-ink))}
 .wkhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px}
 .wkhead h3{white-space:nowrap}
 .wkavg{display:flex;align-items:baseline;gap:6px;font-family:var(--f-display);font-weight:700;font-size:var(--t-base);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
@@ -1016,7 +1015,7 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .chips .chip,.chips .chip[aria-pressed],.seg button,.seg button[aria-pressed]{position:relative;z-index:1;background:transparent;border-color:transparent;color:var(--muted);border-radius:var(--r-md);padding:6px 13px;transition:transform .1s ease-out,color .2s}
 .chips .chip[aria-pressed="true"]{color:var(--ink)}
 .seg button span,.seg button[aria-pressed] span{color:var(--muted)}
-.seg button[aria-pressed="true"],.seg button[aria-pressed="true"] span{color:#fff}
+.seg button[aria-pressed="true"],.seg button[aria-pressed="true"] span{color:var(--accent-ink)}
 .seg-th{position:absolute;left:0;top:0;z-index:0;border-radius:var(--r-md);background:var(--surface);box-shadow:0 1px 3px rgba(14,23,38,.2);pointer-events:none;transition:transform 220ms var(--ease-out),width 220ms var(--ease-out)}
 :root[data-theme="dark"] .seg-th{background:#3A4250;box-shadow:none}
 .seg .seg-th,:root[data-theme="dark"] .seg .seg-th{background:var(--gold)}
@@ -1257,7 +1256,6 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 @media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.pick-slot .pick),select,textarea{font-size:var(--t-base)!important}}
 
 /* ===== Motion and touch polish ===== */
-:root{--ease-out:cubic-bezier(.23,1,.32,1)}
 /* page changes (go(), Back/Forward): a short cross-fade of the page; the top bar and phone bottom bar hold still.
    A tap mid-fade ends it and still lands (see swap()). */
 .topbar{view-transition-name:topbar}.bnav{view-transition-name:bnav}
@@ -1302,7 +1300,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 @media (hover:hover) and (pointer:fine){:is(a,.hm-link2):hover{text-decoration-color:currentColor}}
 .lc-src{position:relative;display:inline-flex;gap:2px;padding:3px;border-radius:var(--r-md);background:var(--surface-2);width:fit-content;max-width:100%}
 .lc-src button{font-family:var(--f-display-cond);font-weight:400;font-size:var(--t-base);letter-spacing:.03em;border-radius:var(--r-md);padding:7px 16px;background:transparent;color:var(--muted)}
-.lc-src button[aria-pressed="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{background:var(--gold);color:#fff}
+.lc-src button[aria-pressed="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{background:var(--gold);color:var(--accent-ink)}
 
 /* keyboard focus on the remaining text-style buttons */
 :is(.hm-link,.hm-link2,.tk-a,.olink):focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:var(--r-sm)}
@@ -1342,6 +1340,119 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 @media (max-width:760px){.legal h2{font-size:var(--t-base)}}
 /* one-off layout utilities (were inline style=""). !important keeps the inline style's old precedence over component rules */
 .u-ai-base{align-items:baseline!important}.u-ai-c{align-items:center!important}.u-ai-end{align-items:end!important}.u-ai-start{align-items:flex-start!important}.u-between{justify-content:space-between!important}.u-bt-1{border-top:1px solid var(--line)!important}.u-bt-2{border-top:2px solid var(--line)!important}.u-c-bad{color:var(--bad)!important}.u-c-good{color:var(--good)!important}.u-c-ink{color:var(--ink)!important}.u-col{flex-direction:column!important}.u-cols-a1{grid-template-columns:auto 1fr!important}.u-cur-def{cursor:default!important}.u-fix-66{flex:0 0 66px!important}.u-flex{display:flex!important}.u-t-base{font-size:var(--t-base)!important}.u-t-base{font-size:var(--t-base)!important}.u-t-lg{font-size:var(--t-lg)!important}.u-t-xs{font-size:var(--t-xs)!important}.u-t-sm{font-size:var(--t-sm)!important}.u-t-sm{font-size:var(--t-sm)!important}.u-t-md{font-size:var(--t-md)!important}.u-t-md{font-size:var(--t-md)!important}.u-t-md{font-size:var(--t-md)!important}.u-fw-4{font-weight:400!important}.u-fw-7{font-weight:700!important}.u-gap-10{gap:10px!important}.u-gap-12{gap:12px!important}.u-gap-18{gap:18px!important}.u-gap-24{gap:24px!important}.u-gap-6{gap:6px!important}.u-gap-6-14{gap:6px 14px!important}.u-gap-8{gap:8px!important}.u-gap-8-16{gap:8px 16px!important}.u-grow-200{flex:1 1 200px!important}.u-grow-220{flex:1 1 220px!important}.u-i-0{--i:0!important}.u-i-1{--i:1!important}.u-iblock{display:inline-block!important}.u-inline{display:inline!important}.u-m-0-12{margin:0 12px!important}.u-m-0-16-8{margin:0 16px 8px!important}.u-m-10-0-0{margin:10px 0 0!important}.u-m-4-0-0{margin:4px 0 0!important}.u-m-4-0-12{margin:4px 0 12px!important}.u-m-4-0-8{margin:4px 0 8px!important}.u-m-6-0{margin:6px 0!important}.u-m-8-0-12{margin:8px 0 12px!important}.u-m-8-16-14{margin:8px 16px 14px!important}.u-maxw-40ch{max-width:40ch!important}.u-maxw-78ch{max-width:78ch!important}.u-maxw-none{max-width:none!important}.u-mb-10{margin-bottom:10px!important}.u-mb-12{margin-bottom:12px!important}.u-mb-14{margin-bottom:14px!important}.u-mb-6{margin-bottom:6px!important}.u-minh-180{min-height:180px!important}.u-minw-220{min-width:220px!important}.u-minw-520{min-width:520px!important}.u-minw-560{min-width:560px!important}.u-minw-600{min-width:600px!important}.u-minw-640{min-width:640px!important}.u-minw-760{min-width:760px!important}.u-ml-4{margin-left:4px!important}.u-mr-6{margin-right:6px!important}.u-mt-10{margin-top:10px!important}.u-mt-12{margin-top:12px!important}.u-mt-14{margin-top:14px!important}.u-mt-16{margin-top:16px!important}.u-mt-18{margin-top:18px!important}.u-mt-20{margin-top:20px!important}.u-mt-4{margin-top:4px!important}.u-mt-6{margin-top:6px!important}.u-mt-8{margin-top:8px!important}.u-mt-n6{margin-top:-6px!important}.u-nowrap{white-space:nowrap!important}.u-p-0-6{padding:0 6px!important}.u-p-3-12{padding:3px 12px!important}.u-pt-10{padding-top:10px!important}.u-pt-12{padding-top:12px!important}.u-ta-r{text-align:right!important}.u-uc-wkc{--uc:var(--wkc)!important}.u-va-n2{vertical-align:-2px!important}.u-w-1_1em{width:1.1em!important}.u-w-28p{width:28%!important}.u-w-40p{width:40%!important}.u-wrap{flex-wrap:wrap!important}
+
+/* ===== Gossamer layer (Nov 2026 redesign spec): last in the sheet, so it wins over the broadcast and detail layers above ===== */
+/* type: Archivo expanded for headlines and the logo; Barlow Semi Condensed everywhere else (it has no width axis, so 125% leaves it alone) */
+body{font-stretch:125%}
+h1,h2,.hm-h1,.pg-title,.verdict .vd-msg>b:first-child,.team-hero:is(.pl-hero,.tm-hero) h1{font-family:var(--f-head);font-style:normal;font-weight:800;text-transform:uppercase;letter-spacing:-.01em}
+h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:none;letter-spacing:0}
+.board .brand,.sf-mark{font-family:var(--f-head);font-style:italic;font-weight:900}
+.tm-conf-tag{font-family:var(--f-head);font-style:normal}
+.rank,.nthumb.ph,.nthumb.broken,.tk-tag{font-style:normal}
+.mono,.num,.big,.hm-pr,.hm-big,.lvp,.tm-sum,.tile .v,.mv,.side .proj,.wkv,.tlu b{font-family:var(--f-mono);font-weight:700;font-variant-numeric:tabular-nums}
+/* caps on headlines and buttons only; tabs, labels and helper text in sentence case */
+:is(.tabs button,.bnav button,.label,th,.chip,.seg button,.lc-src button,.pie figcaption,.hm-kick,.team-hero .meta,.back,.sf-links a,.tf-l,.bs h4,.wkavg,.wkgap,.wklabs,.hm-tot .tl,.tk-h,.toast-undo,.ex){text-transform:none;letter-spacing:0}
+:is(.btn,.hm-go,.tm-go){text-transform:uppercase;letter-spacing:.04em}
+@media (min-width:761px){th,td{padding:7px 12px}}
+
+/* shape: angled cuts on tabs, buttons and chips; sharp 4px cards; hairlines, no shadows */
+:root{--r-md:4px}
+:is(.tabs button,.btn,.hm-go,.tm-go,.lc-src button,.chip:not(.chips .chip)){border-radius:0;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);padding-left:max(16px,1em);padding-right:max(16px,1em)}
+.seg-th{border-radius:0;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:none}
+.chips,.seg,.lc-src{border-radius:var(--r-sm)}
+/* clip-path hides outlines, so angled controls show focus with an inset ring */
+:is(.tabs button,.btn,.hm-go,.tm-go,.lc-src button,.chip,.seg button):focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ink)}
+:is(.tabs button[aria-selected="true"],.btn.primary,.hm-go.hm-pri,.lc-src button[aria-pressed="true"]):focus-visible{box-shadow:inset 0 0 0 2px var(--accent-ink)}
+.card,.tbl-wrap,.tile,.metric,.hm-install,.verdict,.side{border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:none}
+.tile{border-top:1px solid var(--line)}
+.hint{box-shadow:none}
+
+/* colours that were written as hex in older layers */
+.board .sub,.seg button,.tabs button,.lc-src button{color:var(--ink)}
+.tabs button{background:var(--surface-2)}
+.tabs button[aria-selected="true"],.topbar>.tabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+@media (hover:hover) and (pointer:fine){.tabs button:hover:not([aria-selected="true"]){background:color-mix(in srgb,var(--ink) 10%,var(--surface-2))}}
+.hm-go.hm-pri,.teamed .tile .tr{color:var(--accent-ink)}
+.tile .tr{color:var(--accent)}
+
+/* top bar (frosted, set above): angled tabs that fill orange when active; player sub-tabs match */
+.topbar .tabs{align-items:center;gap:4px}
+.topbar .tabs button,.tmore-btn,.ptabs button{align-self:center;height:36px;box-sizing:border-box;display:flex;align-items:center;padding:0 16px;margin:0;border:0;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);background:var(--surface-2);color:var(--ink);font-family:var(--f-body);font-weight:600;text-transform:none;letter-spacing:0}
+.ptabs{gap:4px;padding-bottom:8px}.ptabs button{height:40px}
+.topbar .tabs button[aria-selected="true"],:root[data-theme="dark"] .topbar .tabs button[aria-selected="true"],.tmore-btn.on,.ptabs button[aria-selected="true"],:root[data-theme="dark"] .ptabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+@media (hover:hover) and (pointer:fine){.topbar .tabs button:hover:not([aria-selected="true"]),.tmore-btn:not(.on):hover,:root[data-theme="dark"] .topbar .tabs button:hover:not([aria-selected="true"]),.ptabs button:hover:not([aria-selected="true"]){background:color-mix(in srgb,var(--ink) 10%,var(--surface-2));color:var(--ink)}}
+.topbar .tabs button:focus-visible,.tmore-btn:focus-visible,.ptabs button:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ink)}
+.topbar .tabs button[aria-selected="true"]:focus-visible,.ptabs button[aria-selected="true"]:focus-visible{box-shadow:inset 0 0 0 2px var(--accent-ink)}
+/* news ticker: a dark broadcast bar with an orange LATEST tag (the light-mode accent, so white text passes in both themes) */
+.topbar>.ticker,.ticker{background:var(--ticker);color:#fff;border-bottom-color:var(--ticker)}
+.ticker .tk-tag,:root[data-theme="dark"] .ticker .tk-tag{background:#C93C18;color:#fff}
+.ticker .tk-h,:root[data-theme="dark"] .ticker .tk-h{color:#FF8A6B;opacity:1}
+.ticker .tk-i::after{background:var(--data);opacity:1}
+@media (max-width:760px){
+  .bnav{background:color-mix(in srgb,var(--surface) 72%,transparent);-webkit-backdrop-filter:blur(20px) saturate(180%);backdrop-filter:blur(20px) saturate(180%);box-shadow:none}
+  .bnav button[aria-current="page"],.bmore button[aria-current="page"]{color:var(--accent)}
+}
+@media (prefers-reduced-transparency:reduce){.bnav{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
+
+/* orange blocks with white text (home banner, Start/Sit verdict) keep the AA light-mode orange in both themes */
+.hm-banner,.verdict,:root[data-theme="dark"] .verdict{--gold:#C93C18;--accent:#C93C18;--gold-hi:#EC4D25;--accent-ink:#FFFFFF}
+:root[data-theme="dark"] .hm-banner{--gold-hi:#FF8A6B}
+.verdict .vd-msg{color:#fff}
+.vd-sq i{border-color:rgba(255,255,255,.55)}
+.vd-who{color:#fff}
+/* outlined buttons lose their corners to the angle, so they become soft fills */
+#hmTeam .btn,:root[data-theme="dark"] #hmTeam .btn{border:0;background:var(--gold-soft);color:var(--accent)}
+.livedot,.tabs button.live::after{background:var(--bad)}
+
+/* teal accents: data signals, never things you tap to choose */
+.sw.model,.sd.model{background:var(--data)}.sd.model{z-index:2}
+:is(#sitesNote,#hmSub):not(:empty)::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--data);margin-right:6px;vertical-align:1px}
+:focus-visible:not(.hm-banner *){outline-color:var(--data-ink)!important}
+:is(.tabs button,.btn,.hm-go,.tm-go,.lc-src button,.chip,.seg button,.tmore-btn,.ptabs button):not([aria-selected="true"],[aria-pressed="true"],.primary,.hm-pri):focus-visible{box-shadow:inset 0 0 0 2px var(--data-ink)}
+.chips .chip:focus-visible{box-shadow:inset 0 0 0 2px var(--data-ink)}  /* the filter highlight is white, not orange, so teal shows on it */
+@media (hover:hover) and (pointer:fine){.tbl-wrap tbody tr:hover td{background:color-mix(in srgb,var(--data) 8%,var(--surface))}}
+
+/* position tags: the same hues as soft tinted pills */
+.pos:is(.QB,.RB,.WR,.TE,.K,.DST){background:color-mix(in srgb,currentColor 13%,var(--surface));font-family:var(--f-body);font-weight:700}
+.pos.QB{color:var(--qb)}.pos.RB{color:var(--rb)}.pos.WR{color:var(--wr)}.pos.TE{color:var(--te)}.pos.K{color:var(--k)}.pos.DST{color:var(--dst)}
+
+/* player and team pages: a solid team-colour hero with a 3px second-colour stripe; everything below stays neutral */
+.teamed::before{display:none}
+.team-hero,.team-hero.stuck{background:linear-gradient(0deg,var(--team-stripe) 0 3px,transparent 3px),var(--team-hero,var(--team));color:#fff;box-shadow:none;border:0}
+.team-hero::after{display:none}
+.team-hero h1,.team-hero .meta,.team-hero .tlink{color:#fff}
+.team-hero .meta{font-family:var(--f-body);font-weight:600;font-size:var(--t-md);opacity:1}
+.team-hero .pos:is(.QB,.RB,.WR,.TE,.K,.DST){background:rgba(0,0,0,.28);color:#fff}
+.teamed .tile,.teamed .card,.teamed .metric{background:var(--surface);border:1px solid var(--line)}
+.teamed .card h3,.teamed>div>h2{padding-left:0;border-left:0}
+.teamed .tbl-wrap th{background:var(--surface-2)}
+.teamed .tile .tr{display:inline;background:none;color:var(--accent);padding:0;margin:0;font-family:var(--f-mono);font-size:inherit;font-weight:700}
+.teamed .back{color:var(--accent)}
+.teamed .src{border-color:var(--line)}
+.teamed .pie path{stroke:var(--surface)}
+
+/* charts drawn in CSS (the fallback before the islands load): flat bars, 2px tops, no ghost track; the projected week in orange */
+.wkt{display:none}
+.wkb{border-radius:2px 2px 0 0}
+.wkb.proj{background:var(--accent-fill);box-shadow:none}
+.wkcol.proj .wkv{color:var(--accent)}
+.wkcol.next .wkgap,.wkl.now b,.wkl.now span{color:var(--wkc-ink)}
+.wktip-r i.hatch{border-radius:50%;background:var(--accent-fill);box-shadow:none}
+.wktip,:root[data-theme="dark"] .wktip{box-shadow:none}
+
+/* motion: a crisp 120ms press everywhere; a small spring on the moments that matter (saving a team) */
+:is(.btn,.chip,.hm-go,.tabs button,.seg button,.lc-src button,.tm-go,.bnav button){transition:transform 120ms var(--ease-out),background-color 120ms var(--ease-out),color 120ms var(--ease-out)}
+:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark):active{transform:scale(.96)}
+:is(#tmAdd,#luAddBtn){transition:transform 220ms var(--ease-spring)}
+:is(#tmAdd,#luAddBtn):active{transform:scale(.92);transition-duration:120ms}
+
+/* phones: 44px tap targets, inputs at 16px so iOS doesn't zoom */
+@media (pointer:coarse){:is(.btn,.hm-go,.lc-src button,.chip:not(.chips .chip)){min-height:44px;display:inline-flex;align-items:center;justify-content:center}}
+@media (max-width:760px){input,select,textarea{font-size:max(16px,1em)}}
+@media (prefers-reduced-motion:reduce){
+  :is(.btn,.chip,.hm-go,.tabs button,.seg button,.lc-src button,.tm-go,.bnav button,#tmAdd,#luAddBtn){transition:none}
+  :is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark,#tmAdd,#luAddBtn):active{transform:none}
+}
 </style>
 </head>
 <body>
@@ -1523,7 +1634,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
       <label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineSites"> <span>My team only <span class="muted mono mine-n"></span></span></label>
       <label class="mine-toggle"><input type="checkbox" id="showSites"> <span>Show each site</span></label>
       <div class="legend">
-        <span><i class="sw espn"></i>ESPN</span><span><i class="sw sleeper"></i>Sleeper</span><span><i class="sw cbs"></i>CBS Sports</span><span><i class="sw fp"></i>FantasyPros experts</span>
+        <span><i class="sw espn"></i>ESPN</span><span><i class="sw sleeper"></i>Sleeper</span><span><i class="sw cbs"></i>CBS Sports</span><span><i class="sw fp"></i>FantasyPros experts</span><span><i class="sw model"></i>Lineup Lab</span>
       </div>
     </div>
     <div class="yahoo-note" id="yahooNote"></div>
@@ -1819,8 +1930,8 @@ Total      = Pts/game × Games left</div>
 // Chart islands (built from charts/ into assets/charts): fetched only when a page first shows one,
 // so the home page and tables never download React.
 (function(){var go=false;function load(){if(go||!document.querySelector('[data-island]'))return;go=true;
-  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=1c656c8e4a';document.head.appendChild(l);
-  import('./assets/charts/islands.js?v=1c656c8e4a').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
+  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=ee1a1dd104';document.head.appendChild(l);
+  import('./assets/charts/islands.js?v=ee1a1dd104').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
   document.addEventListener('DOMContentLoaded',function(){load();if(!go)new MutationObserver(function(_,o){load();if(go)o.disconnect();}).observe(document.body,{childList:true,subtree:true});});})();
 </script>
 <script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data","ticker-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
@@ -3274,7 +3385,8 @@ function renderSites(){
   const cell=(v,s,x)=>v[s]==null?'<td class="r num none">—</td>':`<td class="r num${x.n>1&&v[s]===x.max?' top':''}">${f1(v[s])}</td>`;
   const pgS=pageRows('sites',rows,600,13,(ui.q||'').trim());
   $('#sitesBody').innerHTML=rows.length?pgS.shown.map((x,i)=>{const {r,v}=x;
-    const dots=['espn','sleeper','cbs','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('');
+    const dots=['espn','sleeper','cbs','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('')
+      +(v.model!=null?`<span class="sd model" style="left:${Math.min(100,v.model/maxV*100)}%" title="Lineup Lab: ${f1(v.model)}"></span>`:'');
     const agree=v.n===0?'<span class="muted">—</span>':v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
     return `<tr><td class="rank">${i+1}</td>
       <td class="u-nowrap">${starBtn(r.key)}<span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}" aria-label="${esc(r.name)}">${nmLabel(r.name,r.pos)}</button>`:`<span class="pname">${nmLabel(r.name,r.pos)}</span>`}${r.team?` <span class="muted u-t-sm">${esc(r.team)}</span>`:''}${!past&&RP.has(r.key)?' '+statusPill(RP.get(r.key)):''}${r.team?`<span class="nm-sub">${esc(r.team)}</span>`:''}</td>
@@ -3665,7 +3777,7 @@ function weekCard(p,projV){
   const avg=played.length?played.reduce((a,b)=>a+b,0)/played.length:null;
   const H=200,max=Math.max(8,...vals,avg||0)*1.15,h=v=>Math.max(3,Math.round(H*Math.max(0,v)/max));
   const snaps=p.pos!=='K'&&p.pos!=='DST',n=weeks.length;
-  // grow in once per player (Bklit timing: ~1.1s total, 40% of it spent on the stagger)
+  // grow in each time the page appears; swap() clears WK_SEEN on page changes, so filter re-renders stay instant
   const anim=!WK_SEEN.has(p.key);WK_SEEN.add(p.key);
   const col=(x,i)=>{
     const where=x.o?' '+x.o:'';
@@ -3757,7 +3869,8 @@ function teamVars(t){const [a,b]=TEAM_COLORS[t]||['#1f6b3a','#a87a0c'];const la=
   const stripe=lb>.04?b:hi;const stripeInk=lum(stripe)>.3?'#0A1224':'#ffffff';
   // a black primary (Raiders, Saints, Steelers) tints with the secondary color instead; so do the Titans (light blue) and Browns (orange)
   const rgb=[1,3,5].map(i=>parseInt(a.slice(i,i+2),16)),blk=['TEN','CLE'].includes(t)||(Math.max(...rgb)<=0x30&&Math.max(...rgb)-Math.min(...rgb)<=0x18);
-  return `--team-tint:${blk?b:a};--team-stripe-ink:${stripeInk};--team:${a};--team2:${b};--team-ink:${ink};--team-lo:${lo};--team-lo-ink:${loInk};--team-hi:${hi};--team-hi-ink:${hiInk};--team-stripe:${stripe}`;}
+  let hero=a;while(lum(hero)>.183)hero=mix(hero,'#000000',.08);  // white hero text needs 4.5:1, i.e. luminance ≤ .183
+  return `--team-hero:${hero};--team-tint:${blk?b:a};--team-stripe-ink:${stripeInk};--team:${a};--team2:${b};--team-ink:${ink};--team-lo:${lo};--team-lo-ink:${loInk};--team-hi:${hi};--team-hi-ink:${hiInk};--team-stripe:${stripe}`;}
 function mix(h1,h2,w){const p=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));const x=p(h1),y=p(h2);return '#'+x.map((v,i)=>Math.round(v*(1-w)+y[i]*w).toString(16).padStart(2,'0')).join('');}
 let HEADS=null;
 function headshotOf(p){if(p.pos==='DST')return teamLogo(p.team);
@@ -4031,7 +4144,7 @@ function go(tab,sub,push=true){
   return same?(paint(),Promise.resolve()):swap(paint);}
 // a short cross-fade between pages; without support, or with reduced motion, the page changes at once.
 // Resolves once the new page is in the DOM.
-function swap(fn){if(!document.startViewTransition||calmMQ.matches||document.hidden||swap.kbd){fn();return Promise.resolve();}
+function swap(fn){WK_SEEN.clear();if(!document.startViewTransition||calmMQ.matches||document.hidden||swap.kbd){fn();return Promise.resolve();}
   const t=swap.vt=document.startViewTransition(fn);const end=()=>{if(swap.vt===t)swap.vt=null;};t.ready.catch(()=>{});t.finished.then(end,end);return t.updateCallbackDone;}
 // Mid-fade the browser hit-tests only <html>, so a tap would be lost: end the fade on touch and hand the click to what's under the finger
 document.addEventListener('pointerdown',()=>{swap.kbd=false;if(swap.vt){swap.vt.skipTransition();swap.retap=true;}},true);
@@ -4116,7 +4229,7 @@ document.addEventListener('click',e=>{const p=e.target.closest('[data-pre]');if(
 (function(){const k=KEY+'.theme',mq=matchMedia('(prefers-color-scheme: dark)');
   const pref=()=>{if(ui.theme)return ui.theme;try{return localStorage.getItem(k)||'auto';}catch(_){return 'auto';}};
   const apply=()=>{const p=pref(),d=p==='dark'||(p==='auto'&&mq.matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');
-    const m=$('#themeColor');if(m)m.setAttribute('content',d?'#141414':'#FFFFFF');
+    const m=$('#themeColor');if(m)m.setAttribute('content',d?'#1C1D20':'#FFFFFF');
     document.querySelectorAll('#themeSeg button,#themeSeg2 button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===p));};
   ['#themeSeg','#themeSeg2'].forEach(sel=>{const el=$(sel);if(el)el.onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.theme=b.dataset.v;store(k,ui.theme);apply();};});
   (mq.addEventListener?mq.addEventListener('change',apply):mq.addListener(apply));apply();})();

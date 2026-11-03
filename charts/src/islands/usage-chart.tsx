@@ -2,7 +2,7 @@ import { curveMonotoneX } from "@visx/curve";
 import { Area, AreaChart } from "@/components/charts/area-chart";
 import { Grid } from "@/components/charts/grid";
 import { ChartTooltip } from "@/components/charts/tooltip";
-import { AvgRule, at, ColumnTrack, Diff, GapLabels, Tip, ValueLabels, WeekAxis } from "./parts";
+import { AvgRule, at, Diff, GapLabels, Tip, ValueLabels, WeekAxis } from "./parts";
 
 /** One week as index.html's usageCard() describes it; v is a share in percent. */
 export interface UsageWeek {
@@ -36,7 +36,7 @@ export function UsageChart({ weeks, avg, title, animate = true }: UsageChartProp
     <div className="ll-wk-scroll">
       <div className="ll-wk-inner" style={{ minWidth: `calc(${n} * var(--ll-col, 64px))` }}>
         <AreaChart
-          animationDuration={animate ? 1100 : 0}
+          animationDuration={animate ? 900 : 0}
           aspectRatio="auto"
           className="ll-us-chart"
           data={rows}
@@ -45,8 +45,7 @@ export function UsageChart({ weeks, avg, title, animate = true }: UsageChartProp
           xDomain={[at(weeks[0].w - 0.5), at(weeks[n - 1].w + 0.5)]}
         >
           <Grid fadeHorizontal hideHorizontalEdgeLines horizontal numTicksRows={2} strokeDasharray="0" />
-          {/* a 0% week is a real point: dot and column; a bye or missed game gets neither */}
-          <ColumnTrack weeks={rows.map((x) => x.w)} />
+          {/* a 0% week is a real point with a dot; a bye or missed game gets none */}
           <Area
             animate={animate}
             curve={curveMonotoneX}

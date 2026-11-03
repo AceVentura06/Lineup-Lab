@@ -15,18 +15,6 @@ export function useWeekX() {
 }
 
 /** Faint full-height column behind each listed week. */
-export function ColumnTrack({ weeks }: { weeks: number[] }) {
-  const { innerHeight } = useChart();
-  const { x, width } = useWeekX();
-  return (
-    <g aria-hidden="true">
-      {weeks.map((w) => (
-        <rect fill="var(--chart-1)" height={innerHeight} key={w} opacity={0.07} width={width} x={x(w) - width / 2} y={0} />
-      ))}
-    </g>
-  );
-}
-
 /** "Out" / "Bye" / "Next" in empty columns, so a missing week never reads as zero. */
 export function GapLabels({ gaps }: { gaps: { w: number; label: string; now?: boolean }[] }) {
   const { innerHeight } = useChart();
@@ -34,7 +22,7 @@ export function GapLabels({ gaps }: { gaps: { w: number; label: string; now?: bo
   return (
     <g aria-hidden="true">
       {gaps.map((g) => (
-        <text className="ll-gap" fill={g.now ? "var(--chart-1)" : "var(--chart-label)"} key={g.w} textAnchor="middle" x={x(g.w)} y={innerHeight - 10}>
+        <text className="ll-gap" fill={g.now ? "var(--chart-1-ink)" : "var(--chart-label)"} key={g.w} textAnchor="middle" x={x(g.w)} y={innerHeight - 10}>
           {g.label}
         </text>
       ))}
@@ -53,7 +41,7 @@ export function ValueLabels({ items, gap }: { items: { w: number; v: number; tex
       {items.map((d) => (
         <text
           className="ll-val"
-          fill={d.accent ? "var(--chart-1)" : "var(--chart-foreground)"}
+          fill={d.accent ? "var(--chart-hi-ink)" : "var(--chart-foreground)"}
           key={d.w}
           opacity={hot != null && hot !== d.w ? 0.3 : 1}
           style={{ transition: "opacity .15s ease-in-out" }}
@@ -96,7 +84,7 @@ WeekAxis.__isPostOverlay = true;
 export function AvgRule({ value }: { value: number }) {
   const { yScale, innerWidth } = useChart();
   const y = yScale(value);
-  return <line aria-hidden="true" stroke="var(--wka, var(--chart-1))" strokeDasharray="5 4" strokeWidth={2} x1={0} x2={innerWidth} y1={y} y2={y} />;
+  return <line aria-hidden="true" stroke="var(--wka, var(--accent))" strokeDasharray="5 4" strokeWidth={2} x1={0} x2={innerWidth} y1={y} y2={y} />;
 }
 AvgRule.__isPostOverlay = true;
 
