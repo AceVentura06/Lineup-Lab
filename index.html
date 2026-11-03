@@ -4257,13 +4257,12 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
     el.querySelector('[data-install]').onclick=()=>{ev.prompt();ev.userChoice.finally(()=>{el.hidden=true;});};});
   el.addEventListener('click',e=>{if(e.target.closest('[data-noinstall]')){el.hidden=true;store(KEY+'.noinstall','1');}});
   window.addEventListener('appinstalled',()=>{el.hidden=true;});})();
-// logo: the route draws in once per visit, then replays on hover (mouse) or tap; the click still goes home
+// logo: the route draws in once per visit, then replays on click or tap; the click still goes home
 (function(){const hm=$('.home-mark');if(!hm)return;
-  const play=()=>{hm.classList.remove('rt-play');void hm.offsetWidth;hm.classList.add('rt-play');},fine=matchMedia('(hover:hover) and (pointer:fine)');
+  const play=()=>{hm.classList.remove('rt-play');void hm.offsetWidth;hm.classList.add('rt-play');};
   let seen=true;try{seen=!!sessionStorage.getItem('lineuplab.v1.logo');sessionStorage.setItem('lineuplab.v1.logo','1');}catch(e){}
   if(!seen)play();
-  hm.addEventListener('pointerenter',()=>{if(fine.matches)play();});
-  hm.addEventListener('click',()=>{if(!fine.matches)play();});})();
+  hm.addEventListener('click',play);})();
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
   const pad=(h=tb.offsetHeight)=>{document.documentElement.style.scrollPaddingTop=(h+8)+'px';document.documentElement.style.setProperty('--tbh',h+'px');};
