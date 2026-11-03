@@ -756,6 +756,30 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
   .board .hsearch{flex:1 1 auto;min-width:0}
 }
 .nm-s,.nm-sub{display:none}
+/* Start/Sit on phones: cards instead of the table */
+.wkcards,.wk-sort{display:none}
+@media (max-width:760px){
+  #p-week .bigtbl{display:none}
+  .wk-sort{display:block;flex:1 1 100%}
+  .wk-sort-r{display:flex;gap:8px}.wk-sort-r select{flex:1;min-height:44px;font-size:16px}.wk-sort-r .btn{min-height:44px;white-space:nowrap}
+  .wkcards{display:grid;gap:8px;list-style:none;margin:12px 0 0;padding:0}
+  .wkc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+  .wkc-face{display:grid;grid-template-columns:44px minmax(0,1fr) auto;column-gap:4px;row-gap:2px;align-items:center;padding:4px 14px 8px 0}
+  .wkc .star{grid-row:1;width:44px;height:44px;display:grid;place-items:center;margin:0;font-size:var(--t-lg)}
+  .wkc-nm{display:flex;align-items:center;gap:6px;min-width:0}
+  .wkc-nm .pos{margin:0}
+  .wkc-nm .plink,.wkc-nm .pname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;line-height:44px;border-bottom:0;text-decoration:underline dotted var(--muted);text-underline-offset:3px}
+  .wkc-proj{grid-column:3;text-align:right;font-size:var(--t-xl);line-height:1}
+  .wkc-sub{grid-column:2;display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:var(--t-sm);color:var(--muted);min-width:0}
+  .wkc-call{grid-column:3;text-align:right}
+  .wkc .wkc-more{margin:0;border:0;border-top:1px solid var(--line);border-radius:0}
+  .wkc .wkc-more>summary{min-height:44px;padding:0 14px;font-size:var(--t-sm);color:var(--muted)}
+  .wkc-more>summary .votes+.subn{display:inline;margin-left:8px}
+  .wkc-dl{display:grid;grid-template-columns:repeat(3,1fr);gap:10px 12px;margin:0;padding:4px 14px 14px}
+  .wkc-dl dt{font-size:var(--t-xs);color:var(--muted)}.wkc-dl dd{margin:2px 0 0}
+  .wkc-rg{grid-column:1/-1}
+  .wkcards>.more-row{text-align:center;padding:14px 8px}
+}
 @media (max-width:760px){
   .pin2 td:nth-child(2) .nm-f{display:none}
   .pin2 td:nth-child(2) .nm-s{display:inline}
@@ -1469,7 +1493,11 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
     <div class="sitebar">
       <div class="field u-grow-220"><label class="label" for="wkSearch">Find a player or team</label><input id="wkSearch" enterkeyhint="search" autocapitalize="none" autocorrect="off" type="search" placeholder="e.g. Kittle, or SF"></div>
       <label class="mine-toggle"><input type="checkbox" id="mineOnly" class="mine-cb"> <span>My team only <span class="muted mono mine-n" id="mineCount"></span></span></label>
+      <div class="field wk-sort"><label class="label" for="wkSort">Sort by</label><div class="wk-sort-r"><select id="wkSort">
+        <option value="proj">Projection</option><option value="avg">Avg pts</option><option value="match">Matchup</option><option value="vegas">Vegas</option><option value="tools">Tools</option><option value="ceil">Ceiling</option>
+      </select><button type="button" class="btn sm" id="wkDir"></button></div></div>
     </div>
+    <ol class="wkcards" id="weekCards" aria-label="Players"></ol>
     <div class="tbl-wrap bigtbl"><table class="wk pin2">
       <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="avg">Avg pts</th><th class="sortable" data-sort="match" title="Sort by easiest matchup">Matchup</th><th class="r sortable" data-sort="vegas" title="Team implied points from the betting line">Vegas</th><th class="sortable" data-sort="tools" title="How each start/sit tool votes: green start, gold flex, gray sit">Tools</th><th class="r sortable" data-sort="proj">Projection</th><th class="sortable" data-sort="ceil" title="Sort by ceiling">Floor – ceiling</th><th>Call</th></tr></thead>
       <tbody id="weekBody"></tbody>
@@ -2055,7 +2083,8 @@ function makeCall(all){
 // big tables show 60 rows at a time with a "Show more" button; a search shows every match
 const PAGE=60;ui.more={};
 function pageRows(key,rows,cap,cols,q){const all=Math.min(rows.length,cap),lim=q?all:Math.min(all,ui.more[key]||PAGE),left=all-lim;
-  return {shown:rows.slice(0,lim),moreRow:left>0?`<tr class="more-row"><td colspan="${cols}"><button class="btn sm" data-more="${key}">Show ${Math.min(PAGE,left)} more</button> <span class="note">${lim} of ${all}</span></td></tr>`:''};}
+  const more=left>0?`<button class="btn sm" data-more="${key}">Show ${Math.min(PAGE,left)} more</button> <span class="note">${lim} of ${all}</span>`:'';
+  return {shown:rows.slice(0,lim),more,moreRow:more&&`<tr class="more-row"><td colspan="${cols}">${more}</td></tr>`};}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-more]');if(!b)return;ui.more[b.dataset.more]=(ui.more[b.dataset.more]||PAGE)+PAGE;render();});
 function renderWeek(){
   $('#wkLabel').textContent=S.week;
@@ -2079,6 +2108,12 @@ function renderWeek(){
   const total=rows.length;rows=rows.slice(0,200);const pgW=pageRows('week',rows,200,9,ui.qW.trim());rows=pgW.shown;
   const maxHi=Math.max(1,...rows.map(r=>r.hi));
   $('#wkNote').textContent='';
+  $('#wkSort').value=kW;$('#wkDir').textContent=kW==='match'?(dW===1?'Easiest first':'Toughest first'):(dW===1?'Highest first':'Lowest first');
+  const none=ui.mineOnly?'No starred players yet. Turn off "My team only" and tap ☆ next to your players.':'No players match.';
+  if(PHONE.matches){$('#weekBody').innerHTML='';
+    $('#weekCards').innerHTML=rows.length?rows.map(r=>wkCard(r,call,maxHi)).join('')+(pgW.more?`<li class="more-row">${pgW.more}</li>`:''):`<li class="muted">${none}</li>`;
+    renderH2H();return;}
+  $('#weekCards').innerHTML='';
   $('#weekBody').innerHTML=rows.length?rows.map((r,i)=>{return `<tr>
     <td class="rank">${i+1}</td><td class="u-nowrap">${nameCell(r.p,true)}</td>
     <td class="r num muted">${f1(r.b)}</td><td class="u-nowrap">${onBye(r.p)?'<span class="muted">—</span>':matchPill(r.p)}</td>
@@ -2086,9 +2121,27 @@ function renderWeek(){
     <td>${r.proj>0&&r.p.real?votesBar(consensus(r.p)):'<span class="muted">—</span>'}</td>
     <td class="r big">${f1(r.proj)}${r.sites!=null&&r.proj>0?`<span class="subn">model ${f1(r.model)} · sites ${f1(r.sites)}</span>`:''}</td>
     <td><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></td>
-    <td>${call(r)}</td></tr>`}).join('')+pgW.moreRow:`<tr><td colspan="9" class="muted">${ui.mineOnly?'No starred players yet. Turn off "My team only" and tap ☆ next to your players.':'No players match.'}</td></tr>`;
+    <td>${call(r)}</td></tr>`}).join('')+pgW.moreRow:`<tr><td colspan="9" class="muted">${none}</td></tr>`;
   renderH2H();
 }
+// Phones get a card per player instead of the table: the projection and call on its face, the rest one tap away
+const PHONE=matchMedia('(max-width:760px)');
+PHONE.addEventListener('change',()=>{if(ui.tab==='week')renderWeek();});
+function wkCard(r,call,maxHi){const p=r.p,bye=onBye(p),c=r.proj>0&&p.real?consensus(p):null;
+  const nm=p.real&&PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:`<span class="pname">${esc(p.name)}</span>`;
+  return `<li class="wkc"><div class="wkc-face">${starBtn(p.key||p.id)}
+    <div class="wkc-nm"><span class="pos ${p.pos}">${p.pos}</span>${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}</div>
+    <div class="wkc-proj big">${f1(r.proj)}</div>
+    <div class="wkc-sub">${p.team?`<span>${esc(p.team)}</span>`:''}${bye?'<span class="muted">Bye</span>':matchPill(p)}</div>
+    <div class="wkc-call">${call(r)}</div></div>
+    <details class="tools-d wkc-more"><summary><span>${c?votesBar(c):'<span class="muted">No tool votes</span>'}</span>Details</summary>
+      <dl class="wkc-dl"><div><dt>Avg pts</dt><dd class="num">${f1(r.b)}</dd></div>
+        <div><dt>Vegas</dt><dd class="num">${bye?'—':vegasCell(p)}</dd></div>
+        <div><dt>Model · sites</dt><dd class="num">${r.sites!=null&&r.proj>0?`${f1(r.model)} · ${f1(r.sites)}`:'—'}</dd></div>
+        <div class="wkc-rg"><dt>Floor – ceiling</dt><dd><div class="range">${r.proj?`<div class="track"></div><div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:'<div class="track"></div>'}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></dd></div></dl>
+    </details></li>`;}
+$('#wkSort').onchange=e=>{ui.sortW=e.target.value;ui.dirW=1;renderWeek();};
+$('#wkDir').onclick=()=>{ui.dirW=-(ui.dirW||1);renderWeek();};
 
 function renderH2H(){
   const ps=pool().map(p=>({p,w:weekProj(p)}));
