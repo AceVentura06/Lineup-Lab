@@ -1,7 +1,7 @@
 // Ace Lineup Lab service worker: keeps a copy of the page and its data so the app opens
 // with weak or no signal. Always tries the network first (projections change often) and
 // falls back to the saved copy after a few seconds. Live scores and league APIs are never cached.
-const CACHE = 'lineup-lab-v2';
+const CACHE = 'lineup-lab-v3';  // v3: new fonts.css under the same name (Nov 2026 redesign)
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png'];
 
 self.addEventListener('install', e => {

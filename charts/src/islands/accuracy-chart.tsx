@@ -92,7 +92,7 @@ export function AccuracyChart({ weeks, sources }: AccuracyChartProps) {
   return (
     <div className="ll-acc">
       <LineChart
-        animationDuration={1100}
+        animationDuration={900}
         aspectRatio="auto"
         className="ll-acc-chart"
         data={rows}

@@ -94,7 +94,11 @@
 
 /* ---- Ace Lineup Lab theme: chart tokens follow the site's own tokens, so light/dark and team colours flip with the page ---- */
 .ll-island {
-    --chart-1: var(--wkc, var(--gold));
+    /* teal series by default, the team colour on player and team pages; orange marks the highlighted week */
+    --chart-1: var(--wkc, var(--data));
+    --chart-1-ink: var(--wkc-ink, var(--data-ink));
+    --chart-hi: var(--wkhi, var(--accent-fill));
+    --chart-hi-ink: var(--accent);
     --chart-line-primary: var(--chart-1);
     --chart-background: var(--wkbg, var(--surface));
     --chart-foreground: var(--ink);
@@ -121,7 +125,7 @@
 .ll-island * { border-color: var(--line); }
 
 /* ---- Points by week island ---- */
-.ll-wk-scroll { overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+.ll-wk-scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; }
 .ll-wk-chart { height: 270px; }
 .ll-us-chart { height: 250px; }
 .ll-acc-chart { height: 260px; }
@@ -134,25 +138,25 @@
 .ll-acc-key { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 2px; border: 0; background: none; color: var(--ink); font: 600 .88rem var(--f-body); cursor: pointer; transition: opacity .15s ease-out; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
 .ll-acc-key i { width: 14px; height: 3px; border-radius: var(--r-sm); flex: none; }
 .ll-acc-key i.dash { background: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px) !important; }
-.ll-acc-key:focus-visible { outline: 2px solid var(--chart-1); outline-offset: 2px; border-radius: var(--r-sm); }
-.ll-island svg text { font-family: var(--f-display); }
+.ll-acc-key:focus-visible { outline: 2px solid var(--chart-1-ink); outline-offset: 2px; border-radius: var(--r-sm); }
+.ll-island svg text { font-family: var(--f-body); font-variant-numeric: tabular-nums; }
 .ll-val { font-family: var(--f-mono) !important; font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; paint-order: stroke; stroke: var(--chart-background); stroke-width: 4px; stroke-linejoin: round; }
-.ll-gap { font-family: var(--f-display-cond) !important; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; }
-.ll-wk { fill: var(--chart-foreground); font-size: 14px; text-transform: uppercase; }
-.ll-opp { fill: var(--chart-label); font-family: var(--f-display-cond) !important; font-size: 14px; letter-spacing: .03em; text-transform: uppercase; }
-.ll-axis.now .ll-wk, .ll-axis.now .ll-opp { fill: var(--chart-1); }
+.ll-gap { font-family: var(--f-body) !important; font-weight: 600; font-size: 13px; }
+.ll-wk { fill: var(--chart-foreground); font-weight: 700; font-size: 14px; }
+.ll-opp { fill: var(--chart-label); font-family: var(--f-body) !important; font-size: 14px; }
+.ll-axis.now .ll-wk, .ll-axis.now .ll-opp { fill: var(--chart-1-ink); }
 .ll-tip { min-width: 150px; }
 .ll-tip-h { padding: 8px 12px; border-bottom: 1px solid var(--line); font-weight: 700; font-size: var(--t-md); white-space: nowrap; }
 .ll-tip-r { display: flex; flex-direction: column; gap: 6px; padding: 9px 12px 10px; }
 .ll-tip-r div { display: flex; align-items: center; justify-content: space-between; gap: 16px; font-size: var(--t-sm); }
 .ll-tip-r span { display: flex; align-items: center; gap: 7px; color: var(--chart-tooltip-muted); }
 .ll-tip-r i { width: 8px; height: 8px; border-radius: 50%; background: var(--chart-1); flex: none; }
-.ll-tip-r i.hatch { border-radius: var(--r-sm); background: repeating-linear-gradient(135deg, var(--chart-1) 0 1.5px, transparent 1.5px 3.5px); box-shadow: inset 0 0 0 1px var(--chart-1); }
+.ll-tip-r i.hi { background: var(--chart-hi); }
 .ll-tip-r b { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
 .ll-tip-r b.up { color: var(--chart-positive); }
 .ll-tip-r b.dn { color: var(--chart-negative); }
 @media (max-width: 600px) {
-  .ll-wk-inner { --ll-col: 46px; }
+  .ll-wk-inner { --ll-col: 54px; }  /* Barlow opponent labels ("at NYG") need a little more room than the old condensed face */
   .ll-wk-chart { height: 240px; }
   .ll-us-chart { height: 230px; }
   .ll-acc-chart { height: 230px; }
