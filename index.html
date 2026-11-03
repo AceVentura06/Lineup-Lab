@@ -1352,13 +1352,15 @@ h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:no
 .mono,.num,.big,.hm-pr,.hm-big,.lvp,.tm-sum,.tile .v,.mv,.side .proj,.wkv,.tlu b{font-family:var(--f-mono);font-weight:700;font-variant-numeric:tabular-nums}
 /* caps on headlines and buttons only; tabs, labels and helper text in sentence case */
 :is(.tabs button,.bnav button,.label,th,.chip,.seg button,.lc-src button,.pie figcaption,.hm-kick,.team-hero .meta,.back,.sf-links a,.tf-l,.bs h4,.wkavg,.wkgap,.wklabs,.hm-tot .tl,.tk-h,.toast-undo,.ex){text-transform:none;letter-spacing:0}
-:is(.btn,.hm-go,.tm-go){text-transform:uppercase;letter-spacing:.04em}
+:is(.btn,.hm-go,.tm-go){text-transform:uppercase;letter-spacing:.04em;font-weight:700}
 @media (min-width:761px){th,td{padding:7px 12px}}
 
 /* shape: angled cuts on tabs, buttons and chips; sharp 4px cards; hairlines, no shadows */
 :root{--r-md:4px}
-:is(.tabs button,.btn,.hm-go,.tm-go,.lc-src button,.chip:not(.chips .chip)){border-radius:0;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);padding-left:max(16px,1em);padding-right:max(16px,1em)}
-.seg-th{border-radius:0;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:none}
+.tabs button{border-radius:0;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);padding-left:max(16px,1em);padding-right:max(16px,1em)}
+/* buttons, chips and filters stay plain 4px rectangles: only tabs are angled */
+:is(.btn,.hm-go,.tm-go,.lc-src button,.chip){border-radius:var(--r-sm);clip-path:none}
+.seg-th{border-radius:var(--r-sm);box-shadow:none}
 .chips,.seg,.lc-src{border-radius:var(--r-sm)}
 /* clip-path hides outlines, so angled controls show focus with an inset ring */
 :is(.tabs button,.btn,.hm-go,.tm-go,.lc-src button,.chip,.seg button):focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ink)}
@@ -1400,8 +1402,6 @@ h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:no
 .verdict .vd-msg{color:#fff}
 .vd-sq i{border-color:rgba(255,255,255,.55)}
 .vd-who{color:#fff}
-/* outlined buttons lose their corners to the angle, so they become soft fills */
-#hmTeam .btn,:root[data-theme="dark"] #hmTeam .btn{border:0;background:var(--gold-soft);color:var(--accent)}
 .livedot,.tabs button.live::after{background:var(--bad)}
 
 /* teal accents: data signals, never things you tap to choose */
