@@ -756,6 +756,10 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
   .board .hsearch{flex:1 1 auto;min-width:0}
 }
 .nm-s,.nm-sub{display:none}
+/* the save-on-this-device question */
+.consent{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:65;max-width:560px;margin:0 auto;box-shadow:0 8px 28px rgba(14,23,38,.22)}
+.consent .btn{min-height:44px;box-sizing:border-box;display:inline-flex;align-items:center}.consent h2{margin:0 0 6px;font-size:var(--t-lg)}.consent p{margin:0 0 12px;line-height:1.5}
+@media (max-width:760px){.consent{bottom:calc(70px + env(safe-area-inset-bottom,0px))}}
 /* first-visit setup card on Home */
 .setup{margin-bottom:16px}
 .su-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px}
@@ -1358,6 +1362,11 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 <body>
 
 <a class="skip" href="#main" id="skipLink">Skip to content</a>
+<section class="card consent" id="consent" aria-labelledby="consentH" hidden>
+  <h2 id="consentH">Remember your picks on this device?</h2>
+  <p>Lineup Lab can save your scoring, starred players and league in this browser so they're here next time. It stays on this device, is never sent to us, and there are no cookies.<span id="consentOld" hidden> Choosing No also clears what's already saved.</span></p>
+  <div class="btns"><button type="button" class="btn primary" data-consent="yes">Yes, remember</button><button type="button" class="btn" data-consent="no">No thanks</button></div>
+</section>
 <div class="wrap">
   <div class="topbar" id="topbar">
   <header class="board">
@@ -1758,7 +1767,7 @@ Total      = Pts/game × Games left</div>
     <div class="card legal">
       <p class="lg-lead">Ace Lineup Lab doesn’t collect personal information. There are no accounts, cookies, ads or analytics, and anything you enter stays on your own device.</p>
       <h2>What’s saved on your device</h2>
-      <p>The site uses your browser’s local storage to remember:</p>
+      <p>Only if you say yes when asked, the site uses your browser’s local storage (not cookies) to remember:</p>
       <ul>
         <li>Your settings, such as theme, scoring format, week and how you’ve tuned the model.</li>
         <li>The players you add to your team.</li>
@@ -1766,7 +1775,7 @@ Total      = Pts/game × Games left</div>
         <li>Small things, like the last section you opened and whether you dismissed the install prompt.</li>
       </ul>
       <p>The site also keeps a copy of its pages and data so it opens with weak or no signal. None of this is sent to Ace Lineup Lab. You can remove your league with Disconnect on My Lineup, clear everything below, or clear this site’s data in your browser settings.</p>
-      <div class="btns"><button class="btn sm" type="button" id="lgClear">Clear data saved on this device</button></div>
+      <div class="btns"><button class="btn sm" type="button" id="lgClear">Clear data saved on this device</button><button class="btn sm" type="button" id="lgConsent">Change whether this device saves</button></div>
       <h2>Services your browser connects to</h2>
       <p>To show live information, your browser connects directly to these services. Like any website, they receive your IP address and basic browser details, and their own privacy policies apply.</p>
       <ul>
@@ -1837,7 +1846,7 @@ const DEF_W={match:.12,trend:.08,sched:.06,q:.10,vegas:.5,blend:.5};
 const VOL={QB:.22,RB:.30,WR:.35,TE:.38,K:.35,DST:.45};
 
 let S={players:[],mine:[],scoring:'ppr',week:5,passTD:4,w:{...DEF_W}};
-try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});}}catch(e){}
+try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});if(d&&d.consent)S.consent=d.consent;}}catch(e){}
 S.players=[];if(!Array.isArray(S.mine))S.mine=[];
 // a first visit (nothing saved yet) gets the setup card on Home; S.setup then holds its step (1–3) until 'done'
 try{if(!localStorage.getItem(KEY))S.setup=1;}catch(_){}
@@ -1848,7 +1857,9 @@ if(S.teams.length&&!S.teams.some(t=>t.id===S.tid))S.tid=S.teams[0].id;
 if(typeof SITE_DATA!=='undefined'&&SITE_DATA.week)S.week=SITE_DATA.week;
 let ui={tab:'home',posW:'All',posR:'All',a:null,b:null,editing:null,qW:'',mineOnly:false};
 
-function save(){stashTeam();try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function save(){stashTeam();store(KEY,JSON.stringify(S));}
+// Nothing is written to this device until the visitor says yes to saving (S.consent); until then the site works but forgets on reload
+function store(k,v){if(S.consent!=='yes')return;try{localStorage.setItem(k,v);}catch(_){}}
 function curTeam(){return S.teams.find(t=>t.id===S.tid)||null;}
 // copy the picked team's roster and league into its slot (starring with no team yet makes one)
 function stashTeam(){
@@ -2967,7 +2978,7 @@ let SEEN={cur:null,prev:null};
 try{const d=JSON.parse(localStorage.getItem(SEEN_KEY)||'null');if(d&&typeof d==='object')SEEN={cur:d.cur||null,prev:d.prev||null};}catch(_){}
 const newVisit=()=>{if(SEEN.cur&&Date.now()-SEEN.cur.t>VISIT_GAP){SEEN.prev=SEEN.cur;return true;}return false;};
 newVisit();
-const saveSeen=()=>{try{localStorage.setItem(SEEN_KEY,JSON.stringify(SEEN));}catch(_){}};
+const saveSeen=()=>store(SEEN_KEY,JSON.stringify(SEEN));
 const ST_LBL={Healthy:'no injury tag',Questionable:'Questionable',Doubtful:'Doubtful',Out:'Out',IR:'on injured reserve'};
 const ST_SEV={Healthy:0,Questionable:1,Doubtful:2,Out:3,IR:4};
 const PC_LBL={DNP:'Did not practice',LP:'Limited in practice',FP:'Full practice'};
@@ -3301,7 +3312,7 @@ function siteDetail(v){const ks=['espn','sleeper','cbs','fp'].filter(k=>v[k]!=nu
     if(Math.abs(far.d)>=2)why=`${SITE_NM[far.k]} is the ${far.d>0?'high':'low'} outlier, ${f1(Math.abs(far.d))} points ${far.d>0?'above':'below'} the others.`;}
   return `<tr class="sdet"><td></td><td colspan="12"><div class="sdet-in">${ks.map(k=>`<span>${SITE_NM[k]} <b class="num">${f1(v[k])}</b></span>`).join('')}${why?`<span class="muted">${why}</span>`:''}</div></td></tr>`;}
 try{ui.showSites=localStorage.getItem(KEY+'.showSites')==='1';}catch(_){}
-$('#showSites').onchange=e=>{ui.showSites=e.target.checked;try{localStorage.setItem(KEY+'.showSites',ui.showSites?'1':'');}catch(_){}renderSites();};
+$('#showSites').onchange=e=>{ui.showSites=e.target.checked;store(KEY+'.showSites',ui.showSites?'1':'');renderSites();};
 $('#sitesBody').addEventListener('click',e=>{const b=e.target.closest('.sx');if(!b)return;ui.sx[b.dataset.sx]=!ui.sx[b.dataset.sx];renderSites();});
 document.querySelector('table.sites thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if(ui.sortS===th.dataset.sort)ui.dirS=-(ui.dirS||1);else{ui.sortS=th.dataset.sort;ui.dirS=1;}renderSites();};
 
@@ -3971,13 +3982,13 @@ function popHide(p){p.classList.remove('open');clearTimeout(p._hid);p._hid=setTi
   pairs.forEach(([b,p])=>{b.onclick=e=>{e.stopPropagation();const open=!p.classList.contains('open');close(p);if(open)popShow(p);else popHide(p);b.setAttribute('aria-expanded',String(open));if(open&&p.id==='ctxPop')segThumb($('#scoringSeg'),true);};});
   document.addEventListener('click',e=>{if(!e.target.closest('.pop,#ctxBtn,#tMoreBtn'))close();});
   document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;const o=pairs.find(([b,p])=>p.classList.contains('open'));if(o){close();o[0].focus();}});
-  const m=$('#tMoreMenu');if(m)m.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;close();try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);});})();
+  const m=$('#tMoreMenu');if(m)m.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;close();store(KEY+'.tab',b.dataset.tab);go(b.dataset.tab);});})();
 // phone: the search field folds into an icon in the bar
 (function(){const b=$('#srchBtn'),tb=$('#topbar');if(!b||!tb)return;b.onclick=()=>{const on=!tb.classList.contains('srch-open');tb.classList.toggle('srch-open',on);b.setAttribute('aria-expanded',String(on));if(on)$('#hSearch').focus();};
   $('#hSearch').addEventListener('keydown',e=>{if(e.key==='Escape'&&tb.classList.contains('srch-open')){tb.classList.remove('srch-open');b.setAttribute('aria-expanded','false');b.focus();}});})();
 // the ticker can be paused (and stays paused for this visit)
 (function(){const b=$('#tkPause'),t=$('#ticker');if(!b||!t)return;b.onclick=()=>{const on=!t.classList.contains('paused');t.classList.toggle('paused',on);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',on?'Play the ticker':'Pause the ticker');};})();
-document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button[data-tab]');if(!b)return;try{localStorage.setItem(KEY+'.tab',b.dataset.tab)}catch(_){}go(b.dataset.tab);};
+document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button[data-tab]');if(!b)return;store(KEY+'.tab',b.dataset.tab);go(b.dataset.tab);};
 // Browser history: every tab and player page gets its own address, so Back and Forward move around the site
 // (and a link like …/#player=puka-nacua opens straight to that page)
 // ---- header search: jump to any player's page ----
@@ -3993,7 +4004,7 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button[dat
   inp.addEventListener('input',()=>open(true));
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});});})();
 // ---- first-visit setup: three short steps in a card on Home. Asks nothing personal; skipping or finishing hides it for good. ----
-function renderSetup(focus){const el=$('#setup'),n=S.setup;el.hidden=!(n>=1&&n<=3);if(el.hidden){el.innerHTML='';return;}
+function renderSetup(focus){const el=$('#setup'),n=S.setup;el.hidden=!(S.consent&&n>=1&&n<=3);   // waits for the save questionif(el.hidden){el.innerHTML='';return;}
   const rec=SC().rec,steps=[
     ['Pick your scoring','How many points does your league give for a catch? You can change it later from the week and scoring button at the top.',
       `<div class="seg" role="group" aria-label="Scoring format">${[['ppr',1,'PPR'],['half',.5,'Half PPR'],['std',0,'Standard']].map(([v,r,l])=>`<button type="button" data-v="${v}" aria-pressed="${rec===r}">${l}</button>`).join('')}</div>`],
@@ -4056,6 +4067,16 @@ window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Mat
 $('#blendAuto').onchange=e=>{S.blendAuto=e.target.checked;save();renderModel();};
 $('#resetW').onclick=()=>{S.w={...DEF_W};S.blendAuto=true;save();render();toast('Weights reset');};
 
+// ---- "Remember your picks on this device?" Asked on every visit until someone says yes; Privacy can ask again ----
+function askConsent(){const c=$('#consent');let old=false;try{old=Object.keys(localStorage).some(k=>k.startsWith('lineuplab'));}catch(_){}
+  $('#consentOld').hidden=!old;c.hidden=false;}
+if(!S.consent)askConsent();
+$('#consent').addEventListener('click',e=>{const b=e.target.closest('[data-consent]');if(!b)return;$('#consent').hidden=true;
+  if(b.dataset.consent==='yes'){S.consent='yes';save();saveSeen();if(ui.theme)store(KEY+'.theme',ui.theme);if(ui.showSites)store(KEY+'.showSites','1');toast('Saved on this device');}
+  // No: forget everything and write nothing, not even the answer, so the next visit asks again
+  else{S.consent='no';try{Object.keys(localStorage).filter(k=>k.startsWith('lineuplab')).forEach(k=>localStorage.removeItem(k));}catch(_){}toast('Nothing will be saved on this device');}
+  renderSetup(true);});
+$('#lgConsent').onclick=askConsent;
 // ---- footer year, and Privacy's "clear data saved on this device" (tap twice to confirm) ----
 (function(){const y=$('#sfYear');if(y)y.textContent=new Date().getFullYear();
   const b=$('#lgClear');if(!b)return;const label=b.textContent;let armed=0;
@@ -4071,7 +4092,7 @@ function syncBnav(){const tb=ui.tab;let inMore=false;
   const tt=$('#t-trade'),bt=$('#bmore [data-tab="trade"]');if(tt&&bt)bt.hidden=tt.hidden;}
 (function(){const nav=$('#bnav'),more=$('#bmore'),mb=nav&&nav.querySelector('[data-more]');if(!nav||!more)return;
   const close=()=>{more.hidden=true;mb.setAttribute('aria-expanded','false');};
-  const open=tab=>{close();try{localStorage.setItem(KEY+'.tab',tab)}catch(_){}go(tab);};
+  const open=tab=>{close();store(KEY+'.tab',tab);go(tab);};
   nav.onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b===mb){more.hidden=!more.hidden;mb.setAttribute('aria-expanded',String(!more.hidden));return;}open(b.dataset.tab);};
   more.onclick=e=>{const b=e.target.closest('[data-tab]');if(b)open(b.dataset.tab);};
   document.addEventListener('click',e=>{if(!more.hidden&&!e.target.closest('#bmore,#bnav'))close();});
@@ -4112,11 +4133,11 @@ document.addEventListener('click',e=>{const p=e.target.closest('[data-pre]');if(
 
 // ---- theme ----
 (function(){const k=KEY+'.theme',mq=matchMedia('(prefers-color-scheme: dark)');
-  const pref=()=>{try{return localStorage.getItem(k)||'auto';}catch(_){return 'auto';}};
+  const pref=()=>{if(ui.theme)return ui.theme;try{return localStorage.getItem(k)||'auto';}catch(_){return 'auto';}};
   const apply=()=>{const p=pref(),d=p==='dark'||(p==='auto'&&mq.matches);document.documentElement.setAttribute('data-theme',d?'dark':'light');
     const m=$('#themeColor');if(m)m.setAttribute('content',d?'#141414':'#FFFFFF');
     document.querySelectorAll('#themeSeg button,#themeSeg2 button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===p));};
-  ['#themeSeg','#themeSeg2'].forEach(sel=>{const el=$(sel);if(el)el.onclick=e=>{const b=e.target.closest('button');if(!b)return;try{localStorage.setItem(k,b.dataset.v);}catch(_){}apply();};});
+  ['#themeSeg','#themeSeg2'].forEach(sel=>{const el=$(sel);if(el)el.onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.theme=b.dataset.v;store(k,ui.theme);apply();};});
   (mq.addEventListener?mq.addEventListener('change',apply):mq.addListener(apply));apply();})();
 // ---- installable app: offline copy, and a one-time "add to home screen" hint on phones ----
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
@@ -4130,7 +4151,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();const ev=e;
     show('<p><b>Get the app.</b> Install Lineup Lab on your home screen. It opens full-screen and works with weak signal.</p><button class="btn primary sm" data-install>Install</button>');
     el.querySelector('[data-install]').onclick=()=>{ev.prompt();ev.userChoice.finally(()=>{el.hidden=true;});};});
-  el.addEventListener('click',e=>{if(e.target.closest('[data-noinstall]')){el.hidden=true;try{localStorage.setItem(KEY+'.noinstall','1');}catch(_){}}});
+  el.addEventListener('click',e=>{if(e.target.closest('[data-noinstall]')){el.hidden=true;store(KEY+'.noinstall','1');}});
   window.addEventListener('appinstalled',()=>{el.hidden=true;});})();
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
