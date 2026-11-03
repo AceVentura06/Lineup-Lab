@@ -443,6 +443,11 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 @keyframes rt-pop{from{transform:scale(0)}to{transform:none}}
 @media (prefers-reduced-motion:no-preference){.rt-play .rt-route{animation:rt-draw 800ms cubic-bezier(.23,1,.32,1) 150ms both}.rt-play .rt-ball{animation:rt-pop 360ms cubic-bezier(.34,1.56,.64,1) both}}
 .fl .rt-play :is(.rt-route,.rt-ball){animation-play-state:paused}   /* wait for the font, so the route draws over a real A */
+/* phone splash: the A draws in full screen on the first open of a visit, then fades to the page */
+.rt-splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--bg);color:var(--ink);transition:opacity 400ms var(--ease-out)}
+.rt-splash>span{font-family:var(--f-head);font-style:italic;font-weight:900;font-stretch:125%;font-size:min(56vw,40vh);line-height:1;margin-right:-.1em}
+.rt-splash .rt-dot{stroke-dasharray:1 11}
+.rt-splash.out{opacity:0;pointer-events:none}
 .board .sub{color:#3A475C;opacity:1}
 .ctl .label{opacity:1;color:var(--muted)}
 .seg{border:0;background:var(--surface-2);padding:3px;border-radius:var(--r-sm);gap:2px}
@@ -1466,6 +1471,9 @@ h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:no
 </style>
 </head>
 <body>
+<script>/* phone splash: shown before first paint so the page never flashes under it; the logo script below fades it */
+(function(){try{if(sessionStorage.getItem('lineuplab.v1.logo')||!matchMedia('(max-width:760px) and (prefers-reduced-motion:no-preference)').matches)return;}catch(e){return;}
+document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span class="rt-play"><span class="rt-a">A<svg class="rt-route" viewBox="15 24 70 66"><path class="rt-dot" d="M18 86C40 84 62 70 76 34"/><path d="M68 38 77 28 82 41"/></svg><i class="rt-ball"></i></span></span></div>');})();</script>
 
 <a class="skip" href="#main" id="skipLink">Skip to content</a>
 <section class="card consent" id="consent" aria-labelledby="consentH" hidden>
@@ -4261,7 +4269,11 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 (function(){const hm=$('.home-mark');if(!hm)return;
   const play=()=>{hm.classList.remove('rt-play');void hm.offsetWidth;hm.classList.add('rt-play');};
   let seen=true;try{seen=!!sessionStorage.getItem('lineuplab.v1.logo');sessionStorage.setItem('lineuplab.v1.logo','1');}catch(e){}
-  if(!seen)play();
+  const sp=$('#rtSplash');
+  if(sp){// the route draws (after the font settles), a beat, then fade; a tap skips ahead, and 3.5s is the cap
+    const out=()=>{if(sp.classList.contains('out'))return;sp.classList.add('out');play();setTimeout(()=>sp.remove(),450);};
+    sp.querySelector('.rt-route').addEventListener('animationend',()=>setTimeout(out,400));setTimeout(out,3500);sp.addEventListener('pointerdown',out);
+  }else if(!seen)play();
   hm.addEventListener('click',play);})();
 // keep the top area slim after scrolling, and make in-page jumps land below it
 (function(){const tb=$('#topbar');if(!tb)return;let on=false;
