@@ -1300,7 +1300,9 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 @media (hover:hover) and (pointer:fine){:is(a,.hm-link2):hover{text-decoration-color:currentColor}}
 .lc-src{position:relative;display:inline-flex;gap:2px;padding:3px;border-radius:var(--r-md);background:var(--surface-2);width:fit-content;max-width:100%}
 .lc-src button{font-family:var(--f-display-cond);font-weight:400;font-size:var(--t-base);letter-spacing:.03em;border-radius:var(--r-md);padding:7px 16px;background:transparent;color:var(--muted)}
-.lc-src button[aria-pressed="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{background:var(--gold);color:var(--accent-ink)}
+.lc-src button{position:relative;z-index:1}
+.lc-src button[aria-pressed="true"],:root[data-theme="dark"] .lc-src button[aria-pressed="true"]{background:transparent;color:var(--accent-ink)}
+.lc-src .seg-th,:root[data-theme="dark"] .lc-src .seg-th{background:var(--gold)}
 
 /* keyboard focus on the remaining text-style buttons */
 :is(.hm-link,.hm-link2,.tk-a,.olink):focus-visible{outline:2px solid currentColor;outline-offset:2px;border-radius:var(--r-sm)}
@@ -2164,24 +2166,24 @@ function matchPill(p,detail=false){   // detail: also show points allowed (head-
 }
 
 // A segmented control's highlight slides from the old choice to the new one. It starts from where it last was
-// (remembered per control, since chips are redrawn), runs on transform only, and is skipped for reduced motion.
-const SEG_AT=new WeakMap(),calmMQ=matchMedia('(prefers-reduced-motion: reduce)');
+// (remembered per control, since chips are redrawn; by id when the whole control is redrawn), runs on transform only, and is skipped for reduced motion.
+const SEG_AT=new WeakMap(),SEG_ID=new Map(),calmMQ=matchMedia('(prefers-reduced-motion: reduce)');
 function segThumb(el,instant){if(!el)return;const on=el.querySelector('[aria-pressed="true"]');let th=el.querySelector(':scope>.seg-th');
   if(!on||!el.offsetParent){if(th)th.style.opacity='0';return;}
   if(!th){th=document.createElement('span');th.className='seg-th';th.setAttribute('aria-hidden','true');el.prepend(th);}
-  const to={x:on.offsetLeft,y:on.offsetTop,w:on.offsetWidth,h:on.offsetHeight},key=el,from=SEG_AT.get(key);
+  const to={x:on.offsetLeft,y:on.offsetTop,w:on.offsetWidth,h:on.offsetHeight},from=el.id?SEG_ID.get(el.id):SEG_AT.get(el);
   const put=p=>{th.style.width=p.w+'px';th.style.height=p.h+'px';th.style.transform=`translate(${p.x}px,${p.y}px)`;};
   // already there (or on its way there): leave a running slide alone
   if(from&&th.style.opacity==='1'&&from.x===to.x&&from.y===to.y&&from.w===to.w&&from.h===to.h)return;
   th.style.opacity='1';th.style.transition='none';
   if(from&&!instant&&!calmMQ.matches&&(from.x!==to.x||from.y!==to.y)){put(from);th.getBoundingClientRect();th.style.transition='';}
-  put(to);SEG_AT.set(key,to);}
-window.addEventListener('resize',()=>document.querySelectorAll('.chips,.seg').forEach(e=>segThumb(e,true)));
+  put(to);if(el.id)SEG_ID.set(el.id,to);else SEG_AT.set(el,to);}
+window.addEventListener('resize',()=>document.querySelectorAll('.chips,.seg,.lc-src').forEach(e=>segThumb(e,true)));
 // every segmented control on the site, however it gets drawn or switched, keeps its highlight in place
 new MutationObserver(ms=>{const set=new Set();
-  for(const m of ms){const t=m.target.nodeType===1?m.target:m.target.parentElement,c=t&&t.closest&&t.closest('.seg,.chips');if(c)set.add(c);
-    if(m.attributeName==='hidden'&&t&&!t.hidden&&t.querySelectorAll)t.querySelectorAll('.seg,.chips').forEach(x=>set.add(x));
-    if(m.type==='childList')m.addedNodes.forEach(n=>{if(n.nodeType!==1)return;if(n.matches('.seg,.chips'))set.add(n);n.querySelectorAll('.seg,.chips').forEach(x=>set.add(x));});}
+  for(const m of ms){const t=m.target.nodeType===1?m.target:m.target.parentElement,c=t&&t.closest&&t.closest('.seg,.chips,.lc-src');if(c)set.add(c);
+    if(m.attributeName==='hidden'&&t&&!t.hidden&&t.querySelectorAll)t.querySelectorAll('.seg,.chips,.lc-src').forEach(x=>set.add(x));
+    if(m.type==='childList')m.addedNodes.forEach(n=>{if(n.nodeType!==1)return;if(n.matches('.seg,.chips,.lc-src'))set.add(n);n.querySelectorAll('.seg,.chips,.lc-src').forEach(x=>set.add(x));});}
   if(set.size)requestAnimationFrame(()=>set.forEach(e=>segThumb(e)));}).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['aria-pressed','hidden']});
 function chips(el,cur,key){
   const pos=['All','QB','RB','WR','TE','K','DST'];
@@ -2923,7 +2925,7 @@ function renderConnect(){const el=$('#luConnect');if(!el)return;const L=S.league
     :`<div class="lc-err">No ${lseason()} leagues found for that Sleeper account.</div>`;
   else if(o&&o.kind==='teams')body=`<p class="note">${esc(o.lg.name)}: which team is yours?</p><div class="lc-pick">${o.lg.teams.map((t,i)=>`<button data-lc="pickT" data-i="${i}"><b>${esc(t.name)}</b><span>${esc(t.owner||t.abbrev)}</span></button>`).join('')}</div>`;
   el.innerHTML=`<div><h3>Connect your league</h3><p class="note u-mt-4">Read-only: nothing is changed in your league.</p></div>
-    <div class="lc-src" role="group" aria-label="Fantasy site"><button data-lc="src" data-v="sleeper" aria-pressed="${src==='sleeper'}">${lcLogo('sleeper.com')}Sleeper</button><button data-lc="src" data-v="espn" aria-pressed="${src==='espn'}">${lcLogo('fantasy.espn.com')}ESPN</button></div>
+    <div class="lc-src" id="lcSrc" role="group" aria-label="Fantasy site"><button data-lc="src" data-v="sleeper" aria-pressed="${src==='sleeper'}">${lcLogo('sleeper.com')}Sleeper</button><button data-lc="src" data-v="espn" aria-pressed="${src==='espn'}">${lcLogo('fantasy.espn.com')}ESPN</button></div>
     ${src==='espn'?`<div class="lc-warn" role="note"><b>Public ESPN leagues only.</b> ESPN doesn't let outside sites read private leagues. If yours is private, your league manager can turn on "Make League Viewable to Public" in League Settings, or you can add your players by hand below.</div>`:''}
     <form class="lc-form" id="lcForm">${src==='sleeper'
       ?`<div class="field"><label class="label" for="lcIn">Sleeper username</label><input id="lcIn" autocomplete="off" spellcheck="false" autocapitalize="none" autocorrect="off" enterkeyhint="go" placeholder="Your Sleeper username" value="${esc(LC.inSleeper||'')}"></div><button class="btn primary" type="submit" ${LC.busy?'disabled':''}>${LC.busy?'Looking…':'Find my leagues'}</button>`
