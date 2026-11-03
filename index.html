@@ -1233,6 +1233,12 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 
 /* ===== Motion and touch polish ===== */
 :root{--ease-out:cubic-bezier(.23,1,.32,1)}
+/* page changes (go(), Back/Forward): a short cross-fade of the page; the top bar and phone bottom bar hold still.
+   A tap mid-fade ends it and still lands (see swap()). */
+.topbar{view-transition-name:topbar}.bnav{view-transition-name:bnav}
+::view-transition-old(root),::view-transition-new(root){animation-duration:180ms;animation-timing-function:var(--ease-out)}
+::view-transition-group(topbar),::view-transition-group(bnav),::view-transition-new(topbar),::view-transition-new(bnav){animation:none}
+::view-transition-old(topbar),::view-transition-old(bnav){display:none}
 /* fold-outs ease open where the browser supports animating to "auto" height; elsewhere they open instantly */
 .tools-d,.more-d{interpolate-size:allow-keywords}
 .tools-d::details-content,.more-d::details-content{block-size:0;overflow:hidden;opacity:0;transition:block-size 200ms ease-out,opacity 150ms ease-out,content-visibility 200ms ease-out allow-discrete}
@@ -3074,7 +3080,7 @@ function renderHome(){
 }
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){if(g.tagName==='A'){if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;e.preventDefault();}go(g.dataset.go);return;}
   const h=e.target.closest('[data-hp]');if(h){ui.homePos=h.dataset.hp;renderHome();requestAnimationFrame(()=>segThumb($('#hmPick')));return;}
-  const c=e.target.closest('[data-cmp]');if(c){const [a,b]=c.dataset.cmp.split('|');ui.a=a;ui.b=b;go('week');const el=$('#p-week .h2h');if(el)el.scrollIntoView({block:'start'});}});
+  const c=e.target.closest('[data-cmp]');if(c){const [a,b]=c.dataset.cmp.split('|');ui.a=a;ui.b=b;go('week').then(()=>{const el=$('#p-week .h2h');if(el)el.scrollIntoView({block:'start'});});}});
 // ---- my team: stars and the shared "My team only" filter ----
 function starBtn(k){const on=S.mine.includes(k);return `<button class="star${on?' on':''}" data-star="${esc(k)}" aria-pressed="${on}" aria-label="${on?'Remove from':'Add to'} my team" title="${on?'On my team':'Add to my team'}">${on?'★':'☆'}</button>`;}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-star]');if(!b)return;const k=b.dataset.star;
@@ -3936,18 +3942,27 @@ function readHash(){const h=decodeURIComponent(location.hash.slice(1));
 function cur(){return ui.tab==='player'?ui.player:ui.tab==='dvp'?ui.dvpTeam||null:null;}
 function apply(tab,sub,ptab){ui.tab=tab;if(tab==='player'&&sub){ui.player=sub;pTab=ptab||'ov';pTabK=sub;}if(tab==='dvp')ui.dvpTeam=sub||null;}
 function go(tab,sub,push=true){
-  if(tab===ui.tab&&(sub||null)===cur())push=false;   // same page: no extra Back step
+  const same=tab===ui.tab&&(sub||null)===cur();if(same)push=false;   // same page: no extra Back step, no fade
   apply(tab,sub);
   if(push){try{history.pushState({tab,player:sub||null},'',hashFor(tab,sub));navDepth++;}catch(_){}}
-  render();
   // back to the team list: keep the team you just left in view
-  const card=tab==='dvp'&&!sub&&lastDvp&&document.querySelector(`.tm-card[data-tm="${lastDvp}"]`);
-  if(card&&card.scrollIntoView)card.scrollIntoView({block:'center'});else window.scrollTo(0,0);
-  if(tab==='dvp'&&sub)lastDvp=sub;}
+  const paint=()=>{render();const card=tab==='dvp'&&!sub&&lastDvp&&document.querySelector(`.tm-card[data-tm="${lastDvp}"]`);
+    if(card&&card.scrollIntoView)card.scrollIntoView({block:'center'});else window.scrollTo(0,0);};
+  if(tab==='dvp'&&sub)lastDvp=sub;
+  return same?(paint(),Promise.resolve()):swap(paint);}
+// a short cross-fade between pages; without support, or with reduced motion, the page changes at once.
+// Resolves once the new page is in the DOM.
+function swap(fn){if(!document.startViewTransition||calmMQ.matches||document.hidden||swap.kbd){fn();return Promise.resolve();}
+  const t=swap.vt=document.startViewTransition(fn);const end=()=>{if(swap.vt===t)swap.vt=null;};t.ready.catch(()=>{});t.finished.then(end,end);return t.updateCallbackDone;}
+// Mid-fade the browser hit-tests only <html>, so a tap would be lost: end the fade on touch and hand the click to what's under the finger
+document.addEventListener('pointerdown',()=>{swap.kbd=false;if(swap.vt){swap.vt.skipTransition();swap.retap=true;}},true);
+document.addEventListener('keydown',()=>{swap.kbd=true;},true);   // keyboard-driven page changes stay instant
+document.addEventListener('click',e=>{if(!swap.retap)return;swap.retap=false;if(e.target!==document.documentElement)return;
+  const el=document.elementFromPoint(e.clientX,e.clientY);if(el&&el!==document.documentElement){e.stopPropagation();el.click();}},true);
 let lastDvp=null;
 window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Math.max(0,navDepth-1);
-  if(st.tab==='player'&&!PL.has(st.player))st.tab='home';apply(st.tab,st.player,st.ptab);render();
-  const card=st.tab==='dvp'&&!st.player&&lastDvp&&document.querySelector(`.tm-card[data-tm="${lastDvp}"]`);if(card)card.scrollIntoView({block:'center'});else window.scrollTo(0,0);});
+  if(st.tab==='player'&&!PL.has(st.player))st.tab='home';apply(st.tab,st.player,st.ptab);swap(()=>{render();
+  const card=st.tab==='dvp'&&!st.player&&lastDvp&&document.querySelector(`.tm-card[data-tm="${lastDvp}"]`);if(card)card.scrollIntoView({block:'center'});else window.scrollTo(0,0);});});
 (function(){const st=readHash();if(location.hash&&(st.tab!=='home'||location.hash==='#home')){apply(st.tab,st.player,st.ptab);render();}
   const pt=ui.tab==='player'?pTab:null;try{history.replaceState({tab:ui.tab,player:cur(),ptab:pt},'',hashFor(ui.tab,cur(),pt));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);if(k==='blend')S.blendAuto=false;save();renderModel();});
