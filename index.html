@@ -58,6 +58,7 @@ img{max-width:100%}
   /* Gossamer: orange leads, teal carries data, green marks good outcomes, graphite base. Text-bearing shades are AA-adjusted. */
   --bg:#FAFAFA; --surface:#FFFFFF; --surface-2:#ECECEE; --line:#CDCDCF; --ink:#1A1B1E; --muted:#62656B;
   --accent:#C93C18; --accent-fill:#EC4D25; --data:#2BCFCE; --data-ink:#0E7C7B; --ticker:#1A1B1E;
+  --box-line:color-mix(in srgb,var(--data) 45%,var(--surface));  /* faint teal outline on cards, tiles and tables */
   /* older names, kept so every rule follows the new accent */
   --turf:var(--accent); --turf-soft:#FEF2EE; --gold:var(--accent); --gold-soft:#FEF2EE; --gold-hi:var(--accent-fill); --accent-ink:#FFFFFF; --red:var(--accent);
   /* verdicts: Start green, Sit a red apart from the brand orange, Risky amber */
@@ -603,7 +604,7 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 /* ---- dark mode: set by data-theme on <html> (follows the phone/computer setting unless chosen in the header) ---- */
 :root[data-theme="dark"]{
   --bg:#111214; --surface:#1C1D20; --surface-2:#25262A; --line:#2C2D31; --ink:#FAFAFA; --muted:#939599;
-  --accent:#FF6B45; --accent-fill:#FF6B45; --data:#2BCFCE; --data-ink:#2BCFCE; --accent-ink:#1A1B1E;
+  --accent:#FF6B45; --accent-fill:#FF6B45; --data:#2BCFCE; --data-ink:#2BCFCE; --accent-ink:#1A1B1E; --box-line:color-mix(in srgb,var(--data) 35%,var(--surface));
   --turf-soft:#3A221B; --gold-soft:#3A221B; --gold-hi:#FF8A6B;
   --good:#4CC583; --good-soft:#15301F; --warn:#FFB547; --warn-soft:#3A2C14; --bad:#FF5A6E; --bad-soft:#3A1A20;
   --qb:#B794E6; --rb:#4CC583; --wr:#6EA4FF; --te:#F09A55; --k:#A3A6AD; --dst:#F07C9C;
@@ -1367,8 +1368,9 @@ h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:no
 /* clip-path hides outlines, so angled controls show focus with an inset ring */
 :is(.tabs button,.btn,.hm-go,.tm-go,.lc-src button,.chip,.seg button):focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ink)}
 :is(.tabs button[aria-selected="true"],.btn.primary,.hm-go.hm-pri,.lc-src button[aria-pressed="true"]):focus-visible{box-shadow:inset 0 0 0 2px var(--accent-ink)}
-.card,.tbl-wrap,.tile,.metric,.hm-install,.verdict,.side{border:1px solid var(--line);border-radius:var(--r-sm);box-shadow:none}
-.tile{border-top:1px solid var(--line)}
+.card,.tbl-wrap,.tile,.metric,.hm-install,.side{border:1px solid var(--box-line);border-radius:var(--r-sm);box-shadow:none}
+.verdict{border-radius:var(--r-sm);box-shadow:none}
+.tile{border-top:1px solid var(--box-line)}
 .hint{box-shadow:none}
 
 /* colours that were written as hex in older layers */
@@ -1425,7 +1427,7 @@ h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:no
 .team-hero h1,.team-hero .meta,.team-hero .tlink{color:#fff}
 .team-hero .meta{font-family:var(--f-body);font-weight:600;font-size:var(--t-md);opacity:1}
 .team-hero .pos:is(.QB,.RB,.WR,.TE,.K,.DST){background:rgba(0,0,0,.28);color:#fff}
-.teamed .tile,.teamed .card,.teamed .metric{background:var(--surface);border:1px solid var(--line)}
+.teamed .tile,.teamed .card,.teamed .metric{background:var(--surface);border:1px solid var(--box-line)}
 .teamed .card h3,.teamed>div>h2{padding-left:0;border-left:0}
 .teamed .tbl-wrap th{background:var(--surface-2)}
 .teamed .tile .tr{display:inline;background:none;color:var(--accent);padding:0;margin:0;font-family:var(--f-mono);font-size:inherit;font-weight:700}
