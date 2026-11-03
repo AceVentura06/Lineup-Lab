@@ -337,9 +337,7 @@ table.sites .srange{min-width:96px}
 .tm-sum{font-family:var(--f-display);font-weight:800;font-size:var(--t-lg)}
 .tlink{all:unset;cursor:pointer;font-weight:700;border-bottom:1px dotted currentColor}
 @media (hover:hover) and (pointer:fine){.tlink:hover{opacity:.8}}.tlink:focus-visible{outline:2px solid currentColor;outline-offset:2px}
-#tmPage>.card,#tmPage>.split,#tmPage>.tiles{margin-top:16px}
-#tmPage .split.one{grid-template-columns:1fr}
-#tmPage .split>.card{margin:0}
+#tmPage{display:flex;flex-direction:column;gap:18px}
 .tm-use td,.tm-use th{white-space:nowrap}
 .tm-bc{min-width:130px}
 .tm-bar{display:inline-block;width:70px;height:8px;border-radius:var(--r-sm);background:var(--surface-2);vertical-align:middle;margin-right:6px;overflow:hidden}
@@ -1135,7 +1133,7 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .tools-d>.note{margin:8px 16px 14px!important}
 @media (max-width:760px){.verdict,:root[data-theme="dark"] .verdict{grid-template-columns:1fr;padding:18px}}
 @media (max-width:560px){.h2h{grid-template-columns:1fr}.h2h-picks{grid-template-columns:1fr}.h2h-swap{justify-self:center;transform:rotate(90deg)}}
-/* --- player and team pages: calm cards, the week's answer in the banner, jump buttons --- */
+/* --- player and team pages: calm cards, identity banner, tabs --- */
 .teamed .tile,.teamed .metric,.teamed .card{border-top:1px solid var(--line);background:var(--surface)}
 .teamed .card h3,.teamed>div>h2{padding-left:0;border-left:0}
 .teamed .tile .tr,:root[data-theme="dark"] .teamed .tile .tr,.teamed .tile:not(.teamed .tile) .tr{display:inline;background:none;color:var(--ink);font-family:var(--f-body);font-size:inherit;font-weight:700;letter-spacing:0;padding:0;margin:0;box-shadow:none}
@@ -1144,24 +1142,9 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .back::before{content:"";width:7px;height:7px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-right:2px}
 :root[data-theme="dark"] .back{color:var(--gold-hi)}
 .back:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
-.hero-wk{display:flex;flex-direction:column;gap:6px;width:fit-content;max-width:100%;box-sizing:border-box;margin-top:16px;padding:14px 18px;border-radius:var(--r-md);background:color-mix(in srgb,var(--team-ink) 12%,transparent);border:1px solid color-mix(in srgb,var(--team-ink) 24%,transparent)}
-.hw-l{font-weight:700;font-size:var(--t-base);opacity:.92}
-.hw-v{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
-.hw-v b{font-family:var(--f-mono);font-size:var(--t-stat);line-height:1}
-.hw-v span{font-size:var(--t-base);opacity:.92}
-.hw-s{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;font-size:var(--t-md)}
-.hw-s .pill{font-size:var(--t-md);font-weight:700}
-.team-hero.stuck .hero-wk{display:none}
-.team-hero:has(>.hero-wk)::after{display:none}
 .team-hero .meta,.team-hero>div>.meta{font-family:var(--f-body);font-size:var(--t-base);font-weight:600;letter-spacing:0;text-transform:none}
 .team-hero.stuck>div>.meta,.team-hero.stuck>.meta{font-size:var(--t-md)}
-@media (max-width:600px){.tm-hero .shot.logo.tm-logo{top:16px;bottom:auto;transform:none;height:72px}.tm-hero.stuck .shot.logo.tm-logo{top:50%;transform:translateY(-50%);height:44px}.tm-hero.has-shot>div:not(.meta){padding-right:84px}.tm-hero>.hero-wk{width:100%}}
-.pjump{display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--r-md);background:var(--surface-2);width:fit-content;max-width:100%}
-.pjump button{all:unset;cursor:pointer;padding:7px 14px;border-radius:var(--r-md);font-weight:700;font-size:var(--t-base);color:var(--muted)}
-@media (hover:hover) and (pointer:fine){.pjump button:hover{background:var(--surface);color:var(--ink)}}
-.pjump button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
-.teamed [id^="sec-"],#pNews{scroll-margin-top:calc(var(--tbh,64px) + 120px)}
-@media (max-width:600px){.pjump{flex-wrap:nowrap;overflow-x:auto;width:auto;scrollbar-width:none}.pjump button{white-space:nowrap}.hw-v b{font-size:var(--t-stat)}.hero-wk{width:100%}}
+@media (max-width:600px){.tm-hero .shot.logo.tm-logo{top:16px;bottom:auto;transform:none;height:72px}.tm-hero.stuck .shot.logo.tm-logo{top:50%;transform:translateY(-50%);height:44px}.tm-hero.has-shot>div:not(.meta){padding-right:84px}}
 /* player page header: identity only (photo, name, pos · team · bye); a long name wraps, never cut off */
 .team-hero.pl-hero{flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:16px}
 .team-hero.pl-hero::after{display:none}
@@ -1169,14 +1152,16 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .team-hero.stuck.pl-hero{min-height:0}
 @media (min-width:601px){.team-hero.has-shot.pl-hero>.pl-id{padding-right:260px}}
 .pl-id{min-width:0;display:flex;flex-direction:column;gap:6px}
-.pl-hero .meta,.team-hero.pl-hero .pl-id>.meta{padding-right:0;row-gap:4px;margin:0}
-.pl-id>.meta>span:not(.pos)::before{content:"·";margin-right:8px}  /* each dot wraps with the item after it */
+.pl-hero .meta,.team-hero .pl-id>.meta{padding-right:0;row-gap:4px;margin:0}
+.pl-id>.meta>*+span::before{content:"·";margin-right:8px}  /* each dot wraps with the item after it */
 .team-hero.pl-hero h1{font-size:var(--t-stat);line-height:1;overflow-wrap:break-word;text-wrap:balance}
-.team-hero.stuck.pl-hero h1{white-space:normal;overflow:visible;text-overflow:clip}
+.team-hero.stuck:is(.pl-hero,.tm-hero) h1{white-space:normal;overflow:visible;text-overflow:clip}
 @media (max-width:600px){.team-hero.stuck.pl-hero h1{font-size:var(--t-lg)}}
 /* phones: the condensed display face, so a long surname fits whole on one line at 320px */
 @media (max-width:479px){.team-hero.pl-hero{min-height:140px;gap:12px;padding-right:16px}.team-hero.pl-hero h1{font-family:var(--f-display-cond);font-size:var(--t-xl)}
   .pl-hero:not(.stuck) .shot:not(.logo){max-height:110px}.team-hero.has-shot.pl-hero>.pl-id{padding-right:140px}}
+/* team pages on phones: the same condensed face, so "Jacksonville" fits whole beside the logo */
+@media (max-width:479px){.tm-hero:not(.stuck) h1{font-family:var(--f-display-cond);font-size:var(--t-stat);line-height:1}}
 /* the narrowest phones: a smaller photo, so a long surname still fits whole beside it */
 @media (max-width:359px){.pl-city{display:none}.pl-hero:not(.stuck) .shot:not(.logo){max-height:96px}.team-hero.has-shot.pl-hero>.pl-id{padding-right:120px}}
 /* player page tabs */
@@ -1187,6 +1172,7 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .ptabs button:active{background:var(--surface-2)}
 .ptabs button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
 @media (hover:hover) and (pointer:fine){.ptabs button:hover{color:var(--ink)}}
+@media (max-width:359px){.ptabs{gap:0}.ptabs button{padding:10px 8px}}  /* four team tabs fit at 320px */
 .ppanel{display:flex;flex-direction:column;gap:18px;min-width:0}
 .ppanel[hidden]{display:none}
 /* Overview stat strip: projection leads (wider, maroon edge, biggest number); no entrance motion, only a quick fade when the number changes */
@@ -1202,7 +1188,6 @@ h3{font-size:var(--t-lg);line-height:1.2}
 .more-d>summary{cursor:pointer;display:inline-flex;font-weight:700;color:var(--gold);padding:6px 0}
 :root[data-theme="dark"] .more-d>summary{color:var(--gold-hi)}
 .more-d>.mgrid{margin-top:12px}
-.tm-two{align-items:start}
 /* --- projections: our number first; each site's number folds into the row --- */
 table.sites:not(.show-sites) th:nth-child(n+4):nth-child(-n+8),table.sites:not(.show-sites) tr:not(.sdet)>td:nth-child(n+4):nth-child(-n+8){display:none}
 table.sites:not(.show-sites) .m-l,table.sites.show-sites .p-l{display:none}
@@ -1266,7 +1251,7 @@ img.ld.shot:not(.ok):not(.logo){border-radius:var(--r-md) var(--r-md) 0 0}
 html{-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 button,a,label,select,summary,[role="button"],.chip,.btn,.sx,.tm-card,th.sortable,tr.dvprow,input[type=checkbox],input[type=range]{touch-action:manipulation!important}
 button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}
-.tabs,.tbl-wrap,.formula,.tk-view,.wkscroll,.pjump,.bigtbl{overscroll-behavior-x:contain}
+.tabs,.tbl-wrap,.formula,.tk-view,.wkscroll,.bigtbl{overscroll-behavior-x:contain}
 .bnav button:active,.bmore button:active,.tabs button:active,.tm-card:active,.sx:active,.lc-pick button:active,.tmore-menu button:active{background:var(--surface-2)}
 .bnav button,.bmore button,.tabs button,.tm-card,.sx{transition:background 100ms ease-out}
 @media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]):not(.pick-slot .pick),select,textarea{font-size:var(--t-base)!important}}
@@ -1285,24 +1270,24 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 .tools-d[open]::details-content,.more-d[open]::details-content{block-size:auto;opacity:1;transition:block-size 260ms var(--ease-out),opacity 200ms var(--ease-out),content-visibility 260ms allow-discrete}
 .tools-d>summary::after{transition:transform 200ms var(--ease-out)}
 /* numbers blur across for a moment when scoring or the week changes, so the swap reads as one update */
-.panel :is(.num,.big,.hm-pr,.tile .v,.hw-v b,.mv,.proj,.lvp){transition:filter 160ms ease-out,opacity 160ms ease-out}
-.nfx .panel :is(.num,.big,.hm-pr,.tile .v,.hw-v b,.mv,.proj,.lvp){filter:blur(2px);opacity:.55;transition:filter 90ms ease-out,opacity 90ms ease-out}
+.panel :is(.num,.big,.hm-pr,.tile .v,.mv,.proj,.lvp){transition:filter 160ms ease-out,opacity 160ms ease-out}
+.nfx .panel :is(.num,.big,.hm-pr,.tile .v,.mv,.proj,.lvp){filter:blur(2px);opacity:.55;transition:filter 90ms ease-out,opacity 90ms ease-out}
 /* toasts rise in and leave faster than they came */
 .toast{opacity:0;transform:translate(-50%,10px) scale(.98);transition:opacity 150ms ease-out,transform 150ms ease-out}
 .toast.on{opacity:1;transform:translate(-50%,0);transition:opacity 220ms var(--ease-out),transform 220ms var(--ease-out)}
 /* every control answers the moment it's pressed */
-:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark,.h2h-swap){transition:transform 120ms var(--ease-out),background-color 120ms ease-out,color 120ms ease-out}
-:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark,.h2h-swap):active{transform:scale(.97)}
+:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark,.h2h-swap){transition:transform 120ms var(--ease-out),background-color 120ms ease-out,color 120ms ease-out}
+:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark,.h2h-swap):active{transform:scale(.97)}
 :is(.tools-d,.more-d)>summary{transition:transform 120ms var(--ease-out)}
 :is(.tools-d,.more-d)>summary:active{transform:scale(.99)}
 @media (max-width:560px){.h2h-swap,.h2h-swap:active{transform:none}.h2h-swap svg{transform:rotate(90deg)}.h2h-swap:active svg{transform:rotate(90deg) scale(.94)}}
 /* labels on controls can't be selected by a long press; names, numbers and news stay selectable as text */
-:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.tm-go,.h2h-swap,summary,th.sortable,.home-mark){-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+:is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.tm-go,.h2h-swap,summary,th.sortable,.home-mark){-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 /* installed on a phone: the bar clears the status bar and, in landscape, the notch */
 .topbar{padding-top:env(safe-area-inset-top,0px)}
 .topbar>.board{padding-left:max(var(--gut),env(safe-area-inset-left,0px));padding-right:max(var(--gut),env(safe-area-inset-right,0px))}
-@media (prefers-reduced-motion:reduce){.nfx .panel :is(.num,.big,.hm-pr,.tile .v,.hw-v b,.mv,.proj,.lvp){filter:none;opacity:1}.toast,.toast.on{transform:translate(-50%,0)}
-  :is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.pjump button,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark):active{transform:none}
+@media (prefers-reduced-motion:reduce){.nfx .panel :is(.num,.big,.hm-pr,.tile .v,.mv,.proj,.lvp){filter:none;opacity:1}.toast,.toast.on{transform:translate(-50%,0)}
+  :is(.btn,.chip,.hm-go,.ctx-btn,.wkstep button,.tm-card,.tm-wk,.sx,.bnav button,.bmore button,.tmore-menu button,.topbar .tabs button,.tmore-btn,.srch-btn,.tk-pause,.seg button,.lc-src button,.back,.hm-link2,.tm-go,.dst-link,.tm-xtra,.home-mark):active{transform:none}
   .tools-d::details-content,.more-d::details-content{transition:none}}
 
 /* ===== Detail pass: one number face, even badges, no leftover all-caps labels, quieter links ===== */
@@ -2649,17 +2634,17 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const sched=SCHED[t]||[],o=sched[wk-1],bye=byeOf(t),g=advWeek()&&AD.games?AD.games[t]:null;
   const opp=o&&o!=='BYE'?o.replace('@',''):null;
   const tlink=x=>`<button class="tlink" data-tm="${x}">${esc(x)}</button>`;
-  // hero + top tiles
-  const ez=g?oppEase(g.opp):null;
-  const heroWk=o==='BYE'?`<aside class="hero-wk"><span class="hw-l">Week ${wk}</span><span class="hw-v"><b>Bye</b><span>bench or replace their players</span></span></aside>`
-    :g&&g.implied!=null?`<aside class="hero-wk"><span class="hw-l">Week ${wk} ${g.home?'vs':'at'} ${esc(g.opp)}</span><span class="hw-v"><b>${f1(g.implied)}</b><span>implied points, league average ${f1(AD.avgImplied||0)}</span></span><span class="hw-s">${ez!=null?`<span class="pill ${({good:'p-good',bad:'p-bad',mid:'p-mute'})[easeCls(ez)]}">${easeLbl(ez)} matchup</span>`:''}<span>${esc(t)} ${g.spread>0?'+':''}${g.spread}, ${esc(kickText(g))}${g.weather?', '+esc(weatherText(g.weather)):g.roof==='dome'?', dome':''}</span></span></aside>`
-    :o?`<aside class="hero-wk"><span class="hw-l">Week ${wk}</span><span class="hw-v"><b>${o.startsWith('@')?'at':'vs'} ${esc(opp)}</b></span></aside>`:'';
+  // banner: identity only (logo, name, division · bye · D/ST page); this week's game leads the stat strip on Overview
   const hero=`<div><button class="back" id="tmBack">${navDepth>0?esc(BACK_NM[ui.prev]||'Back'):'All teams'}</button></div>
-   <div class="ph team-hero tm-hero has-shot">${tmLogo(t,'shot logo tm-logo '+bannerCls(t),bannerLogo(t))}<div><div class="meta">${esc(divOf(t))}${bye?` · Bye in week ${bye}`:''}${d.g?` · ${d.g} games`:''}${d.dst?` · <button class="plink tlink tm-dst" data-k="${esc(d.dst.key)}">D/ST page →</button>`:''}</div><h1>${esc(nm)}</h1></div>
-     ${heroWk}</div>
-   @@JUMP@@
+   <div class="ph team-hero tm-hero has-shot">${tmLogo(t,'shot logo tm-logo '+bannerCls(t),bannerLogo(t))}<div class="pl-id"><h1>${esc(nm)}</h1>
+     <div class="meta"><span>${esc(divOf(t))}</span>${bye?`<span>Bye wk ${bye}</span>`:''}${d.dst?`<span><button class="plink tlink tm-dst" data-k="${esc(d.dst.key)}">D/ST page →</button></span>`:''}</div></div></div>`;
+  const leadL=o==='BYE'?`Wk ${wk}`:g&&g.implied!=null?`Wk ${wk} implied · ${g.home?'vs':'at'} ${esc(g.opp)}`:`Wk ${wk}`;
+  const leadV=o==='BYE'?'Bye':g&&g.implied!=null?f1(g.implied):o?`${o.startsWith('@')?'at':'vs'} ${esc(opp)}`:null;
+  const strip=[leadV!=null&&`<div class="tile ps-lead"><span class="label">${leadL}</span><b class="ps-v">${leadV}</b></div>`,
+    d.ppg!=null&&`<div class="tile"><span class="label">Points / game</span><b class="ps-v">${f1(d.ppg)}</b><span class="s">real points</span></div>`,
+    d.rk.ppg&&`<div class="tile"><span class="label">League rank</span><b class="ps-v">${ord(d.rk.ppg)}</b><span class="s">of 32, by points / game</span></div>`].filter(Boolean).join('');
+  const tiles=`${strip?`<div class="pstrip">${strip}</div>`:''}
    <div class="tiles">
-     <div class="tile"><span class="label">Points / game</span><span class="v">${d.ppg!=null?f1(d.ppg):'—'}</span><span class="s">${d.rk.ppg?`<b class="tr">${ord(d.rk.ppg)}</b> of 32 · real points`:'Not available'}</span></div>
      <div class="tile"><span class="label">Fantasy pts / game</span><span class="v">${d.fpg!=null?f1(d.fpg):'—'}</span><span class="s">${d.rk.fpg?`<b class="tr">${ord(d.rk.fpg)}</b> · whole offense, ${scName(true)}`:''}</span></div>
      <div class="tile"><span class="label">Pass rate</span><span class="v">${d.passRate!=null?Math.round(d.passRate*100)+'%':'—'}</span><span class="s">${d.rk.pass?`<b class="tr">${ord(d.rk.pass)}</b> most pass-heavy`:''}</span></div>
      <div class="tile"><span class="label">Defense allows</span><span class="v">${d.allow!=null?f1(d.allow):'—'}</span><span class="s">${d.rk.allow?`<b class="tr">${ord(d.rk.allow)}</b> of 32 (1st is stingiest) · to QB, RB, WR, TE`:''}</span></div>
@@ -2707,14 +2692,12 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
   const ord2={Out:0,IR:1,Doubtful:2,Questionable:3};
   const hurt=d.pl.filter(p=>INJ[p.key]&&INJ[p.key]!=='Healthy'&&(p.gp>0||p.pos==='K')).sort((a,b)=>(ord2[INJ[a.key]]??9)-(ord2[INJ[b.key]]??9)||ppg(b)-ppg(a));
   const injCard=hurt.length?`<div class="card" id="sec-inj"><h3>Injury report</h3><div class="tm-inj">${hurt.map(p=>`<span><span class="pos ${p.pos}">${p.pos}</span><button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button> <span class="pill ${INJ[p.key]==='Questionable'?'p-gold':'p-bad'}">${esc(INJ[p.key])}</span></span>`).join('')}</div></div>`:'';
-  // order: the ball, the schedule, then where points come from and the defense side by side; injuries last
-  const jump=jumpNav([...(usage?[['sec-ball','Who gets the ball']]:[]),...(schedCard?[['sec-sched','Schedule']]:[]),...(mix?[['sec-mix','Where points come from']]:[]),['sec-def','Defense'],...(injCard?[['sec-inj','Injuries']]:[])]);
-  el.innerHTML=hero.replace('@@JUMP@@',jump)+usage+schedCard+'<div class="split tm-two">'+mix+defCard+'</div>'+injCard;
-  if(!mix)el.querySelector('.split').classList.add('one');
-  const xb=el.querySelector('.tm-xtra');if(xb)xb.onclick=()=>{el.querySelectorAll('tr[data-xtra]').forEach(r=>r.hidden=false);xb.remove();};
+  const PT=[['ov','Overview',tiles+game+injCard],['offense','Offense',usage+mix],['defense','Defense',defCard],['schedule','Schedule',schedCard]].filter(x=>x[2]);
+  el.innerHTML=hero+subTabs('dvp',t,PT);
   $('#tmBack').onclick=()=>{if(navDepth>0)history.back();else go('dvp',null);};
   if(window.heroChk)setTimeout(window.heroChk,0);}
 
+document.addEventListener('click',e=>{const xb=e.target.closest('.tm-xtra');if(xb){xb.closest('.card').querySelectorAll('tr[data-xtra]').forEach(r=>r.hidden=false);xb.remove();return;}}); // team page: show more players
 document.addEventListener('click',e=>{const th=e.target.closest('table.dvp th.sortable');if(th){const k=th.dataset.sort;if(String(ui.dvpSort??'team')===k)ui.dvpDir=-(ui.dvpDir||1);else{ui.dvpSort=k;ui.dvpDir=1;}renderDvpTable();return;}
   const tr=e.target.closest('tr.dvprow');if(tr){go('dvp',tr.dataset.t);return;}
   const tm=e.target.closest('[data-tm]');if(tm){if(ui.tab!=='dvp')ui.prev=ui.tab;go('dvp',tm.dataset.tm);return;}
@@ -3891,16 +3874,12 @@ function renderPlayer(){
    <div class="mgrid">${ms}</div>${msMore?`<details class="more-d"><summary>Show ${msA.length-4} more usage stats</summary><div class="mgrid">${msMore}</div></details>`:''}</div></div>
    <div id="pNews"></div>`;
   const sch=(p.pos==='DST'?dstOppCard(p):schedCard(p))+poCard;
-  if(pTabK!==p.key){pTab='ov';pTabK=p.key;}
   const PT=[['ov','Overview',ov],['log','Game log',weekCard(p,tr.projV)+usageCard(p)],['schedule','Schedule',sch]].filter(t=>t[2]);
-  if(!PT.some(t=>t[0]===pTab))pTab='ov';
-  pLazy={};
   el.innerHTML=`<div><button class="back" id="backBtn">${esc(navDepth>0||ui.prev?BACK_NM[ui.prev]||'Back':'Projections')}</button></div>
    <div class="ph team-hero pl-hero${shot?' has-shot':''}">${shot?`<img class="ld shot${p.pos==='DST'||isLogo(shot)?' logo '+bannerCls(p.team):''}" src="${p.pos==='DST'?bannerLogo(p.team):shot}" alt="" ${p.pos==='DST'||isLogo(shot)?'width="500" height="500"':'width="350" height="254"'} fetchpriority="high" data-logo="${esc(teamLogo(p.team)||'')}" onerror="if(logoFb(this))return;if(this.dataset.logo&&!this.classList.contains('logo')){this.classList.add('logo');this.src=this.dataset.logo;}else{this.parentNode.classList.remove('has-shot');this.remove();}">`:''}
      <div class="pl-id"><h1>${p.pos==='DST'?esc((TEAM_NAMES[p.team]||p.name).split(' ').pop())+' D/ST':esc(p.name)}</h1>
      <div class="meta"><span class="pos ${p.pos}">${p.pos}</span><span>${TEAM_NAMES[p.team]?`<button class="tlink" data-tm="${esc(p.team)}"><span class="pl-city">${esc(TEAM_NAMES[p.team].replace(/\s\S+$/,''))} </span>${esc(TEAM_NAMES[p.team].split(' ').pop())}</button>`:esc(p.team||'')}</span>${byeWk?`<span>Bye wk ${byeWk}</span>`:''}</div></div></div>
-   <div class="ptabs" role="tablist" aria-label="Player sections">${PT.map(([id,l])=>`<button type="button" role="tab" id="pt-${id}" aria-controls="pp-${id}" aria-selected="${id===pTab}" tabindex="${id===pTab?0:-1}" data-ptab="${id}">${l}</button>`).join('')}</div>
-   ${PT.map(([id,,h])=>{const lazy=id!==pTab&&id!=='ov';if(lazy)pLazy[id]=h;return `<div class="ppanel" role="tabpanel" id="pp-${id}" aria-labelledby="pt-${id}"${id===pTab?'':' hidden'}>${lazy?'':h}</div>`;}).join('')}`;
+   ${subTabs('player',p.key,PT)}`;
   $('#backBtn').onclick=()=>{if(navDepth>0)history.back();else go(ui.prev||'sites');};
   fillNews(p);
   if(window.heroChk)setTimeout(window.heroChk,0);
@@ -3928,7 +3907,7 @@ new MutationObserver(ms=>{for(const m of ms){if(m.type==='childList')m.addedNode
   else if(m.type==='characterData'){const h=m.target.parentElement&&m.target.parentElement.closest('h2,h3,.pg-title');if(h)titleCaseEl(h);}}})
   .observe(document.body,{subtree:true,childList:true,characterData:true});
 tcAll(document.body);
-// profile pages: a "back" link that names where it goes, a row of jump buttons, and plain-English ranks
+// profile pages: a "back" link that names where it goes, and plain-English ranks
 const BACK_NM={home:'Home',sites:'Projections',week:'Start / Sit',lineup:'My Lineup',stats:'Player Stats',ros:'Rest of Season',dvp:'Teams',trade:'Trades',acc:'Accuracy',model:'How It Works',settings:'Settings'};
 // the rest of a player's season, with how each defense treats his position (Schedule tab)
 function schedCard(p){const sc=SCHED[p.team];if(!sc)return '';const D=dvpData(),i=DPOS.indexOf(p.pos);
@@ -3937,23 +3916,23 @@ function schedCard(p){const sc=SCHED[p.team];if(!sc)return '';const D=dvpData(),
     return `<tr><td>${w}</td><td>${o.startsWith('@')?'at '+esc(o.slice(1)):'vs '+esc(o)}</td><td>${d?`<button class="ork olink ${rkCls(d.rank[i])}" data-dvp="${esc(d.t)}">${ord(d.rank[i])}</button> <span class="note">${f1(d.avg[i])} pts/game to ${p.pos}s</span>`:''}</td></tr>`;});
   return rows.length?`<div class="card"><h3>Rest of season</h3><p class="note u-m-4-0-12">Defense rank is out of 32; 1st gives up the fewest points to ${p.pos}s.</p>
    <div class="tbl-wrap"><table class="tooltbl"><thead><tr><th>Week</th><th>Opponent</th><th>Defense vs ${p.pos}</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`:'';}
-// player page tabs: Overview / Game log / Schedule; the open tab is kept while the same player re-renders
-// a hidden tab's markup waits in pLazy until the tab first opens, so its charts mount (and play their entrance) in view;
+// tabs on player and team pages (Overview first); the open tab is kept while the same player or team re-renders.
+// A hidden tab's markup waits in .lazy until the tab first opens, so its charts mount (and play their entrance) in view;
 // Overview always renders, since the news loads into it
-let pTab='ov',pTabK=null,pLazy={};
-function pTabSel(id,focus){pTab=id;try{history.replaceState({...history.state,ptab:id},'',hashFor('player',ui.player,id));}catch(_){}   // replace, not push: switching tabs adds no Back step
-  document.querySelectorAll('#p-player [data-ptab]').forEach(b=>{const on=b.dataset.ptab===id;
-  b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;$('#pp-'+b.dataset.ptab).hidden=!on;if(on&&focus)b.focus();});
-  if(pLazy[id]){$('#pp-'+id).innerHTML=pLazy[id];delete pLazy[id];}
+const SUBT={player:{tab:'ov',key:null,lazy:{},root:'#p-player',x:'p',lbl:'Player'},dvp:{tab:'ov',key:null,lazy:{},root:'#tmPage',x:'t',lbl:'Team'}};
+function subTabs(page,key,PT){const st=SUBT[page],x=st.x;if(st.key!==key){st.tab='ov';st.key=key;}if(!PT.some(t=>t[0]===st.tab))st.tab='ov';st.lazy={};
+  return `<div class="ptabs" role="tablist" aria-label="${st.lbl} sections">${PT.map(([id,l])=>`<button type="button" role="tab" id="${x}t-${id}" aria-controls="${x}p-${id}" aria-selected="${id===st.tab}" tabindex="${id===st.tab?0:-1}" data-ptab="${id}">${l}</button>`).join('')}</div>
+   ${PT.map(([id,,h])=>{const lazy=id!==st.tab&&id!=='ov';if(lazy)st.lazy[id]=h;return `<div class="ppanel" role="tabpanel" id="${x}p-${id}" aria-labelledby="${x}t-${id}"${id===st.tab?'':' hidden'}>${lazy?'':h}</div>`;}).join('')}`;}
+function pTabSel(id,focus){const st=SUBT[ui.tab];if(!st)return;const root=$(st.root),pn=k=>$('#'+st.x+'p-'+k);st.tab=id;
+  try{history.replaceState({...history.state,ptab:id},'',hashFor(ui.tab,cur(),id));}catch(_){}   // replace, not push: switching tabs adds no Back step
+  root.querySelectorAll('[data-ptab]').forEach(b=>{const on=b.dataset.ptab===id;b.setAttribute('aria-selected',on);b.tabIndex=on?0:-1;pn(b.dataset.ptab).hidden=!on;if(on&&focus)b.focus();});
+  if(st.lazy[id]){pn(id).innerHTML=st.lazy[id];delete st.lazy[id];}
   // scrolled past the tabs: bring them back up under the sticky banner, so the new tab opens at its top
-  const bar=$('#p-player .ptabs'),h=$('#p-player .pl-hero');if(bar&&h){const d=bar.getBoundingClientRect().top-h.getBoundingClientRect().bottom;if(d<0)window.scrollBy(0,d);}}
+  const bar=root.querySelector('.ptabs'),h=root.querySelector('.team-hero');if(bar&&h){const d=bar.getBoundingClientRect().top-h.getBoundingClientRect().bottom;if(d<0)window.scrollBy(0,d);}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-ptab]');if(b)pTabSel(b.dataset.ptab);});
 document.addEventListener('keydown',e=>{const b=e.target.closest&&e.target.closest('[data-ptab]');if(!b||!/^(ArrowLeft|ArrowRight|Home|End)$/.test(e.key))return;
   const all=[...b.parentNode.children],i=all.indexOf(b),j=e.key==='Home'?0:e.key==='End'?all.length-1:(i+(e.key==='ArrowRight'?1:-1)+all.length)%all.length;
   e.preventDefault();pTabSel(all[j].dataset.ptab,true);});
-const jumpNav=items=>items.length>1?`<nav class="pjump" aria-label="On this page">${items.map(([id,l])=>`<button type="button" data-jump="${id}">${esc(l)}</button>`).join('')}</nav>`:'';
-document.addEventListener('click',e=>{const b=e.target.closest('[data-jump]');if(!b)return;const t=document.getElementById(b.dataset.jump);if(!t)return;
-  t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});});
 const rkTxt=(r,pos)=>{if(!r)return '';const n=+String(r).replace(/^\D+/,'');return Number.isFinite(n)&&n>0?`${ord(n)} among ${pos==='DST'?'defenses':pos+'s'}`:esc(r);};
 function toast(m,undo){const t=$('#toast');t.classList.remove('open');popShow(t);t.classList.add('on');t.classList.toggle('has-undo',!!undo);t.textContent='';toast._undo=undo||null;
   setTimeout(()=>{if(undo){const sp=document.createElement('span');sp.textContent=m;t.appendChild(sp);}else t.textContent=m;if(undo){const b=document.createElement('button');b.type='button';b.className='toast-undo';b.textContent='Undo';t.appendChild(b);}},50);
@@ -4028,17 +4007,18 @@ const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
-const hashFor=(t,k,pt)=>t==='player'&&k?'#player='+slug(k)+(pt&&pt!=='ov'?'&tab='+pt:''):t==='dvp'?(k?'#team='+k:'#teams'):'#'+t;
+const tabQ=pt=>pt&&pt!=='ov'?'&tab='+pt:'';
+const hashFor=(t,k,pt)=>t==='player'&&k?'#player='+slug(k)+tabQ(pt):t==='dvp'?(k?'#team='+k+tabQ(pt):'#teams'):'#'+t;
 function readHash(){const h=decodeURIComponent(location.hash.slice(1));
-  // #player=puka-nacua, plus &tab=log or &tab=schedule for a tab other than Overview
+  // #player=puka-nacua or #team=KC, plus &tab=… for a tab other than Overview
   if(h.startsWith('player=')){const [raw,q]=h.slice(7).split('&tab=');const k=[raw,raw.replace(/-/g,' ')].find(x=>PL.has(x));if(k)return {tab:'player',player:k,ptab:q};}
   // #team=KC and #teams; older #dvp=KC and #dvp links still work
-  const tm=/^(team|dvp)=(.+)$/.exec(h);if(tm){const t=tm[2].toUpperCase();return {tab:'dvp',player:TEAM_NAMES[t]?t:null};}
+  const tm=/^(team|dvp)=([^&]+)(?:&tab=(.+))?$/.exec(h);if(tm){const t=tm[2].toUpperCase();return {tab:'dvp',player:TEAM_NAMES[t]?t:null,ptab:tm[3]};}
   if(h==='teams')return {tab:'dvp'};
   return TABS.includes(h)?{tab:h}:{tab:'home'};}
 // go to a tab; "sub" is the player on a player page, or the team on a team page
 function cur(){return ui.tab==='player'?ui.player:ui.tab==='dvp'?ui.dvpTeam||null:null;}
-function apply(tab,sub,ptab){ui.tab=tab;if(tab==='player'&&sub){ui.player=sub;pTab=ptab||'ov';pTabK=sub;}if(tab==='dvp')ui.dvpTeam=sub||null;}
+function apply(tab,sub,ptab){ui.tab=tab;if(tab==='player'&&sub)ui.player=sub;if(tab==='dvp')ui.dvpTeam=sub||null;if(SUBT[tab]&&sub){SUBT[tab].tab=ptab||'ov';SUBT[tab].key=sub;}}
 function go(tab,sub,push=true){
   const same=tab===ui.tab&&(sub||null)===cur();if(same)push=false;   // same page: no extra Back step, no fade
   apply(tab,sub);
@@ -4062,7 +4042,7 @@ window.addEventListener('popstate',e=>{const st=e.state||readHash();navDepth=Mat
   if(st.tab==='player'&&!PL.has(st.player))st.tab='home';apply(st.tab,st.player,st.ptab);swap(()=>{render();
   const card=st.tab==='dvp'&&!st.player&&lastDvp&&document.querySelector(`.tm-card[data-tm="${lastDvp}"]`);if(card)card.scrollIntoView({block:'center'});else window.scrollTo(0,0);});});
 (function(){const st=readHash();if(location.hash&&(st.tab!=='home'||location.hash==='#home')){apply(st.tab,st.player,st.ptab);render();}
-  const pt=ui.tab==='player'?pTab:null;try{history.replaceState({tab:ui.tab,player:cur(),ptab:pt},'',hashFor(ui.tab,cur(),pt));}catch(_){}})();
+  const pt=SUBT[ui.tab]&&cur()?SUBT[ui.tab].tab:null;try{history.replaceState({tab:ui.tab,player:cur(),ptab:pt},'',hashFor(ui.tab,cur(),pt));}catch(_){}})();
 ['match','trend','sched','q','vegas','blend'].forEach(k=>$('#w-'+k).oninput=e=>{S.w[k]=n(e.target.value);if(k==='blend')S.blendAuto=false;save();renderModel();});
 $('#blendAuto').onchange=e=>{S.blendAuto=e.target.checked;save();renderModel();};
 $('#resetW').onclick=()=>{S.w={...DEF_W};S.blendAuto=true;save();render();toast('Weights reset');};
