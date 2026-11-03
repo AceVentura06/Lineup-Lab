@@ -1,1 +1,4 @@
 charts/node_modules/
+.impeccable/live/sessions/
+.impeccable/live/annotations/
+.impeccable/live/roots.json
