@@ -756,6 +756,18 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
   .board .hsearch{flex:1 1 auto;min-width:0}
 }
 .nm-s,.nm-sub{display:none}
+/* first-visit setup card on Home */
+.setup{margin-bottom:16px}
+.su-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px}
+.su-top h2{margin:0}
+.su-step{display:inline-flex;align-items:center;gap:10px;margin:0;font-size:var(--t-sm);color:var(--muted)}
+.su-bar{display:inline-flex;gap:4px}.su-bar i{width:18px;height:4px;border-radius:var(--r-pill);background:var(--line)}.su-bar i.on{background:var(--gold)}
+#suStep{margin:14px 0 4px}#suStep:focus:not(:focus-visible){outline:none}
+.su-txt{margin:0 0 14px;max-width:62ch;line-height:1.5}
+.setup .hm-link{font-size:inherit;min-height:44px;display:inline-flex;align-items:center}
+.su-txt .hm-link{min-height:0;display:inline}
+.su-nav{margin-top:18px;align-items:center}
+.su-nav .hm-link{margin-left:auto}
 /* Start/Sit on phones: cards instead of the table */
 .wkcards,.wk-sort{display:none}
 @media (max-width:760px){
@@ -1408,6 +1420,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
   <section class="panel" id="p-home" role="tabpanel">
     <div class="hm-install" id="hmInstall" hidden></div>
     <div class="card hm-chg" id="hmChg" hidden></div>
+    <section class="card setup" id="setup" aria-labelledby="setupH" hidden></section>
     <div class="hm-row">
       <div class="hm-hero">
         <div class="hm-banner">
@@ -1826,6 +1839,8 @@ const VOL={QB:.22,RB:.30,WR:.35,TE:.38,K:.35,DST:.45};
 let S={players:[],mine:[],scoring:'ppr',week:5,passTD:4,w:{...DEF_W}};
 try{const raw=localStorage.getItem(KEY);if(raw){const d=JSON.parse(raw);if(d&&Array.isArray(d.players))S=Object.assign(S,d,{w:Object.assign({...DEF_W},d.w||{})});}}catch(e){}
 S.players=[];if(!Array.isArray(S.mine))S.mine=[];
+// a first visit (nothing saved yet) gets the setup card on Home; S.setup then holds its step (1–3) until 'done'
+try{if(!localStorage.getItem(KEY))S.setup=1;}catch(_){}
 // several fantasy teams: S.mine / S.league / S.sc / S.slots always hold the picked team; the others wait in S.teams
 if(!Array.isArray(S.teams))S.teams=[];
 if(!S.teams.length&&(S.mine.length||S.league))S.teams=[{id:'t1',name:(S.league&&S.league.teamName)||'My team'}];
@@ -3147,7 +3162,7 @@ document.querySelector('table.rostbl thead').onclick=e=>{const th=e.target.close
 function sortCmp(A,B,dir){const na=A==null||!Number.isFinite(A),nb=B==null||!Number.isFinite(B);if(na&&nb)return 0;if(na)return 1;if(nb)return -1;return dir*(B-A);}
 function render(){
   document.querySelectorAll('.mine-cb').forEach(c=>c.checked=!!ui.mineOnly);document.querySelectorAll('.mine-n').forEach(n=>n.textContent=S.mine.length?`(${S.mine.length})`:'');
-  document.querySelectorAll('#scoringSeg button').forEach(b=>b.setAttribute('aria-pressed',{ppr:1,half:.5,std:0}[b.dataset.v]===SC().rec));
+  document.querySelectorAll('#scoringSeg button,#setup [data-v]').forEach(b=>b.setAttribute('aria-pressed',{ppr:1,half:.5,std:0}[b.dataset.v]===SC().rec));
   $('#weekIn').value=S.week;renderTeamCtl();if(ui.tab==='lineup')renderTeams();
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===ui.tab));syncBnav();
   {let inM=false;document.querySelectorAll('#tMoreMenu [data-tab]').forEach(b=>{const on=b.dataset.tab===ui.tab;if(on){b.setAttribute('aria-current','page');inM=true;}else b.removeAttribute('aria-current');});
@@ -3977,6 +3992,25 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button[dat
     inp.value='';inp.blur();if(ui.tab!=='player')ui.prev=ui.tab;go('player',hit.key);};
   inp.addEventListener('input',()=>open(true));
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});});})();
+// ---- first-visit setup: three short steps in a card on Home. Asks nothing personal; skipping or finishing hides it for good. ----
+function renderSetup(focus){const el=$('#setup'),n=S.setup;el.hidden=!(n>=1&&n<=3);if(el.hidden){el.innerHTML='';return;}
+  const rec=SC().rec,steps=[
+    ['Pick your scoring','How many points does your league give for a catch? You can change it later from the week and scoring button at the top.',
+      `<div class="seg" role="group" aria-label="Scoring format">${[['ppr',1,'PPR'],['half',.5,'Half PPR'],['std',0,'Standard']].map(([v,r,l])=>`<button type="button" data-v="${v}" aria-pressed="${rec===r}">${l}</button>`).join('')}</div>`],
+    ['Bring in your team','Connect a Sleeper or ESPN league to see your starters and this week\'s calls. No league? Star the players you have on Projections.',
+      `<div class="btns"><button type="button" class="btn" data-su-go="lineup">Connect league</button><button type="button" class="btn" data-su-go="sites">Star players instead</button></div>`],
+    ['You\'re set',`<button type="button" class="hm-link" data-su-go="week">Start/Sit</button> has this week\'s calls, and <button type="button" class="hm-link" data-su-go="lineup">My Lineup</button> builds your best lineup.`,'']];
+  const [h,txt,body]=steps[n-1];
+  el.innerHTML=`<div class="su-top"><h2 id="setupH">Get started</h2><p class="su-step">Step ${n} of 3<span class="su-bar" aria-hidden="true">${[1,2,3].map(i=>`<i${i<=n?' class="on"':''}></i>`).join('')}</span></p></div>
+    <h3 id="suStep" tabindex="-1">${h}</h3><p class="su-txt">${txt}</p>${body}
+    <div class="btns su-nav">${n>1?'<button type="button" class="btn" data-su="back">Back</button>':''}<button type="button" class="btn primary" data-su="${n<3?'next':'done'}">${n<3?'Next':'Done'}</button><button type="button" class="hm-link" data-su="skip">Skip setup</button></div>`;
+  if(focus)$('#suStep').focus();}
+$('#setup').addEventListener('click',e=>{const sc=e.target.closest('[data-v]'),a=e.target.closest('[data-su]'),g=e.target.closest('[data-su-go]');
+  if(sc){$(`#scoringSeg [data-v="${sc.dataset.v}"]`).click();return;}   // same path as the scoring control in the top bar
+  if(g){S.setup=S.setup===2?3:'done';save();renderSetup();go(g.dataset.suGo);return;}
+  if(!a)return;const k=a.dataset.su;
+  if(k==='next'||k==='back'){S.setup+=k==='next'?1:-1;save();renderSetup(true);return;}
+  S.setup='done';save();renderSetup();const t=$('#hmTitle');t.tabIndex=-1;t.focus();});
 // Features that are built but switched off. To bring one back, change false to true.
 const FEATURES={trade:true};
 const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model','privacy','terms'].filter(t=>FEATURES[t]!==false);
@@ -4046,7 +4080,7 @@ function syncBnav(){const tb=ui.tab;let inMore=false;
 document.querySelectorAll('th.sortable').forEach(th=>{th.tabIndex=0;});
 document.addEventListener('keydown',e=>{const th=e.target.closest&&e.target.closest('th.sortable');if(!th||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();
   const sel=(th.closest('table').className.split(' ')[0]);th.click();const again=document.querySelector(`table.${sel} th.sortable[data-sort="${th.dataset.sort}"]`);if(again)again.focus();});
-render();
+render();renderSetup();
 renderTicker();
 autoSync();
 liveTick();liveFeedTick();
