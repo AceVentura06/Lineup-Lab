@@ -269,7 +269,7 @@ td.none{color:var(--muted)}
 @media (prefers-reduced-motion:no-preference){.bar i,.range .dot,.range .band{transition:width .25s ease,left .25s ease,transform .25s ease}}
 /* accuracy leaderboard and trade verdict: bars fill from the left when they appear, top first */
 @keyframes lb-fill{from{transform:scaleX(0)}}
-@media (prefers-reduced-motion:no-preference){.bar.lb i{transform-origin:left;animation:lb-fill .35s cubic-bezier(.2,.8,.2,1) calc(var(--i,0)*30ms) both}}
+@media (prefers-reduced-motion:no-preference){.bar.lb i,.dvp-track>i{transform-origin:left;animation:lb-fill .35s cubic-bezier(.2,.8,.2,1) calc(var(--i,0)*30ms) both}}
 
 .mlist{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column}
 .mlist li{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;padding:8px 0;border-bottom:1px solid var(--line)}
@@ -2680,7 +2680,7 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
       return `<button class="tm-wk${pl?' past':' '+easeCls(e)}${po?' po':''}${cur?' cur':''}" data-tm="${ot}"><span class="label">Wk ${w}</span><b>${x.startsWith('@')?'@':'vs'} ${esc(ot)}</b><small>${pl?'Played':easeLbl(e)}</small></button>`;}).join('')}</div></div>`:'';
   // defense: the defense-vs-position chart
   const defCard=dd?`<div class="card" id="sec-def"><h3>What the ${esc(nm.split(' ').pop())} defense allows</h3><p class="note u-m-4-0-12">Longer bars give up more; rank 1st allows the fewest of 32.</p>
-    <div class="dvp-bars">${DPOS.map((p,i)=>`<div class="dvp-b"><span class="pos ${p}">${p}</span><span class="dvp-track" aria-hidden="true"><i class="${rkCls(dd.rank[i])}" style="width:${Math.max(4,(dd.rank[i]/32)*100)}%"></i></span><span class="num"><b>${f1(dd.avg[i])}</b></span><span class="ork ${rkCls(dd.rank[i])}">${ord(dd.rank[i])}</span></div>`).join('')}</div>
+    <div class="dvp-bars">${DPOS.map((p,i)=>`<div class="dvp-b"><span class="pos ${p}">${p}</span><span class="dvp-track" aria-hidden="true"><i class="${rkCls(dd.rank[i])}" style="width:${Math.max(4,(dd.rank[i]/32)*100)}%;--i:${i}"></i></span><span class="num"><b>${f1(dd.avg[i])}</b></span><span class="ork ${rkCls(dd.rank[i])}">${ord(dd.rank[i])}</span></div>`).join('')}</div>
     <details class="tools-d u-mt-14"><summary><span>Week by week</span><span class="muted">${dd.weeks.length} games</span></summary><div class="tbl-wrap u-m-0-12"><table class="tooltbl u-minw-600"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
     ${dd.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${tlink(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=dd.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=dd.avg[i]*.75?'color:var(--bad)':''}">${f1(x)}</td>`).join('')}</tr>`).join('')}
     <tr class="u-bt-2"><td colspan="2"><b>Per game</b></td>${dd.avg.map(x=>`<td class="r num"><b>${f1(x)}</b></td>`).join('')}</tr>
