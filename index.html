@@ -3983,7 +3983,8 @@ document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button[dat
   inp.addEventListener('input',()=>open(true));
   inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});});})();
 // ---- first-visit setup: three short steps in a card on Home. Asks nothing personal; skipping or finishing hides it for good. ----
-function renderSetup(focus){const el=$('#setup'),n=S.setup;el.hidden=!(S.consent&&n>=1&&n<=3);   // waits for the save questionif(el.hidden){el.innerHTML='';return;}
+function renderSetup(focus){const el=$('#setup'),n=S.setup;el.hidden=!(S.consent&&n>=1&&n<=3);   // waits for the save question
+  if(el.hidden){el.innerHTML='';return;}
   const rec=SC().rec,steps=[
     ['Pick your scoring','How many points does your league give for a catch? You can change it later from the week and scoring button at the top.',
       `<div class="seg" role="group" aria-label="Scoring format">${[['ppr',1,'PPR'],['half',.5,'Half PPR'],['std',0,'Standard']].map(([v,r,l])=>`<button type="button" data-v="${v}" aria-pressed="${rec===r}">${l}</button>`).join('')}</div>`],
