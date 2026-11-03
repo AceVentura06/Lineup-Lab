@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="22" fill="#111214"/>
+  <!-- the A: Archivo Italic, wght 900, wdth 125, size 70, centred on x=46, baseline y=78; outlined so it needs no font -->
+  <path d="M9.95 78 41.66 29.84H60.7L75.54 78H57.34L55.59 71.63H32L28.08 78ZM39.35 59.66H52.44L50.48 51.54Q50.34 50.98 50.17 50.03Q49.99 49.09 49.81 47.9Q49.64 46.71 49.43 45.52Q49.22 44.33 49.08 43.35H48.59Q47.96 44.54 47.12 46.08Q46.28 47.62 45.48 49.09Q44.67 50.56 44.11 51.54Z" fill="#FAFAFA"/>
+  <path d="M18 86 C 40 84, 62 70, 76 34" fill="none" stroke="#2BCFCE" stroke-width="6" stroke-linecap="round" stroke-dasharray="1 11"/>
+  <path d="M68 38 L77 28 L82 41" fill="none" stroke="#2BCFCE" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="18" cy="86" r="7" fill="#EC4D25"/>
+</svg>

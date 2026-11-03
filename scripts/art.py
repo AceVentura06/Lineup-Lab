@@ -1,124 +1,133 @@
-"""Draws the app icons and the link-preview card in the site's look.
+"""Draws the app icons and the link-preview card with the Route A mark (icons/route-a.svg).
 
 Run by .github/workflows/art.yml, which downloads the site's fonts first.
-Locally it falls back to DejaVu so the layout can be checked:  python3 scripts/art.py
-(or point FONT_DIR at a folder holding the .ttf files below).
+Locally:  FONT_DIR=/path/to/ttfs python3 scripts/art.py  (falls back to DejaVu so the layout can be checked).
 Writes icons/*.png and og.png at the repo root.
 """
+import bisect
+import math
 import os
 import sys
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FONTS = os.environ.get('FONT_DIR', '/tmp/fonts')
-CHARCOAL, MAROON, WHITE, MUTED, ROSE = '#1F2329', '#8C1D2F', '#FFFFFF', '#AEB6C4', '#E0707F'
-ITALIC = 0.21   # the site's synthetic italic slant (font-style: italic on a font with no italic cut)
+GRAPHITE, INK, ORANGE, TEAL, MUTED = '#111214', '#FAFAFA', '#EC4D25', '#2BCFCE', '#CDCDCF'
+SS = 4   # drawn at 4x and scaled down so curves and dots come out smooth
 
 
-def font(name, size, fallback):
+def font(name, size, fallback, axes=None):
     for path in (os.path.join(FONTS, name), fallback):
         if path and os.path.exists(path):
-            return ImageFont.truetype(path, size)
+            f = ImageFont.truetype(path, size)
+            if axes and path != fallback:
+                f.set_variation_by_axes(axes)
+            return f
     sys.exit(f'missing font {name}')
 
 
 DJV = '/usr/share/fonts/truetype/dejavu/'
-DISPLAY = lambda s: font('SpecialGothicExpandedOne-Regular.ttf', s, DJV + 'DejaVuSans-Bold.ttf')
-LABEL = lambda s: font('SpecialGothicCondensedOne-Regular.ttf', s, DJV + 'DejaVuSansCondensed-Bold.ttf')
-BODY = lambda s: font('CabinCondensed-Medium.ttf', s, DJV + 'DejaVuSansCondensed.ttf')
+# Archivo italic, wght 900, wdth 125 (axis order in the font: wght, wdth)
+DISPLAY = lambda s: font('Archivo-Italic.ttf', s, DJV + 'DejaVuSans-BoldOblique.ttf', [900, 125])
+BODY = lambda s: font('BarlowSemiCondensed-Regular.ttf', s, DJV + 'DejaVuSansCondensed.ttf')
+LABEL = lambda s: font('BarlowSemiCondensed-Bold.ttf', s, DJV + 'DejaVuSansCondensed-Bold.ttf')
+
+# Route A geometry, in the 100-unit box of icons/route-a.svg
+CURVE = [(18, 86), (40, 84), (62, 70), (76, 34)]
+ARROW = [(68, 38), (77, 28), (82, 41)]
+BALL, BALL_R, STROKE = (18, 86), 7, 6
+A_AT, A_SIZE = (46, 78), 70        # the A: centred on x=46, baseline y=78, font-size 70
+A_GAP = 0.1                        # extra space after the A in the wordmark, in em
 
 
-def slanted_text(im, xy, text, f, fill):
-    """Draw text with the site's synthetic italic: render upright, then shear the layer."""
-    l, t, r, b = f.getbbox(text)
-    h = b + 4
-    extra = int(h * ITALIC) + 2
-    layer = Image.new('RGBA', (r + extra + 4, h), (0, 0, 0, 0))
-    ImageDraw.Draw(layer).text((extra, 0), text, font=f, fill=fill)
-    # x_src = x_dst + ITALIC*(y - h): the top leans right
-    layer = layer.transform(layer.size, Image.AFFINE, (1, ITALIC, -ITALIC * h, 0, 1, 0), resample=Image.BICUBIC)
-    im.paste(layer, (int(xy[0] - extra), int(xy[1])), layer)
+def bezier(p, n=400):
+    pts = []
+    for i in range(n + 1):
+        t = i / n
+        c = [(1 - t) ** 3, 3 * (1 - t) ** 2 * t, 3 * (1 - t) * t ** 2, t ** 3]
+        pts.append((sum(c[j] * p[j][0] for j in range(4)), sum(c[j] * p[j][1] for j in range(4))))
+    return pts
 
 
-def text_box(text, f):
-    l, t, r, b = f.getbbox(text)
-    return l, t, r - l, b - t
+def stroke(d, pts, w, fill):
+    """A polyline with round caps and joins."""
+    d.line(pts, fill=fill, width=round(w), joint='curve')
+    for x, y in (pts[0], pts[-1]):
+        d.ellipse([x - w / 2, y - w / 2, x + w / 2, y + w / 2], fill=fill)
 
 
-def lines_width(h):
-    """How far the speed lines reach left of the badge's bottom-left corner."""
-    return h * 1.12
+def dashes(pts, on, off):
+    """Split a polyline into dash pieces (like stroke-dasharray: on off)."""
+    cum = [0.0]
+    for a, b in zip(pts, pts[1:]):
+        cum.append(cum[-1] + math.dist(a, b))
+    def at(s):   # the point at arc length s
+        i = min(bisect.bisect_right(cum, s) - 1, len(pts) - 2)
+        (ax, ay), (bx, by) = pts[i], pts[i + 1]
+        f = (s - cum[i]) / ((cum[i + 1] - cum[i]) or 1)
+        return ax + (bx - ax) * f, ay + (by - ay) * f
+    s, out = 0.0, []
+    while s <= cum[-1]:
+        out.append([at(s), at(min(s + on, cum[-1]))])
+        s += on + off
+    return out
 
 
-def ace_badge(im, x, y, w, h, text='ACE', lines=True):
-    """The site's ACE mark: a maroon block slanted on both sides, with three speed
-    lines tucked against its left edge and stepped along the same angle."""
+def mark(im, x0, y0, s, letter=True, dotted=True):
+    """The Route A mark with its 100-unit box at (x0, y0), s px per unit. letter=False skips the A
+    (the card draws the A as part of the wordmark)."""
     d = ImageDraw.Draw(im)
-    lean, cut = w * 0.10, w * 0.12
-    d.polygon([(x + lean, y), (x + w, y), (x + w - cut, y + h), (x, y + h)], fill=MAROON)
-    if lines:
-        t, g = h * 0.11, h * 0.135                       # line thickness and spacing
-        slope = lean / h                                 # px of lean per px of height
-        for i, (ln, col) in enumerate([(0.70, ROSE), (1.19, WHITE), (0.49, ROSE)]):
-            yc = y + h / 2 + (i - 1) * (t + g)
-            right = x + lean * (1 - (yc - y) / h) - h * 0.08   # small gap to the slanted edge
-            L = ln * h
-            yt, yb = yc - t / 2, yc + t / 2
-            sh = t * slope / 2
-            d.polygon([(right - L + sh, yt), (right + sh, yt), (right - sh, yb), (right - L - sh, yb)], fill=col)
-    # fit and centre the text inside the block
-    size = int(h * 0.80)
-    while size > 6:
-        f = DISPLAY(size)
-        l, t0, tw, th = text_box(text, f)
-        if tw + th * ITALIC <= (w - lean - cut) * 0.80 and th <= h * 0.56:
-            break
-        size -= 1
-    cx = x + (lean + w - cut) / 2 + w * 0.01
-    slanted_text(im, (cx - (tw + th * ITALIC) / 2 - l, y + (h - th) / 2 - t0), text, f, WHITE)
+    P = lambda u, v: (x0 + u * s, y0 + v * s)
+    if letter:
+        d.text(P(*A_AT), 'A', font=DISPLAY(round(A_SIZE * s)), fill=INK, anchor='ms')
+    curve = [P(*p) for p in bezier(CURVE)]
+    for piece in (dashes(curve, 1 * s, 11 * s) if dotted else [curve]):
+        stroke(d, piece, STROKE * s, TEAL)
+    stroke(d, [P(*p) for p in ARROW], STROKE * s, TEAL)
+    bx, by = P(*BALL)
+    d.ellipse([bx - BALL_R * s, by - BALL_R * s, bx + BALL_R * s, by + BALL_R * s], fill=ORANGE)
 
 
-def icon(out, pad=0.0, ss=4):
-    """Square app icon. pad shrinks the mark so it stays inside the safe zone of masked (rounded) icons.
-    Drawn at ss times the size and scaled down, so the slanted edges come out smooth."""
-    size = out * ss
-    im = Image.new('RGB', (size, size), CHARCOAL)
-    inner = size * (1 - 2 * pad)
-    w, h = inner * 0.52, inner * 0.29
-    group = lines_width(h) + w
-    x = (size - group) / 2 + lines_width(h)
-    y = (size - h) / 2
-    ace_badge(im, x, y, w, h)
-    # thin maroon rule along the bottom, like the site's header
-    ImageDraw.Draw(im).rectangle([0, size - max(2 * ss, size // 32), size, size], fill=MAROON)
+def icon(out, pad=0.0, dotted=True):
+    """Full-bleed square icon (iOS and Android round the corners). pad keeps maskable icons inside the safe zone."""
+    size = out * SS
+    im = Image.new('RGB', (size, size), GRAPHITE)
+    mark(im, size * pad, size * pad, size * (1 - 2 * pad) / 100, dotted=dotted)
     return im.resize((out, out), Image.LANCZOS)
 
 
+def spaced(d, xy, text, f, fill, track):
+    """Text with letter-spacing (track px after each character)."""
+    x, y = xy
+    for ch in text:
+        d.text((x, y), ch, font=f, fill=fill)
+        x += f.getlength(ch) + track
+
+
 def og():
-    return _og(2).resize((1200, 630), Image.LANCZOS)
-
-
-def _og(k):
+    k = SS
     W, H = 1200 * k, 630 * k
-    im = Image.new('RGB', (W, H), CHARCOAL)
+    im = Image.new('RGB', (W, H), GRAPHITE)
     d = ImageDraw.Draw(im)
-    d.rectangle([0, H - 64 * k, W, H], fill=MAROON)
-    bh, bw = 104 * k, 230 * k
-    bx = 84 * k + lines_width(bh)
-    ace_badge(im, bx, 150 * k, bw, bh)
-    size = 110 * k
-    while size > 40:
-        f = DISPLAY(size)
-        l, t, tw, th = text_box('LINEUP LAB', f)
-        if bx + bw + 28 * k + tw + th * ITALIC <= W - 70 * k:
-            break
-        size -= 2
-    slanted_text(im, (bx + bw + 28 * k - l, 150 * k + (bh - th) / 2 - t), 'LINEUP LAB', f, WHITE)
-    d.text((84 * k, 320 * k), 'Weekly fantasy football projections,', font=BODY(50 * k), fill=WHITE)
-    d.text((84 * k, 382 * k), 'start / sit calls, and waiver pickups.', font=BODY(50 * k), fill=WHITE)
-    d.text((84 * k, 474 * k), 'ESPN · SLEEPER · CBS · FANTASYPROS · OUR MODEL', font=LABEL(36 * k), fill=ROSE)
-    d.text((84 * k, H - 50 * k), 'PPR · HALF-PPR · STANDARD', font=LABEL(32 * k), fill=WHITE)
-    return im
+    stripe = round(H * 0.07)
+    d.rectangle([0, H - stripe, W, H], fill=ORANGE)
+    d.rectangle([0, H - stripe - 3 * k, W, H - stripe], fill=TEAL)
+    # wordmark, sized to the width; the route rides on its A exactly as in the mark
+    # (A_GAP opens room after the A so the arrowhead clears the C, like the site's header)
+    x, size, word = 84 * k, 112 * k, 'CE LINEUP LAB'
+    width = lambda f: f.getlength('A') + A_GAP * f.size + f.getlength(word)
+    while width(DISPLAY(size)) > W - 2 * x:
+        size -= k
+    f, base = DISPLAY(size), 196 * k
+    d.text((x, base), 'A', font=f, fill=INK, anchor='ls')
+    d.text((x + f.getlength('A') + A_GAP * size, base), word, font=f, fill=INK, anchor='ls')
+    s = size / A_SIZE
+    mark(im, x + f.getlength('A') / 2 - A_AT[0] * s, base - A_AT[1] * s, s, letter=False)
+    body = BODY(54 * k)
+    d.text((x, 300 * k), 'Weekly fantasy football projections,', font=body, fill=MUTED)
+    d.text((x, 366 * k), 'start/sit calls and waiver pickups.', font=body, fill=MUTED)
+    spaced(d, (x, 466 * k), 'PPR · HALF-PPR · STANDARD', LABEL(34 * k), TEAL, 4 * k)
+    return im.resize((1200, 630), Image.LANCZOS)
 
 
 def main():
