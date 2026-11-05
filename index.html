@@ -2330,7 +2330,7 @@ function renderH2H(){
   if(va+vb>0&&!(wa.proj===0&&wb.proj===0)){const TW=va>=vb?A:B,tv=Math.max(va,vb),tt=va+vb;
     if(diff<1&&tt>=3&&tv/tt>=2/3)msg=`<b>Start ${esc(TW.name)}</b><br>The projections are within a point, so the tools break the tie: <b class="u-t-base">${tv} of ${tt}</b> pick ${esc(TW.name)}.`;
     else msg+=TW===W||diff<1?` <b class="u-t-base">${tv} of ${tt}</b> tools pick ${esc(TW.name)}.`:` But <b class="u-t-base">${tv} of ${tt}</b> tools pick ${esc(TW.name)}, so it's closer than the projection says.`;}
-  const tblT=names.length?`<div class="tbl-wrap u-mt-10"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div><p class="note u-mt-6">Each tool's projected points this week, with the rank that gives the player at his position. ESPN's analysts and CBS's experts publish rankings only. When the players play different positions, ranks are compared against each position's starter cutoff.</p>`:'';
+  const tblT=names.length?`<div class="tbl-wrap u-mt-10"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div>`:'';
   // the call first, as a band; how each tool voted sits underneath, folded away
   const last=P=>esc(lastName(P.name)),tvA=va>=vb;
   const tally=va+vb>0&&!(wa.proj===0&&wb.proj===0)?`<div class="vd-tally" role="img" aria-label="${Math.max(va,vb)} of ${va+vb} tools pick ${esc((tvA?A:B).name)}">
@@ -2774,16 +2774,16 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
     d.rk.ppg&&`<div class="tile"><span class="label">League rank</span><b class="ps-v">${ord(d.rk.ppg)}</b><span class="s">of 32, by points / game</span></div>`].filter(Boolean).join('');
   const tiles=`${strip?`<div class="pstrip">${strip}</div>`:''}
    <div class="tiles">
-     <div class="tile"><span class="label">Fantasy pts / game</span><span class="v">${d.fpg!=null?f1(d.fpg):'—'}</span><span class="s">${d.rk.fpg?`<b class="tr">${ord(d.rk.fpg)}</b> · whole offense, ${scName(true)}`:''}</span></div>
-     <div class="tile"><span class="label">Pass rate</span><span class="v">${d.passRate!=null?Math.round(d.passRate*100)+'%':'—'}</span><span class="s">${d.rk.pass?`<b class="tr">${ord(d.rk.pass)}</b> most pass-heavy`:''}</span></div>
-     <div class="tile"><span class="label">Defense allows</span><span class="v">${d.allow!=null?f1(d.allow):'—'}</span><span class="s">${d.rk.allow?`<b class="tr">${ord(d.rk.allow)}</b> of 32 (1st is stingiest) · to QB, RB, WR, TE`:''}</span></div>
+     <div class="tile"><span class="label">Fantasy pts / game</span><span class="v">${d.fpg!=null?f1(d.fpg):'—'}</span><span class="s">${d.rk.fpg?`<b class="tr">${ord(d.rk.fpg)}</b> of 32`:''}</span></div>
+     <div class="tile"><span class="label">Pass rate</span><span class="v">${d.passRate!=null?Math.round(d.passRate*100)+'%':'—'}</span><span class="s">${d.rk.pass?`<b class="tr">${ord(d.rk.pass)}</b> of 32`:''}</span></div>
+     <div class="tile"><span class="label">Defense allows</span><span class="v">${d.allow!=null?f1(d.allow):'—'}</span><span class="s">${d.rk.allow?`<b class="tr">${ord(d.rk.allow)}</b> of 32`:''}</span></div>
    </div>`;
   // this week's game
   const game=o==='BYE'?`<div class="card"><h3>Week ${wk}</h3><p class="note u-mt-4">${esc(nm)} are on bye. Bench or replace their players this week.</p></div>`
    :g?`<div class="card"><h3 class="u-mb-12">Week ${wk}: ${g.home?'vs':'at'} ${tlink(g.opp)}</h3><div class="kv">
      ${g.implied!=null?`<div><span class="label">Vegas</span><b>${f1(g.implied)} implied pts</b><span class="note">${esc(t)} ${g.spread>0?'+':''}${g.spread} · total ${g.total} · league avg ${f1(AD.avgImplied||0)}</span></div>`:''}
      <div><span class="label">Kickoff and conditions</span><b>${esc(kickText(g))}</b><span class="note">${g.weather?esc(weatherText(g.weather)):({dome:'Dome',closed:'Roof closed'})[g.roof]||'Forecast not available yet'}${g.stadium?' · '+esc(g.stadium):''}</span></div>
-     ${(()=>{const e=oppEase(g.opp);return e==null?'':`<div><span class="label">Matchup for this offense</span><b class="ork ${easeCls(e)} u-t-base">${easeLbl(e)}</b><span class="note">${esc(g.opp)}'s defense ranks ${ord(Math.round(e))} on average vs QB, RB, WR and TE</span></div>`;})()}
+     ${(()=>{const e=oppEase(g.opp);return e==null?'':`<div><span class="label">Matchup for this offense</span><b class="ork ${easeCls(e)} u-t-base">${easeLbl(e)}</b><span class="note">${ord(Math.round(e))}</span></div>`;})()}
    </div></div>`:'';
   // who gets the ball
   const sk=d.pl.filter(p=>['QB','RB','WR','TE'].includes(p.pos)&&p.gp>0).map(p=>({p,sn:dv(p.s.off_snp,p.s.tm_off_snp),ts:dv(p.s.rec_tgt,p.s.tm_tgt),cs:dv(p.s.rush_att,p.s.tm_rush_att),pg:ppg(p)}))
@@ -2808,7 +2808,7 @@ function renderTeam(t){const el=$('#tmPage'),D=dvpData(),dd=D.by[t],TD=teamData(
       const ot=x.replace('@',''),pl=played.has(w)&&w<SD.week,e=oppEase(ot);
       return `<button class="tm-wk${pl?' past':' '+easeCls(e)}${po?' po':''}${cur?' cur':''}" data-tm="${ot}"><span class="label">Wk ${w}</span><b>${x.startsWith('@')?'@':'vs'} ${esc(ot)}</b><small>${pl?'Played':easeLbl(e)}</small></button>`;}).join('')}</div></div>`:'';
   // defense: the defense-vs-position chart
-  const defCard=dd?`<div class="card" id="sec-def"><h3>What the ${esc(nm.split(' ').pop())} defense allows</h3><p class="note u-m-4-0-12">Longer bars give up more; rank 1st allows the fewest of 32.</p>
+  const defCard=dd?`<div class="card" id="sec-def"><h3 class="u-mb-12">What the ${esc(nm.split(' ').pop())} defense allows</h3>
     <div class="dvp-bars">${DPOS.map((p,i)=>`<div class="dvp-b"><span class="pos ${p}">${p}</span><span class="dvp-track" aria-hidden="true"><i class="${rkCls(dd.rank[i])}" style="width:${Math.max(4,(dd.rank[i]/32)*100)}%;--i:${i}"></i></span><span class="num"><b>${f1(dd.avg[i])}</b></span><span class="ork ${rkCls(dd.rank[i])}">${ord(dd.rank[i])}</span></div>`).join('')}</div>
     <details class="tools-d u-mt-14"><summary><span>Week by week</span><span class="muted">${dd.weeks.length} games</span></summary><div class="tbl-wrap u-m-0-12"><table class="tooltbl u-minw-600"><thead><tr><th>Week</th><th>Opponent</th>${DPOS.map(p=>`<th class="r">${p}</th>`).join('')}</tr></thead><tbody>
     ${dd.weeks.map(w=>`<tr><td class="num">Wk ${w.w}</td><td class="num">${w.home?'vs':'at'} ${tlink(w.opp)}</td>${w.v.map((x,i)=>`<td class="r num" style="${x>=dd.avg[i]*1.25&&x>=3?'color:var(--good);font-weight:700':x<=dd.avg[i]*.75?'color:var(--bad)':''}">${f1(x)}</td>`).join('')}</tr>`).join('')}
