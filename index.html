@@ -1052,7 +1052,7 @@ h3{font-size:var(--t-lg);line-height:1.2}
 @media (max-width:600px){.hm-hero{padding:4px 0}.hm-btns .hm-go{flex:none;width:100%;justify-content:center}.hm-btns{flex-direction:column;align-items:stretch;gap:12px}.hm-link2{align-self:center}}
 /* home: "chalk talk" banner, styled like .team-hero (maroon gradient, gold-hi stripe, slanted right edge) with a play diagram behind the text */
 .hm-banner{position:relative;overflow:hidden;container-type:inline-size;min-height:420px;box-sizing:border-box;padding:48px 72px 48px 64px;display:flex;flex-direction:column;justify-content:center;gap:16px;
-  background:linear-gradient(90deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 55%,#000) 100%);box-shadow:inset 18px 0 0 var(--data);clip-path:polygon(0 0,100% 0,calc(100% - 48px) 100%,0 100%);color:var(--accent-ink)}
+  background:var(--gold);box-shadow:inset 18px 0 0 var(--data);clip-path:polygon(0 0,100% 0,calc(100% - 48px) 100%,0 100%);color:var(--accent-ink)}
 .hm-row>.hm-hero{flex-basis:100%} /* the banner takes the whole row; Your team wraps below it */
 .hm-bt{display:flex;flex-direction:column;gap:14px;max-width:min(560px,52%)}
 .hm-bt>:not(.hm-play),.hm-banner>.hm-btns{position:relative}
@@ -1094,7 +1094,7 @@ h3{font-size:var(--t-lg);line-height:1.2}
   /* phone: the maroon moves to the text block so the buttons sit below it, back to the normal maroon button and link */
   .hm-banner{min-height:0;padding:0;background:none;box-shadow:none;clip-path:none;overflow:visible;container-type:normal;color:inherit;gap:16px}
   .hm-bt{position:relative;overflow:hidden;max-width:none;min-height:300px;box-sizing:border-box;justify-content:center;padding:28px 22px 28px 30px;
-    background:linear-gradient(90deg,var(--gold) 0%,color-mix(in srgb,var(--gold) 55%,#000) 100%);box-shadow:inset 10px 0 0 var(--data)}
+    background:var(--gold);box-shadow:inset 10px 0 0 var(--data)}
   .hm-play{right:0;width:100%;opacity:.32;top:auto;bottom:0;transform:none}   /* players sit below the text; only faint routes rise behind it */
   .hm-bt>.hm-pname{top:12px;right:16px}
   .hm-banner .hm-go.hm-pri{background:var(--gold);color:#fff}
