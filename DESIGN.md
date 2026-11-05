@@ -87,7 +87,7 @@ A dense, sports-broadcast data surface on a graphite base. Orange leads, teal ca
 - **Ember Orange** (accent / accent-fill): the brand voice: primary buttons, active tabs, ranks, links on hover. `accent` is the AA text shade, `accent-fill` the brighter fill.
 
 ### Secondary
-- **Data Teal** (data / data-ink): charts, highlights and the faint outline on cards, tiles and tables (`--box-line`, teal mixed 45% into surface).
+- **Data Teal** (data / data-ink): charts, highlights and the outline on cards, tiles and tables (`--box-line`) and the Week banner stripe, all plain teal in both themes.
 
 ### Neutral
 - **Graphite Ink** (ink), **Slate Muted** (muted), **Paper** (bg/surface), **Fog** (surface-2), **Hairline** (line).
@@ -133,7 +133,7 @@ Sharp 4px corners on cards, tiles, buttons and inputs; pills (999px) for chips; 
 - Pill, hairline border, surface fill, weight 600, small text.
 
 ### Cards / Tiles
-- Surface fill, 1px border (teal-tinted box-line), 4px corners, 18px padding (tiles 12px 14px).
+- Surface fill, 1px teal border (box-line), 4px corners, 18px padding (tiles 12px 14px).
 
 ### Tabs
 - Condensed uppercase 700, muted until selected; selected gets an accent underline/fill and the angled clip.
