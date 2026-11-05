@@ -2598,7 +2598,7 @@ function findTrades(){const rep=replacementPpg(),all=realPlayers(),RP=new Map(al
     got.add(o.get.key);o.give.forEach(p=>uses[p.key]=(uses[p.key]||0)+1);pick.push(o);if(pick.length>=8)break;}
   _tf={list:pick,league:!!LG};_tfK=k;return _tf;}
 function renderTradeFinder(){const el=$('#tFinder');if(!el)return;const f=findTrades();
-  const head=`<div class="u-flex u-wrap u-between u-gap-6-14 u-ai-base"><h3>Trade finder</h3><span class="note">${f.league?`Real rosters from ${esc(S.league.leagueName)}`:'Connect your league on Suggested Lineup to trade with real teams'}</span></div>`;
+  const head=`<div class="u-flex u-wrap u-between u-gap-6-14 u-ai-base"><h3>Trade finder</h3><span class="note">${f.league?`Real rosters from ${esc(S.league.leagueName)}`:'Connect your league on My Lineup to trade with real teams'}</span></div>`;
   if(f.need){el.innerHTML=head+`<p class="muted u-mt-6">Star your players or connect your league on My Lineup, and the finder will look for trades that improve your starting lineup.</p>`;return;}
   const nm=p=>`<span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`;
   el.innerHTML=head+(f.list.length?`<ul class="tfind">${f.list.map((o,i)=>`<li><div class="tf-d"><div><span class="tf-l">Give</span> ${o.give.map(nm).join(' + ')}</div><div><span class="tf-l">Get</span> ${nm(o.get)}${o.team?` <span class="muted">from ${esc(o.team.name)}</span>`:''}</div>
