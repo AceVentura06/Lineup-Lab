@@ -1,6 +1,6 @@
 {
-  "hash": "4dcdf0da8363409b",
-  "updated": "2026-11-07T03:13:02.648Z",
+  "hash": "84a5b417c21ef9a7",
+  "updated": "2026-11-07T10:03:48.023Z",
   "season": 2026,
   "week": 9,
   "through": "Weeks 1–8 plus 1 of 15 week 9 games",
@@ -27,11 +27,11 @@
     },
     "FTN charting": {
       "ok": true,
-      "detail": "20513 charted plays"
+      "detail": "20664 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "340 entries for week 9"
+      "detail": "360 entries for week 9"
     },
     "Betting lines": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "524 players"
+      "detail": "513 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "176 players with news, 332 of 345 stories with photos (ESPN 1646 articles scanned; ESPN 425, CBS Sports 17, Yahoo Sports 31, ProFootballTalk 21)"
+      "detail": "176 players with news, 336 of 346 stories with photos (ESPN 1646 articles scanned; ESPN 425, CBS Sports 17, Yahoo Sports 30, ProFootballTalk 23)"
     }
   }
 }
