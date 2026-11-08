@@ -1,9 +1,9 @@
 {
-  "hash": "0a6cc98e5b78d6c5",
-  "updated": "2026-11-08T13:19:44.765Z",
+  "hash": "cf033cc61675c43f",
+  "updated": "2026-11-08T18:30:31.817Z",
   "season": 2026,
   "week": 9,
-  "through": "Weeks 1–8 plus 1 of 15 week 9 games",
+  "through": "Weeks 1–8 plus 2 of 15 week 9 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "421 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "415 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "163 players with news, 319 of 325 stories with photos (ESPN 1646 articles scanned; ESPN 415, CBS Sports 18, Yahoo Sports 9, ProFootballTalk 16)"
+      "detail": "163 players with news, 308 of 316 stories with photos (ESPN 1645 articles scanned; ESPN 414, CBS Sports 7, Yahoo Sports 22, ProFootballTalk 14)"
     }
   }
 }
