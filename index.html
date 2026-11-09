@@ -955,6 +955,11 @@ html.ll-ready .has-island>.ll-island[data-island="ball"]{min-height:0}
 .board .hsearch{position:relative;display:flex;align-items:center}
 .board .hsearch svg{position:absolute;left:10px;color:var(--muted);pointer-events:none}
 .board .hsearch input{width:210px;height:38px;box-sizing:border-box;padding:0 10px 0 34px;border:0;border-radius:var(--r-md);background:var(--surface-2);color:var(--ink);font:inherit;font-size:var(--t-base)}
+.srch-list{position:absolute;top:calc(100% + 4px);right:0;z-index:60;width:max(100%,300px);box-sizing:border-box;margin:0;padding:4px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);overflow-y:auto;overscroll-behavior:contain}
+.srch-list li{display:flex;align-items:center;gap:8px;min-height:44px;padding:0 8px;cursor:pointer;border-radius:var(--r-sm);touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.srch-list li[aria-selected="true"]{background:var(--surface-2)}.srch-list li[aria-disabled]{cursor:default}.srch-list .pos{margin:0;flex:none}.srch-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+@media (hover:hover) and (pointer:fine){.srch-list li:not([aria-disabled]):hover{background:var(--surface-2)}}
+@media (pointer:coarse){.board .hsearch input{font-size:16px}}
 .srch-btn{all:unset;cursor:pointer;display:none;width:44px;height:44px;align-items:center;justify-content:center;border-radius:var(--r-md);color:var(--ink)}
 .ctx{position:relative}
 .ctx-btn{all:unset;cursor:pointer;box-sizing:border-box;height:38px;padding:0 12px;display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);color:var(--ink);font-weight:700;font-size:var(--t-base);white-space:nowrap}
@@ -1495,7 +1500,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
       </div>
     </div>
     <div class="controls">
-      <div class="ctl hsearch"><label class="sr" for="hSearch">Find a player</label><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="hSearch" enterkeyhint="search" autocapitalize="none" autocorrect="off" class="pick" type="search" list="hSearchList" placeholder="Find a player" autocomplete="off" spellcheck="false"><datalist id="hSearchList"></datalist></div>
+      <div class="ctl hsearch"><label class="sr" for="hSearch">Find a player</label><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg><input id="hSearch" enterkeyhint="search" autocapitalize="none" autocorrect="off" class="pick" type="search" placeholder="Find a player" autocomplete="off" spellcheck="false" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="hSearchList"><ul class="srch-list" id="hSearchList" role="listbox" aria-label="Matching players" hidden></ul></div>
       <button type="button" class="srch-btn" id="srchBtn" aria-label="Find a player" aria-expanded="false"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6"/></svg></button>
       <div class="ctx">
         <button type="button" class="ctx-btn" id="ctxBtn" aria-expanded="false" aria-controls="ctxPop"><span class="ctx-wk"><span class="ctx-wl">Week</span><span class="ctx-ws">Wk</span> <span id="ctxWk"><span class="sk sk-i u-w-1_1em" aria-hidden="true"></span></span></span><i aria-hidden="true">|</i><span id="ctxSc"></span><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>
@@ -4174,24 +4179,37 @@ function popHide(p){p.classList.remove('open');clearTimeout(p._hid);p._hid=setTi
   const m=$('#tMoreMenu');if(m)m.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(!b)return;close();store(KEY+'.tab',b.dataset.tab);go(b.dataset.tab);});})();
 // phone: the search field folds into an icon in the bar
 (function(){const b=$('#srchBtn'),tb=$('#topbar');if(!b||!tb)return;b.onclick=()=>{const on=!tb.classList.contains('srch-open');tb.classList.toggle('srch-open',on);b.setAttribute('aria-expanded',String(on));if(on)$('#hSearch').focus();};
-  $('#hSearch').addEventListener('keydown',e=>{if(e.key==='Escape'&&tb.classList.contains('srch-open')){tb.classList.remove('srch-open');b.setAttribute('aria-expanded','false');b.focus();}});})();
+  $('#hSearch').addEventListener('keydown',e=>{if(e.key==='Escape'&&tb.classList.contains('srch-open')&&$('#hSearch').getAttribute('aria-expanded')!=='true'){tb.classList.remove('srch-open');b.setAttribute('aria-expanded','false');b.focus();}});})();
 // the ticker can be paused (and stays paused for this visit)
 (function(){const b=$('#tkPause'),t=$('#ticker');if(!b||!t)return;b.onclick=()=>{const on=!t.classList.contains('paused');t.classList.toggle('paused',on);b.setAttribute('aria-pressed',String(on));b.setAttribute('aria-label',on?'Play the ticker':'Pause the ticker');};})();
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('button[data-tab]');if(!b)return;store(KEY+'.tab',b.dataset.tab);go(b.dataset.tab);};
 // Browser history: every tab and player page gets its own address, so Back and Forward move around the site
 // (and a link like …/#player=puka-nacua opens straight to that page)
 // ---- header search: jump to any player's page ----
-(function(){const dl=$('#hSearchList');['#hSearch','#homeSearch'].forEach(sel=>{const inp=$(sel);if(!inp||!dl)return;
-  const lab=p=>`${p.name} (${p.team}) · ${p.pos}`;
-  const list=()=>[...PL.values()].sort((a,b)=>(b.s.pts_ppr||0)-(a.s.pts_ppr||0));
-  let built=false;const build=()=>{if(built)return;built=true;dl.innerHTML=list().map(p=>`<option value="${esc(lab(p))}"></option>`).join('');};
-  inp.addEventListener('focus',build);
-  const open=exact=>{const v=inp.value.trim().toLowerCase();if(!v)return;const all=list();
-    const hit=all.find(p=>lab(p).toLowerCase()===v)||(exact?null:all.find(p=>p.name.toLowerCase().includes(v)));
-    if(!hit){if(!exact)toast('No player matches that name');return;}
-    inp.value='';inp.blur();if(ui.tab!=='player')ui.prev=ui.tab;go('player',hit.key);};
-  inp.addEventListener('input',()=>open(true));
-  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();build();open(false);}});});})();
+(function(){const inp=$('#hSearch'),list=$('#hSearchList');if(!inp||!list)return;
+  let hits=[],on=-1;
+  // exact name, then last name starts with it, then contains it; season points break ties
+  const find=q=>{const out=[];for(const p of PL.values()){const n=p.name.toLowerCase(),t=n===q?0:lastName(n).startsWith(q)?1:n.includes(q)?2:-1;if(t>=0)out.push([t,p.s.pts_ppr||0,p]);}
+    return out.sort((a,b)=>a[0]-b[0]||b[1]-a[1]).slice(0,8).map(x=>x[2]);};
+  // the list stops above the on-screen keyboard and scrolls inside what's left
+  const fit=()=>{const vv=window.visualViewport,bot=vv?vv.height+vv.offsetTop:innerHeight;list.style.maxHeight=Math.max(132,bot-inp.getBoundingClientRect().bottom-12)+'px';};
+  const close=()=>{list.hidden=true;inp.setAttribute('aria-expanded','false');inp.removeAttribute('aria-activedescendant');on=-1;};
+  const paint=()=>{[...list.children].forEach((li,i)=>{const s=i===on;li.setAttribute('aria-selected',String(s));if(s){inp.setAttribute('aria-activedescendant',li.id);li.scrollIntoView({block:'nearest'});}});};
+  const show=()=>{const q=inp.value.trim().toLowerCase();if(!q){close();return;}hits=find(q);on=hits.length?0:-1;
+    list.innerHTML=hits.length?hits.map((p,i)=>`<li role="option" id="hsr-${i}" data-i="${i}" aria-selected="false"><span class="pos ${p.pos}">${p.pos}</span><span class="srch-nm">${esc(p.name)}</span><span class="muted u-t-sm">${esc(p.team)}</span></li>`).join(''):'<li role="option" aria-disabled="true" class="muted">No player matches that name</li>';
+    list.hidden=false;inp.setAttribute('aria-expanded','true');fit();paint();};
+  const open=p=>{close();inp.value='';inp.blur();const tb=$('#topbar');tb.classList.remove('srch-open');$('#srchBtn').setAttribute('aria-expanded','false');if(ui.tab!=='player')ui.prev=ui.tab;go('player',p.key);};
+  inp.addEventListener('input',show);
+  inp.addEventListener('focus',show);
+  inp.addEventListener('focusout',close);
+  inp.addEventListener('keydown',e=>{if(list.hidden)return;const n=hits.length;
+    if(e.key==='ArrowDown'&&n){e.preventDefault();on=(on+1)%n;paint();}
+    else if(e.key==='ArrowUp'&&n){e.preventDefault();on=(on-1+n)%n;paint();}
+    else if(e.key==='Enter'){e.preventDefault();if(hits[on])open(hits[on]);}
+    else if(e.key==='Escape')close();});
+  list.addEventListener('mousedown',e=>e.preventDefault());   // keep focus in the field so the tap lands
+  list.addEventListener('click',e=>{const li=e.target.closest('[data-i]');if(li)open(hits[+li.dataset.i]);});
+  if(window.visualViewport)visualViewport.addEventListener('resize',()=>{if(!list.hidden)fit();});})();
 // ---- first-visit setup: three short steps in a card on Home. Asks nothing personal; skipping or finishing hides it for good. ----
 const setupOn=()=>S.setup>=1&&S.setup<=3;
 function renderSetup(focus){const el=$('#setup'),n=S.setup;el.hidden=!setupOn();syncInstall();
