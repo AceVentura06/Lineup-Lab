@@ -2110,7 +2110,7 @@ const realInj=pr=>!!(pr&&pr[2]&&!/not injury|\brest|personal/i.test(pr[2]));
 const healthWk=p=>{const pr=p.real?practiceOf(p):null,st=effStatus(p),pc=pr?pr[0]:'';
   if(st==='Out'||st==='IR')return 0;if(st==='Doubtful')return .35;
   if(st==='Questionable')return Math.max(0,1-S.w.q*(pc==='DNP'?1.6:pc==='FP'?.5:1));
-  return pc==='DNP'?1-S.w.q*.6:1;};
+  return pc==='DNP'&&realInj(pr)?1-S.w.q*.6:1;};   // a rest day with no listed injury costs nothing
 const healthRos=p=>({Healthy:1,Questionable:.98,Doubtful:.93,Out:.88,IR:.5}[p.status]??1);
 const onBye=p=>n(p.bye)===S.week;
 
