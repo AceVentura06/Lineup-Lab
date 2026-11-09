@@ -6,7 +6,7 @@ import { useChart } from "@/components/charts/chart-context";
 import { Grid } from "@/components/charts/grid";
 import { Line } from "@/components/charts/line";
 import { LineChart } from "@/components/charts/line-chart";
-import { ChartTooltip } from "@/components/charts/tooltip";
+import { ChartTooltip, TooltipDot } from "@/components/charts/tooltip";
 import { at, Tip, WeekAxis } from "./parts";
 
 /** One graded source, as index.html's accChart() describes it. */
@@ -65,6 +65,20 @@ function PartialLine({ src, weeks, floor, stroke, width, dots }: { src: AccSourc
   );
 }
 
+/** The hovered or tapped week's circle fills in. ChartTooltip's own dots would land on all six lines, and only this one has circles. */
+function ActiveDot({ dataKey, color }: { dataKey: string; color: string }) {
+  const { tooltipData, xScale, yScale } = useChart();
+  const row = tooltipData?.point as Row | undefined;
+  if (!row || typeof row[dataKey] !== "number") return null;
+  return (
+    <g aria-hidden="true" style={{ pointerEvents: "none" }}>
+      {/* 6.5 covers the enlarged active marker's hollow centre */}
+      <TooltipDot color={color} haloScale={2} size={6.5} visible x={xScale(at(row.w))} y={yScale(row[dataKey] as number)} />
+    </g>
+  );
+}
+ActiveDot.__isPostOverlay = true;
+
 export function AccuracyChart({ weeks, sources }: AccuracyChartProps) {
   const [focus, setFocus] = useState<string | null>(null);
   const all = sources.flatMap((s) => s.miss).filter((v): v is number => v != null);
@@ -88,6 +102,7 @@ export function AccuracyChart({ weeks, sources }: AccuracyChartProps) {
   // Ace Lineup Lab is the spotlight: bold, filled, with markers; the rest are thin context lines
   const width = (k: string) => (k === "lab" ? 3.5 : 1.75);
   const lab = full.find((s) => s.key === "lab");
+  const labSrc = sources.find((s) => s.key === "lab");
 
   return (
     <div className="ll-acc">
@@ -123,6 +138,7 @@ export function AccuracyChart({ weeks, sources }: AccuracyChartProps) {
           <PartialLine dots={s.key === "lab"} floor={floor} key={s.key} src={s} stroke={dim(s.color, on(s.key))} weeks={weeks} width={width(s.key)} />
         ))}
         <YLabels floor={floor} step={step} ticks={ticks} />
+        {labSrc && on("lab") && <ActiveDot color={labSrc.color} dataKey="lab" />}
         <WeekAxis weeks={weeks.map((w) => ({ w }))} />
         <ChartTooltip
           content={({ point }) => <AccTip floor={floor} row={point as Row} sources={sources} />}
