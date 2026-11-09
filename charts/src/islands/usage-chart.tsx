@@ -84,6 +84,9 @@ export function UsageChart({ weeks, avg, title, animate = true }: UsageChartProp
                 </Tip>
               );
             }}
+            // 6 covers the enlarged active marker's hollow centre; the halo stays 13px
+            dotHaloScale={13 / 6}
+            dotSize={6}
             showDatePill={false}
           />
         </AreaChart>
