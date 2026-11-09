@@ -2860,7 +2860,7 @@ function renderTicker(){const el=$('#ticker'),tr=$('#tkTrack');if(!el||!tr)retur
   if(lw>=1){const top={};for(const p of PL.values()){const w=p.weeks[lw-1];if(!w)continue;const v=wpts(w);if(!top[p.pos]||v>top[p.pos].v)top[p.pos]={p,v};}
     const S1=['QB','RB','WR','TE','K','DST'].filter(x=>top[x]).map(x=>`<button class="plink tk-p" data-k="${esc(top[x].p.key)}"><span class="pos ${x}">${x}</span> ${esc(top[x].p.name)} <b>${f1(top[x].v)}</b></button>`);
     if(S1.length)items.push(`<span class="tk-h">Week ${lw} top scorers</span> ${S1.join('<span class="tk-dot">·</span>')}`);}
-  if(T.best)items.push(`<span class="tk-h">Most accurate, Week ${T.best.week}</span> <button class="tk-a" data-tab="acc">${esc(T.best.name)}, ${f1(T.best.miss)} pts off per player</button>`);
+  if(T.best)items.push(`<span class="tk-h">Most accurate, Week ${T.best.week}</span> <button class="tk-a" data-tab="acc">${esc(T.best.name)}, ${T.best.miss.toFixed(2)} pts off per player</button>`);
   for(const [t,src,url] of (T.latest||[]))items.push(`<span class="tk-h">${esc(src)}</span> <a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(t)}</a>`);
   if(!items.length){el.hidden=true;return;}
   const one=items.map(x=>`<span class="tk-i">${x}</span>`).join('');
@@ -3263,8 +3263,8 @@ function renderHome(){
     else{const last=ws[ws.length-1],rows=accAgg([last]).sort((a,b)=>a.mae-b.mae),season=accAgg(ws).sort((a,b)=>a.mae-b.mae),best=rows[0];
       const li=rows.findIndex(r=>r.s==='lab'),si=season.findIndex(r=>r.s==='lab');
       acc=`<div class="hm-list"><span class="hm-sm u-fw-7">Most accurate, Week ${last}</span>
-        <span class="hm-big">${esc(ACC.sources[best.s])}</span><span class="hm-sm">${best.mae.toFixed(1)} points off per player</span>
-        <div class="u-bt-1 u-pt-10 u-t-md">${best.s==='lab'?'That was us.':li>=0?`Ace Lineup Lab: <b>${ord(li+1)}</b> of ${rows.length} (${rows[li].mae.toFixed(1)} off).`:''}${si>=0?` Season to date: <b>${ord(si+1)}</b> of ${season.length}.`:''}</div></div>`;}}
+        <span class="hm-big">${esc(ACC.sources[best.s])}</span><span class="hm-sm">${best.mae.toFixed(2)} points off per player</span>
+        <div class="u-bt-1 u-pt-10 u-t-md">${best.s==='lab'?'That was us.':li>=0?`Ace Lineup Lab: <b>${ord(li+1)}</b> of ${rows.length} (${rows[li].mae.toFixed(2)} off).`:''}${si>=0?` Season to date: <b>${ord(si+1)}</b> of ${season.length}.`:''}</div></div>`;}}
   $('#hmAcc').innerHTML=`<div class="hm-head"><h3>Who called it</h3><button class="hm-link" data-go="acc">Scoreboard</button></div>${acc}`;
   // injury watch: fantasy starters (by season scoring) and your players with an injury tag or a missed or limited practice
   if(!NEWS)loadNews(()=>{if(ui.tab==='home')renderHome();});
