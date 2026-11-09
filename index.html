@@ -124,7 +124,8 @@ p{margin:0}
 .pos{display:inline-block;min-width:34px;text-align:center;font-family:var(--f-display);font-weight:800;font-size:var(--t-sm);padding:1px 6px;border-radius:var(--r-sm);color:var(--surface);letter-spacing:.04em}
 .pos.QB{background:var(--qb)}.pos.RB{background:var(--rb)}.pos.WR{background:var(--wr)}.pos.TE{background:var(--te)}.pos.K{background:var(--k)}.pos.DST{background:var(--dst)}
 .pill{display:inline-block;padding:1px 8px;border-radius:var(--r-pill);font-size:var(--t-xs);font-weight:700;white-space:nowrap}
-.hint{position:fixed;z-index:100;padding:5px 9px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:var(--t-sm);font-weight:600;white-space:nowrap;pointer-events:none}
+.hint{position:fixed;z-index:100;padding:5px 9px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.18);font-size:var(--t-sm);font-weight:600;width:max-content;max-width:min(280px,calc(100vw - 16px));pointer-events:none}
+.hint-n{all:unset;cursor:help;touch-action:manipulation;text-decoration:underline dotted var(--muted);text-underline-offset:3px}.hint-n:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .pill[data-hint]{cursor:help}
 .p-good{background:var(--good-soft);color:var(--good)}.p-warn{background:var(--warn-soft);color:var(--warn)}.p-bad{background:var(--bad-soft);color:var(--bad)}.p-gold{background:var(--gold-soft);color:var(--accent)}.p-mute{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
 .ex{font-size:var(--t-xs);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border:1px dashed var(--line);border-radius:var(--r-sm);padding:0 4px;margin-left:4px}
@@ -2113,15 +2114,17 @@ function blendW(p){if(!blendAuto())return S.w.blend;const t=SD.blend.pos[p.pos];
 function weekProj(p){
   const bl=blendW(p),ck=(p.id||p.key)+'|'+S.week+'|'+scKey()+'|'+JSON.stringify(S.w)+'|'+bl;if(_wp.has(ck))return _wp.get(ck);
   const b=base(p);let r;
-  if(onBye(p))r={b,proj:0,lo:0,hi:0,model:0,sites:null};
+  if(onBye(p))r={b,proj:0,lo:0,hi:0,model:0,modelRaw:0,pre:0,sites:null};
   else{const h=healthWk(p),sa=siteAvg(p),gp=p.real?(PL.get(p.key)?.gp||0):9;
     // small samples: with no site projection, pull toward a typical backup; with one, lean on the sites more
     const POSBASE={QB:12,RB:6,WR:6,TE:4,K:7.5,DST:6.5};
     const bAdj=sa==null&&gp<3?(gp*b+(3-gp)*(POSBASE[p.pos]||6))/3:b;
-    const model=bAdj*matchM(p)*trendM(p)*vegasM(p)*weatherM(p)*h;
+    const modelRaw=bAdj*matchM(p)*trendM(p)*vegasM(p)*weatherM(p),model=modelRaw*h;
     const wB=gp<3?bl+(1-bl)*(3-gp)/3:bl;
     const proj=h===0?0:sa!=null?(1-wB)*model+wB*sa*(h<1?Math.max(.4,h):1):model;
-    const v=volOf(p);r={b,proj,model,sites:sa,lo:proj*(1-v),hi:proj*(1+v)};}
+    // modelRaw and pre are the same numbers before the injury discount, so they compare directly with the sites
+    const pre=sa!=null?(1-wB)*modelRaw+wB*sa:modelRaw;
+    const v=volOf(p);r={b,proj,model,modelRaw,pre,sites:sa,lo:proj*(1-v),hi:proj*(1+v)};}
   if(_wp.size>4000)_wp.clear();_wp.set(ck,r);return r;
 }
 // Rest-of-season scoring rate: season average, blended with recent form and (RB/WR/TE) expected points from usage,
@@ -2141,6 +2144,12 @@ function rosProj(p){
   return {ppg,games,total:ppg*games};
 }
 
+// why a projection sits below its model and site numbers; '' when no injury discount applied
+function injNote(p,w){if(!p.real||!(w.proj>0)||!(w.pre-w.proj>=.05))return '';const pr=practiceOf(p),st=effStatus(p);
+  const why=[st&&st!=='Healthy'?st:'',pr&&{DNP:'did not practice',LP:'limited in practice',FP:'full practice'}[pr[0]]].filter(Boolean).join(', ');
+  return `Injury-adjusted: −${f1(w.pre-w.proj)}${why?` (${why})`:''}. Before adjustment: ${f1(w.pre)}.`;}
+// the projection number; with an injury discount it opens the explanation on hover, focus or tap
+function projNum(p,w){const t=injNote(p,w);return t?`<button type="button" class="hint-n" data-hint="${esc(t)}" aria-label="${f1(w.proj)}. ${esc(t)}">${f1(w.proj)}</button>`:f1(w.proj);}
 function statusPill(p){
   if(onBye(p))return '<span class="pill p-mute">Bye</span>';
   const pr=p.real?practiceOf(p):null;
@@ -2154,9 +2163,12 @@ function statusPill(p){
 // what an injury pill's letters mean, shown in a small box while the pointer is over it
 const INJ_TIP={Questionable:'Questionable',Doubtful:'Doubtful',Out:'Out',IR:'Injured Reserve',DNP:'Did Not Practice',LP:'Limited Practice',FP:'Full Practice'};
 {const box=document.createElement('div');box.className='hint';box.setAttribute('role','tooltip');box.hidden=true;document.body.append(box);
-  document.addEventListener('mouseover',e=>{const t=e.target.closest&&e.target.closest('[data-hint]');if(!t){box.hidden=true;return;}
+  const hintAt=e=>{const t=e.target.closest&&e.target.closest('[data-hint]');if(!t){box.hidden=true;return;}
     box.textContent=t.dataset.hint;box.hidden=false;const r=t.getBoundingClientRect();
-    box.style.left=Math.max(8,Math.min(innerWidth-box.offsetWidth-8,r.left+r.width/2-box.offsetWidth/2))+'px';box.style.top=Math.max(8,r.top-box.offsetHeight-6)+'px';});
+    box.style.left=Math.max(8,Math.min(innerWidth-box.offsetWidth-8,r.left+r.width/2-box.offsetWidth/2))+'px';box.style.top=Math.max(8,r.top-box.offsetHeight-6)+'px';};
+  // touch has no hover: a tap lands here as click, and tapping anywhere else closes it
+  ['mouseover','focusin','click'].forEach(ev=>document.addEventListener(ev,hintAt));
+  document.addEventListener('focusout',()=>{box.hidden=true;});document.addEventListener('keydown',e=>{if(e.key==='Escape')box.hidden=true;});
   addEventListener('scroll',()=>{box.hidden=true;},{passive:true,capture:true});}
 // full name on wide screens; "K. Walker" (or just the last name when that's still long, "Saints" for defenses) on phones
 // a person's last name is everything after the first name, so suffixes stay: "Walker III", "St. Brown", "Cooper Jr."
@@ -2258,7 +2270,7 @@ function renderWeek(){
     <td class="r num muted">${f1(r.b)}</td><td class="u-nowrap">${onBye(r.p)?'<span class="muted">—</span>':matchPill(r.p)}</td>
     <td class="r num">${onBye(r.p)?'<span class="muted">—</span>':vegasCell(r.p)}</td>
     <td>${r.proj>0&&r.p.real?votesBar(consensus(r.p)):'<span class="muted">—</span>'}</td>
-    <td class="r big">${f1(r.proj)}${r.sites!=null&&r.proj>0?`<span class="subn">model ${f1(r.model)} · sites ${f1(r.sites)}</span>`:''}</td>
+    <td class="r big">${projNum(r.p,r)}${r.sites!=null&&r.proj>0?`<span class="subn">model ${f1(r.modelRaw)} · sites ${f1(r.sites)}</span>`:''}</td>
     <td><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></td>
     <td>${call(r)}</td></tr>`}).join('')+pgW.moreRow:`<tr><td colspan="9" class="muted">${none}</td></tr>`;
   renderH2H();
@@ -2270,13 +2282,13 @@ function wkCard(r,call,maxHi){const p=r.p,bye=onBye(p),c=r.proj>0&&p.real?consen
   const nm=p.real&&PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:`<span class="pname">${esc(p.name)}</span>`;
   return `<li class="wkc"><div class="wkc-face">${starBtn(p.key||p.id)}
     <div class="wkc-nm"><span class="pos ${p.pos}">${p.pos}</span>${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}</div>
-    <div class="wkc-proj big">${f1(r.proj)}</div>
+    <div class="wkc-proj big">${projNum(p,r)}</div>
     <div class="wkc-sub">${p.team?`<span>${esc(p.team)}</span>`:''}${bye?'<span class="muted">Bye</span>':matchPill(p)}</div>
     <div class="wkc-call">${call(r)}</div></div>
     <details class="tools-d wkc-more"><summary><span>${c?votesBar(c):'<span class="muted">No tool votes</span>'}</span>Details</summary>
       <dl class="wkc-dl"><div><dt>Avg pts</dt><dd class="num">${f1(r.b)}</dd></div>
         <div><dt>Vegas</dt><dd class="num">${bye?'—':vegasCell(p)}</dd></div>
-        <div><dt>Model · sites</dt><dd class="num">${r.sites!=null&&r.proj>0?`${f1(r.model)} · ${f1(r.sites)}`:'—'}</dd></div>
+        <div><dt>Model · sites</dt><dd class="num">${r.sites!=null&&r.proj>0?`${f1(r.modelRaw)} · ${f1(r.sites)}`:'—'}</dd></div>
         <div class="wkc-rg"><dt>Floor – ceiling</dt><dd><div class="range">${r.proj?`<div class="track"></div><div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:'<div class="track"></div>'}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></dd></div></dl>
     </details></li>`;}
 $('#wkSort').onchange=e=>{ui.sortW=e.target.value;ui.dirW=1;renderWeek();};
@@ -2297,7 +2309,7 @@ function renderH2H(){
   const byLabel=new Map(ps.map(x=>[label(x.p).toLowerCase(),x.p.id]));
   const opts=groups.map(([pos,g])=>g.map(x=>`<option value="${esc(label(x.p))}">${isMine(x.p)?'★ On my team':''}</option>`).join('')).join('');
   const A=byId.get(ui.a),B=byId.get(ui.b),wa=weekProj(A),wb=weekProj(B);
-  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';const pg=p.real&&PL.has(p.key);return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${pg?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name)}</div><div class="side-row"><div class="proj">${f1(w.proj)}</div>${pg?`<button class="side-pg" data-k="${esc(p.key)}" aria-label="Open ${esc(p.name)}'s player page">Player page<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}</div>
+  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';const pg=p.real&&PL.has(p.key);return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${pg?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name)}</div><div class="side-row"><div class="proj">${projNum(p,w)}</div>${pg?`<button class="side-pg" data-k="${esc(p.key)}" aria-label="Open ${esc(p.name)}'s player page">Player page<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.modelRaw)}, sites ${f1(w.sites)}`:''}</div>
     ${g&&g.implied!=null?`<div class="note">Vegas: team implied ${f1(g.implied)} pts (${g.spread>0?'+':''}${g.spread}, O/U ${g.total})${wt?' · '+esc(wt):''}</div>`:''}
     ${e?`<div class="note">Experts: ${p.pos}${e[1]} (best ${e[3]}, worst ${e[4]})${e[5]?' · grade '+esc(e[5]):''}</div>`:''}
     <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p,true)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
@@ -3971,7 +3983,7 @@ function renderPlayer(){
      ${g?`<div><span class="label">Kickoff and conditions</span><b>${esc(kickText(g))}</b><span class="note">${g.weather?esc(weatherText(g.weather)):({dome:'Dome',closed:'Roof closed'})[g.roof]||'Forecast not available yet'}${g.stadium?' · '+esc(g.stadium):''}</span></div>`:''}
      ${prc?`<div><span class="label">Injury report</span><b>${esc(prc[1]||'No game status')}</b><span class="note">Practice: ${({DNP:'did not practice',LP:'limited',FP:'full'})[prc[0]]||'—'}${prc[2]?' · '+esc(prc[2]):''}</span></div>`:''}
      ${e?`<div><span class="label">FantasyPros experts</span><b>${p.pos}${e[1]??'—'} · grade ${esc(e[5]||'—')}</b><span class="note">Best ${e[3]}, worst ${e[4]} overall · spread ±${e[2]}</span></div>`:''}
-     ${sv2?`<div><span class="label">Each site</span><b>${[['espn','ESPN'],['sleeper','Sleeper'],['cbs','CBS'],['fp','FantasyPros']].filter(([k])=>sv2[k]!=null).map(([k,l])=>l+' '+f1(sv2[k])).join(', ')}</b><span class="note">${wp.model?'Our model '+f1(wp.model)+', blended into '+f1(wp.proj):'Blended into '+f1(wp.proj)}</span></div>`:''}
+     ${sv2?`<div><span class="label">Each site</span><b>${[['espn','ESPN'],['sleeper','Sleeper'],['cbs','CBS'],['fp','FantasyPros']].filter(([k])=>sv2[k]!=null).map(([k,l])=>l+' '+f1(sv2[k])).join(', ')}</b><span class="note">${wp.modelRaw?'Our model '+f1(wp.modelRaw)+', blended into '+f1(wp.pre):'Blended into '+f1(wp.pre||wp.proj)}${injNote(rp||{real:false},wp)?'. '+esc(injNote(rp,wp)):''}</span></div>`:''}
    </div>@@TOOLS@@</div>`:'';
   const cons=consensus(rp||{real:false});
   const toolsCard=cons?`<details class="tools-d"><summary><span>How each tool voted</span><span class="muted">${cons.n.start} start, ${cons.n.flex} flex, ${cons.n.sit} sit</span></summary><p class="note u-m-0-16-8">Average rank: ${p.pos}${Math.round(cons.avg)}.</p>
