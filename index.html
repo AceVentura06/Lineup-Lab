@@ -1416,6 +1416,7 @@ h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:no
 .hm-banner,.verdict,:root[data-theme="dark"] .verdict{--gold:#C93C18;--accent:#C93C18;--gold-hi:#EC4D25;--accent-ink:#FFFFFF}
 :root[data-theme="dark"] .hm-banner{--gold-hi:#FF8A6B}
 .verdict .vd-msg{color:#fff}
+.vd-warn{margin-top:12px;padding:10px 12px;border-radius:var(--r-sm);background:rgba(0,0,0,.28);font-size:var(--t-base);line-height:1.4;color:#fff}
 .vd-sq i{border-color:rgba(255,255,255,.55)}
 .vd-who{color:#fff}
 .livedot,.tabs button.live::after{background:var(--bad)}
@@ -2096,6 +2097,8 @@ const SEV={Healthy:0,Questionable:1,Doubtful:2,Out:3,IR:4};
 function effStatus(p){const pr=p.real?practiceOf(p):null,lv=p.real?LIVEINJ.map[p.key]:null;
   if(lv){const ps=pr&&pr[1];return ps&&(SEV[ps]||0)>(SEV[lv.st]||0)?ps:lv.st;}
   return pr&&pr[1]?pr[1]:p.status;}
+// practice-report reason that is an actual injury (body part or illness), not a rest day or personal matter
+const realInj=pr=>!!(pr&&pr[2]&&!/not injury|\brest|personal/i.test(pr[2]));
 const healthWk=p=>{const pr=p.real?practiceOf(p):null,st=effStatus(p),pc=pr?pr[0]:'';
   if(st==='Out'||st==='IR')return 0;if(st==='Doubtful')return .35;
   if(st==='Questionable')return Math.max(0,1-S.w.q*(pc==='DNP'?1.6:pc==='FP'?.5:1));
@@ -2333,13 +2336,14 @@ function renderH2H(){
   else msg=`<b>Start ${esc(W.name)}</b><br>Projected ${f1(diff)} points ahead${diff>4?', a clear edge':''}.${L.status!=='Healthy'&&!onBye(L)?` ${esc(L.name)} is ${L.status.toLowerCase()}, which adds risk.`:''}`;
   // Run both players through every tool
   const ta=toolsFor(A),tb=toolsFor(B),names=[...new Set([...ta,...tb].map(x=>x.name))];
-  let va=0,vb=0;const aN=[],bN=[];const rowsT=names.map(nm=>{const x=ta.find(t=>t.name===nm),y=tb.find(t=>t.name===nm);
+  let rec=W,va=0,vb=0;const aN=[],bN=[];const rowsT=names.map(nm=>{const x=ta.find(t=>t.name===nm),y=tb.find(t=>t.name===nm);
     let w='';if(x&&y){const sx=x.rank/Math.max(1,cutOf()[A.pos][0]),sy=y.rank/Math.max(1,cutOf()[B.pos][0]);if(Math.abs(sx-sy)<1e-9)w='tie';else if(sx<sy){w='a';va++;aN.push(nm);}else{w='b';vb++;bN.push(nm);}}
     // "11.3 (WR20)": the tool's projected points and the rank they give at the position (rank only for expert rankings)
     const cell=(t,P)=>!t?'—':t.pts!=null?`${f1(t.pts)} <span class="trk">(${P.pos}${Math.round(t.rank)})</span>`:`${P.pos}${Math.round(t.rank)}`;
     return `<tr><td>${esc(nm)}</td><td class="r num${w==='a'?' win':''}">${cell(x,A)}</td><td class="r num${w==='b'?' win':''}">${cell(y,B)}</td></tr>`;}).join('');
   if(va+vb>0&&!(wa.proj===0&&wb.proj===0)){const TW=va>=vb?A:B,tv=Math.max(va,vb),tt=va+vb;
-    if(diff<1&&tt>=3&&tv/tt>=2/3)msg=`<b>Start ${esc(TW.name)}</b><br>The projections are within a point, so the tools break the tie: <b class="u-t-base">${tv} of ${tt}</b> pick ${esc(TW.name)}.`;
+    const tie=diff<1&&tt>=3&&tv/tt>=2/3;if(tie)rec=TW;
+    if(tie)msg=`<b>Start ${esc(TW.name)}</b><br>The projections are within a point, so the tools break the tie: <b class="u-t-base">${tv} of ${tt}</b> pick ${esc(TW.name)}.`;
     else msg+=TW===W||diff<1?` <b class="u-t-base">${tv} of ${tt}</b> tools pick ${esc(TW.name)}.`:` But <b class="u-t-base">${tv} of ${tt}</b> tools pick ${esc(TW.name)}, so it's closer than the projection says.`;}
   const tblT=names.length?`<div class="tbl-wrap u-mt-10"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div>`:'';
   // the call first, as a band; how each tool voted sits underneath, folded away
@@ -2347,7 +2351,13 @@ function renderH2H(){
   const tally=va+vb>0&&!(wa.proj===0&&wb.proj===0)?`<div class="vd-tally" role="img" aria-label="${Math.max(va,vb)} of ${va+vb} tools pick ${esc((tvA?A:B).name)}">
     <div class="vd-sq">${'<i class="on"></i>'.repeat(Math.max(va,vb))}${'<i></i>'.repeat(Math.min(va,vb))}</div>
     <div class="vd-who"><span><b>${last(tvA?A:B)}:</b> ${esc((tvA?aN:bN).join(', ')||'none')}</span><span><b>${last(tvA?B:A)}:</b> ${esc((tvA?bN:aN).join(', ')||'none')}</span></div></div>`:'';
-  $('#verdict').innerHTML=`<div class="verdict"><div class="vd-msg">${msg}</div>${tally}</div>`;
+  // close call on a banged-up pick: say so in the banner and name the fallback
+  const alt=rec===A?B:A,recW=rec===A?wa:wb,altW=rec===A?wb:wa;let injW='';
+  if(rec.real&&diff<2&&recW.proj>0&&altW.proj>0){const pr=practiceOf(rec),st=effStatus(rec),pc=pr&&realInj(pr)?pr[0]:'',q=st==='Questionable'||st==='Doubtful',pt={DNP:'did not practice',LP:'was limited in practice'}[pc];
+    if(q||pt){const r0=esc(lastName(rec.name)),r1=esc(lastName(alt.name)),t0=kickTime(gameOf(rec)),t1=alt.real?kickTime(gameOf(alt)):null;
+      const late=t0!=null&&t1!=null&&t1>t0&&Date.now()<t0;
+      injW=`<div class="vd-warn" role="note"><b>Injury risk:</b> ${r0} ${q?`is ${st}${pt?` and ${pt}`:''}`:pt}. ${late?`${r0} plays first (${esc(kickText(gameOf(rec)))}), so you can still swap to ${r1} (${esc(kickText(gameOf(alt)))}) if ${r0} is ruled out.`:`If ${r0} is ruled out or you can't swap later, start ${r1}.`}</div>`;}}
+  $('#verdict').innerHTML=`<div class="verdict"><div class="vd-msg">${msg}${injW}</div>${tally}</div>`;
   $('#verdictTools').innerHTML=names.length?`<details class="tools-d"${ui.toolsOpen?' open':''}><summary><span>How each tool voted</span><span class="muted">${names.length} tools</span></summary>${tblT}</details>`:'';
   const dt=$('#verdictTools details');if(dt)dt.ontoggle=()=>{ui.toolsOpen=dt.open;};
 }
