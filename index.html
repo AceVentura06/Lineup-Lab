@@ -780,7 +780,8 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 /* Start/Sit on phones: cards instead of the table */
 .wkcards,.wk-sort{display:none}
 @media (max-width:760px){
-  #p-week .bigtbl{display:none}
+  :is(#p-week,#p-sites,#p-stats,#p-ros) .bigtbl{display:none}
+  #p-sites .mine-toggle:has(#showSites){display:none}
   .wk-sort{display:block;flex:1 1 100%}
   .wk-sort-r{display:flex;gap:8px}.wk-sort-r select{flex:1;min-height:44px;font-size:16px}.wk-sort-r .btn{min-height:44px;white-space:nowrap}
   .wkcards{display:grid;gap:8px;list-style:none;margin:12px 0 0;padding:0}
@@ -1648,8 +1649,10 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
       <div class="legend">
         <span><i class="sw espn"></i>ESPN</span><span><i class="sw sleeper"></i>Sleeper</span><span><i class="sw cbs"></i>CBS Sports</span><span><i class="sw fp"></i>FantasyPros experts</span><span><i class="sw model"></i>Lineup Lab</span>
       </div>
+      <div class="field wk-sort"><label class="label" for="sitesSort">Sort by</label><div class="wk-sort-r"><select id="sitesSort"><option value="avg">Average</option><option value="model">Model</option><option value="spread">Site split</option><option value="scored">Scored</option></select><button type="button" class="btn sm" id="sitesDir"></button></div></div>
     </div>
     <div class="yahoo-note" id="yahooNote"></div>
+    <ol class="wkcards" id="sitesCards" aria-label="Players"></ol>
     <div class="tbl-wrap bigtbl"><table class="sites pin2">
       <thead><tr>
         <th>#</th><th>Player</th><th>Opponent</th>
@@ -1712,7 +1715,9 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
       <div class="field u-grow-220"><label class="label" for="statSearch">Find a player or team</label><input id="statSearch" enterkeyhint="search" autocapitalize="none" autocorrect="off" type="search" placeholder="e.g. Bijan, or KC"></div>
       <label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineStats"> <span>My team only <span class="muted mono mine-n"></span></span></label>
       <p class="note u-maxw-40ch">Tap any player to open his page with game logs, usage, and efficiency stats.</p>
+      <div class="field wk-sort"><label class="label" for="statsSort">Sort by</label><div class="wk-sort-r"><select id="statsSort"><option value="ppg">Pts / game</option><option value="tot">Total</option><option value="snap">Snap %</option><option value="use">Key usage</option><option value="xfp">xFP / g</option></select><button type="button" class="btn sm" id="statsDir"></button></div></div>
     </div>
+    <ol class="wkcards" id="statsCards" aria-label="Players"></ol>
     <div class="tbl-wrap bigtbl"><table class="dir pin2">
       <thead><tr><th>#</th><th>Player</th><th class="r">GP</th>
         <th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="tot">Total</th>
@@ -1731,6 +1736,8 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
       <div><h1 class="pg-title">Rest-of-Season Rankings</h1></div>
       <div class="u-flex u-wrap u-gap-12 u-ai-c"><label class="mine-toggle"><input type="checkbox" class="mine-cb" id="mineRos"> <span>My team only <span class="muted mono mine-n"></span></span></label><div class="chips" id="posRos"></div></div>
     </div>
+    <div class="sitebar"><div class="field wk-sort"><label class="label" for="rosSort">Sort by</label><div class="wk-sort-r"><select id="rosSort"><option value="total">Total pts</option><option value="ppg">Pts / game</option><option value="games">Games left</option><option value="pct">Vs. top at position</option><option value="po">Playoffs</option></select><button type="button" class="btn sm" id="rosDir"></button></div></div></div>
+    <ol class="wkcards" id="rosCards" aria-label="Players"></ol>
     <div class="tbl-wrap bigtbl"><table class="rostbl pin2">
       <thead><tr><th>#</th><th>Player</th><th class="r sortable" data-sort="ppg">Pts / game</th><th class="r sortable" data-sort="games">Games left</th><th class="r sortable" data-sort="total">Total pts</th><th class="sortable" data-sort="po" id="poTh">Playoffs</th><th class="sortable" data-sort="pct">Vs. top at position</th><th>Tier</th></tr></thead>
       <tbody id="rosBody"></tbody>
@@ -2275,20 +2282,25 @@ function renderWeek(){
 }
 // Phones get a card per player instead of the table: the projection and call on its face, the rest one tap away
 const PHONE=matchMedia('(max-width:760px)');
-PHONE.addEventListener('change',()=>{if(ui.tab==='week')renderWeek();});
+PHONE.addEventListener('change',()=>{if(['week','sites','stats','ros'].includes(ui.tab))render();});
+// one player card; o.more is the <dl> rows behind Details
+function phCard(o){return `<li class="wkc"><div class="wkc-face">${o.star}
+    <div class="wkc-nm"><span class="pos ${o.pos}">${o.pos}</span>${o.nm}</div>
+    <div class="wkc-proj big">${o.big}</div>
+    <div class="wkc-sub">${o.sub}</div>
+    <div class="wkc-call">${o.right}</div></div>
+    <details class="tools-d wkc-more"><summary><span>${o.sum}</span>Details</summary>
+      <dl class="wkc-dl">${o.more}</dl>
+    </details></li>`;}
+const phMore=pg=>pg.more?`<li class="more-row">${pg.more}</li>`:'';
+const dd=(t,v)=>`<div><dt>${t}</dt><dd class="num">${v}</dd></div>`;
 function wkCard(r,call,maxHi){const p=r.p,bye=onBye(p),c=r.proj>0&&p.real?consensus(p):null;
   const nm=p.real&&PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:`<span class="pname">${esc(p.name)}</span>`;
-  return `<li class="wkc"><div class="wkc-face">${starBtn(p.key||p.id)}
-    <div class="wkc-nm"><span class="pos ${p.pos}">${p.pos}</span>${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}</div>
-    <div class="wkc-proj big">${projNum(p,r)}</div>
-    <div class="wkc-sub">${p.team?`<span>${esc(p.team)}</span>`:''}${bye?'<span class="muted">Bye</span>':matchPill(p)}</div>
-    <div class="wkc-call">${call(r)}</div></div>
-    <details class="tools-d wkc-more"><summary><span>${c?votesBar(c):'<span class="muted">No tool votes</span>'}</span>Details</summary>
-      <dl class="wkc-dl"><div><dt>Avg pts</dt><dd class="num">${f1(r.b)}</dd></div>
-        <div><dt>Vegas</dt><dd class="num">${bye?'—':vegasCell(p)}</dd></div>
-        <div><dt>Model · sites</dt><dd class="num">${r.sites!=null&&r.proj>0?`${f1(r.modelRaw)} · ${f1(r.sites)}`:'—'}</dd></div>
-        <div class="wkc-rg"><dt>Floor – ceiling</dt><dd><div class="range">${r.proj?`<div class="track"></div><div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:'<div class="track"></div>'}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></dd></div></dl>
-    </details></li>`;}
+  return phCard({star:starBtn(p.key||p.id),pos:p.pos,nm:`${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}`,big:projNum(p,r),
+    sub:`${p.team?`<span>${esc(p.team)}</span>`:''}${bye?'<span class="muted">Bye</span>':matchPill(p)}`,right:call(r),
+    sum:c?votesBar(c):'<span class="muted">No tool votes</span>',
+    more:`${dd('Avg pts',f1(r.b))}${dd('Vegas',bye?'—':vegasCell(p))}${dd('Model · sites',r.sites!=null&&r.proj>0?`${f1(r.modelRaw)} · ${f1(r.sites)}`:'—')}
+        <div class="wkc-rg"><dt>Floor – ceiling</dt><dd><div class="range">${r.proj?`<div class="track"></div><div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:'<div class="track"></div>'}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></dd></div>`});}
 $('#wkSort').onchange=e=>{ui.sortW=e.target.value;ui.dirW=1;renderWeek();};
 $('#wkDir').onclick=()=>{ui.dirW=-(ui.dirW||1);renderWeek();};
 
@@ -2396,10 +2408,19 @@ function renderRos(){
   document.querySelectorAll('table.rostbl th.sortable').forEach(th=>th.dataset.sort===(ui.sortR||'total')?th.setAttribute('aria-sort',(ui.dirR||1)===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   const tier=r=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;
     return f>=.9?'<span class="pill p-good">Tier 1 · every week</span>':f>=.75?'<span class="pill p-gold">Tier 2 · solid starter</span>':f>=.6?'<span class="pill p-warn">Tier 3 · flex / matchup</span>':'<span class="pill p-mute">Tier 4 · bench</span>';};
+  $('#rosSort').value=ui.sortR||'total';$('#rosDir').textContent=(ui.dirR||1)===1?'Highest first':'Lowest first';
+  if(PHONE.matches){$('#rosBody').innerHTML='';
+    $('#rosCards').innerHTML=rows.length?pgR.shown.map(r=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0,p=r.p;return phCard({star:starBtn(p.key||p.id),pos:p.pos,nm:`${p.real&&PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:`<span class="pname">${esc(p.name)}</span>`} ${statusPill(p)}`,
+      big:`${f1(r.ppg)}<span class="subn">pts/g</span>`,sub:`${p.team?`<span>${esc(p.team)}</span>`:''}<span>${r.games} left</span>${poCell(r)}`,right:tier(r),sum:'<span class="muted">Season outlook</span>',
+      more:dd('Total pts',Math.round(r.total))+dd('Vs. top at position',Math.round(f*100)+'%')});}).join('')+phMore(pgR):'<li class="muted">No players at this position yet.</li>';return;}
+  $('#rosCards').innerHTML='';
   $('#rosBody').innerHTML=rows.length?pgR.shown.map((r,i)=>{const f=best[r.p.pos]?r.ppg/best[r.p.pos]:0;return `<tr>
     <td class="rank">${i+1}</td><td class="u-nowrap">${nameCell(r.p,true)}</td><td class="r big">${f1(r.ppg)}</td><td class="r num">${r.games}</td><td class="r num">${Math.round(r.total)}</td><td class="u-nowrap">${poCell(r)}</td>
     <td><div class="bar"><i style="width:${Math.max(0,f*100)}%"></i></div><div class="num muted u-t-xs">${Math.round(f*100)}%</div></td><td>${tier(r)}</td></tr>`}).join('')+pgR.moreRow:`<tr><td colspan="8" class="muted">No players at this position yet.</td></tr>`;
 }
+
+$('#rosSort').onchange=e=>{ui.sortR=e.target.value;ui.dirR=1;renderRos();};
+$('#rosDir').onclick=()=>{ui.dirR=-(ui.dirR||1);renderRos();};
 
 const SRC_INFO=[
  ['Sleeper','Sleeper','Stats, snap counts, projections, injury tags, schedule'],
@@ -3394,8 +3415,8 @@ function renderSites(){
   if(wk>SD.week||(past&&!(SD.pastWeeks||[]).includes(wk))){
     $('#sitesWk').textContent=wk;$('#yahooNote').hidden=true;chips($('#posSites'),ui.posS,'posS');
     $('#sitesNote').textContent=wk>SD.week?`The sites haven't posted Week ${wk} projections yet. They usually come out early that week.`:`Projections weren't saved for Week ${wk}. Saved weeks: ${(SD.pastWeeks||[]).join(', ')||'none yet'}.`;
-    $('#sitesBody').innerHTML=`<tr><td colspan="13" class="muted">Nothing to show for Week ${wk}. Change the Week box at the top to ${SD.week} for this week.</td></tr>`;return;}
-  if(past&&!(window.PASTWK&&PASTWK[wk])){$('#sitesBody').innerHTML=SK.rows(10,13);loadPastWeek(wk,renderSites);return;}
+    $('#sitesBody').innerHTML=`<tr><td colspan="13" class="muted">Nothing to show for Week ${wk}. Change the Week box at the top to ${SD.week} for this week.</td></tr>`;$('#sitesCards').innerHTML=PHONE.matches?`<li class="muted">Nothing to show for Week ${wk}. Change the Week box at the top to ${SD.week} for this week.</li>`:'';return;}
+  if(past&&!(window.PASTWK&&PASTWK[wk])){$('#sitesBody').innerHTML=SK.rows(10,13);$('#sitesCards').innerHTML='';loadPastWeek(wk,renderSites);return;}
   $('#sitesWk').textContent=wk;
   if(past){const P=PASTWK[wk];
     $('#sitesNote').textContent=P.failed?'That week could not be loaded.':`Saved right before each kickoff · ${scName()} scoring · Scored is what each player actually put up.${P.backfilled?' This week was rebuilt afterward from what was known at the time, so only Sleeper and this site\'s model are shown.':''}`;
@@ -3413,17 +3434,24 @@ function renderSites(){
         .map(r=>{const ms=modelScored(r,RP);return {r,v:{espn:null,sleeper:null,cbs:null,fp:null,n:0,avg:null,min:0,max:0,spread:0,model:ms.model,scored:ms.scored,live:ms.live,clock:ms.clock}};})];
   let key=ui.sortS==='scored'&&!rows.some(x=>x.v.scored!=null)?'avg':ui.sortS;
   // with the site columns folded away, sort by the number that is showing
-  if(!showS&&['espn','sleeper','cbs','fp','avg'].includes(key))key='model';
+  if(!showS&&!PHONE.matches&&['espn','sleeper','cbs','fp','avg'].includes(key))key='model';
   const dir=ui.dirS||1;
   rows.sort((a,b)=>sortCmp(key==='spread'?a.v.spread:a.v[key],key==='spread'?b.v.spread:b.v[key],dir));
   document.querySelectorAll('table.sites th.sortable').forEach(th=>th.dataset.sort===key?th.setAttribute('aria-sort',dir===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   const maxV=Math.max(1,...rows.slice(0,600).map(x=>x.v.max));
   const cell=(v,s,x)=>v[s]==null?'<td class="r num none">—</td>':`<td class="r num${x.n>1&&v[s]===x.max?' top':''}">${f1(v[s])}</td>`;
   const pgS=pageRows('sites',rows,600,13,(ui.q||'').trim());
+  $('#sitesSort').value=['avg','model','spread','scored'].includes(ui.sortS)?ui.sortS:'avg';$('#sitesDir').textContent=dir===1?'Highest first':'Lowest first';
+  if(PHONE.matches){$('#sitesBody').innerHTML='';
+    $('#sitesCards').innerHTML=rows.length?pgS.shown.map(({r,v})=>phCard({star:starBtn(r.key),pos:r.pos,nm:`${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}">${esc(r.name)}</button>`:`<span class="pname">${esc(r.name)}</span>`}${!past&&RP.has(r.key)?' '+statusPill(RP.get(r.key)):''}`,
+      big:`${v.avg!=null?f1(v.avg):'—'}<span class="subn">avg</span>`,sub:`${r.team?`<span>${esc(r.team)}</span>`:''}<span>${oppText(r,wk)}${past?'':oppRankTag(r,wk)}</span>`,right:agreePill(v),sum:'<span class="muted">Each site</span>',
+      more:['espn','sleeper','cbs','fp'].filter(k=>v[k]!=null).map(k=>dd(SITE_NM[k],f1(v[k]))).join('')+dd('Model',v.model!=null?f1(v.model):'—')+(v.scored!=null?dd('Scored',f1(v.scored)):'')+(siteWhy(v)?`<div class="wkc-rg muted">${siteWhy(v)}</div>`:'')})).join('')+phMore(pgS)
+      :`<li class="muted">${ui.mineOnly?'No starred players here yet. Turn off "My team only" and tap ☆ next to your players.':'No players match. Try a different name or position.'}</li>`;return;}
+  $('#sitesCards').innerHTML='';
   $('#sitesBody').innerHTML=rows.length?pgS.shown.map((x,i)=>{const {r,v}=x;
     const dots=['espn','sleeper','cbs','fp'].filter(s=>v[s]!=null).map(s=>`<span class="sd ${s}" style="left:${v[s]/maxV*100}%" title="${({espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'})[s]}: ${f1(v[s])}"></span>`).join('')
       +(v.model!=null?`<span class="sd model" style="left:${Math.min(100,v.model/maxV*100)}%" title="Lineup Lab: ${f1(v.model)}"></span>`:'');
-    const agree=v.n===0?'<span class="muted">—</span>':v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
+    const agree=agreePill(v);
     return `<tr><td class="rank">${i+1}</td>
       <td class="u-nowrap">${starBtn(r.key)}<span class="pos ${r.pos}">${r.pos}</span> ${PL.has(r.key)?`<button class="plink" data-k="${esc(r.key)}" aria-label="${esc(r.name)}">${nmLabel(r.name,r.pos)}</button>`:`<span class="pname">${nmLabel(r.name,r.pos)}</span>`}${r.team?` <span class="muted u-t-sm">${esc(r.team)}</span>`:''}${!past&&RP.has(r.key)?' '+statusPill(RP.get(r.key)):''}${r.team?`<span class="nm-sub">${esc(r.team)}</span>`:''}</td>
       <td class="num muted u-nowrap">${oppText(r,wk)}${past?'':oppRankTag(r,wk)}</td>
@@ -3435,12 +3463,17 @@ function renderSites(){
       <td>${agree}</td><td class="sx-c">${!showS&&v.n>1?`<button class="sx" data-sx="${esc(r.key)}" aria-expanded="${!!ui.sx[r.key]}" aria-label="Each site's projection for ${esc(r.name)}"><svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12"><path d="M3 4.5l3 3 3-3" stroke="currentColor" stroke-width="1.6" fill="none"/></svg></button>`:''}</td></tr>${!showS&&ui.sx[r.key]&&v.n>1?siteDetail(v):''}`}).join('')+pgS.moreRow:`<tr><td colspan="13" class="muted">${ui.mineOnly?'No starred players here yet. Turn off "My team only" and tap ☆ next to your players.':'No players match. Try a different name or position.'}</td></tr>`;
 }
 $('#siteSearch').oninput=e=>{ui.q=e.target.value;renderSites();};
+$('#sitesSort').onchange=e=>{ui.sortS=e.target.value;ui.dirS=1;renderSites();};
+$('#sitesDir').onclick=()=>{ui.dirS=-(ui.dirS||1);renderSites();};
 // one player's four site numbers, shown under his row when the site columns are folded away
 const SITE_NM={espn:'ESPN',sleeper:'Sleeper',cbs:'CBS',fp:'FantasyPros'};
-function siteDetail(v){const ks=['espn','sleeper','cbs','fp'].filter(k=>v[k]!=null);
+const agreePill=v=>v.n===0?'<span class="muted">—</span>':v.n<2?'<span class="pill p-mute">One site</span>':v.spread>=4?`<span class="pill p-warn">Split · ${f1(v.spread)}</span>`:v.spread>=2?`<span class="pill p-gold">Close · ${f1(v.spread)}</span>`:`<span class="pill p-good">Agree · ${f1(v.spread)}</span>`;
+function siteWhy(v){const ks=['espn','sleeper','cbs','fp'].filter(k=>v[k]!=null);
   let why='';if(ks.length>=3&&v.spread>=2){const med=k=>{const o=ks.filter(x=>x!==k).map(x=>v[x]).sort((a,b)=>a-b);return o[o.length>>1];};
     const far=ks.map(k=>({k,d:v[k]-med(k)})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d))[0];
     if(Math.abs(far.d)>=2)why=`${SITE_NM[far.k]} is the ${far.d>0?'high':'low'} outlier, ${f1(Math.abs(far.d))} points ${far.d>0?'above':'below'} the others.`;}
+  return why;}
+function siteDetail(v){const ks=['espn','sleeper','cbs','fp'].filter(k=>v[k]!=null),why=siteWhy(v);
   return `<tr class="sdet"><td></td><td colspan="12"><div class="sdet-in">${ks.map(k=>`<span>${SITE_NM[k]} <b class="num">${f1(v[k])}</b></span>`).join('')}${why?`<span class="muted">${why}</span>`:''}</div></td></tr>`;}
 try{ui.showSites=localStorage.getItem(KEY+'.showSites')==='1';}catch(_){}
 $('#showSites').onchange=e=>{ui.showSites=e.target.checked;store(KEY+'.showSites',ui.showSites?'1':'');renderSites();};
@@ -3770,12 +3803,21 @@ function renderStats(){
   rows.sort((a,b)=>sortCmp(key(a),key(b),dir));
   document.querySelectorAll('table.dir th.sortable').forEach(th=>th.dataset.sort===ui.sortT?th.setAttribute('aria-sort',dir===1?'descending':'ascending'):th.removeAttribute('aria-sort'));
   const pgT=pageRows('stats',rows,450,9,ui.qT.trim());
+  $('#statsSort').value=ui.sortT;$('#statsDir').textContent=dir===1?'Highest first':'Lowest first';
+  if(PHONE.matches){$('#statsBody').innerHTML='';
+    $('#statsCards').innerHTML=rows.length?pgT.shown.map(p=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]),sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp),x=xfpOf(p);
+      return phCard({star:starBtn(p.key),pos:p.pos,nm:`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`,big:`${f1(ppg(p))}<span class="subn">pts/g</span>`,
+        sub:`<span>${esc(p.team)}</span><span>${p.gp} GP</span>`,right:`<span class="muted u-t-sm">Total <b class="num">${f1(tot(p))}</b></span>`,sum:'<span class="muted">Usage</span>',
+        more:dd(m?esc(m.l):'Key usage',m?m.fmt(m.f(p)):'—')+dd('Snap %',sn==null?'—':Math.round(sn*100)+'%')+dd('xFP / g',x?f1(x.pg):'—')});}).join('')+phMore(pgT):'<li class="muted">No players match.</li>';return;}
+  $('#statsCards').innerHTML='';
   $('#statsBody').innerHTML=rows.length?pgT.shown.map((p,i)=>{const m=METRICS[p.pos].find(x=>x.k===PRIMARY[p.pos]);const sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp);
     return `<tr><td class="rank">${i+1}</td><td class="u-nowrap">${starBtn(p.key)}<span class="pos ${p.pos}">${p.pos}</span> <button class="plink" data-k="${esc(p.key)}" aria-label="${esc(p.name)}">${nmLabel(p.name,p.pos)}</button> <span class="muted u-t-sm">${esc(p.team)}</span><span class="nm-sub">${esc(p.team)}</span></td>
     <td class="r num">${p.gp}</td><td class="r big">${f1(ppg(p))}</td><td class="r num">${f1(tot(p))}</td><td class="r num">${sn==null?'—':Math.round(sn*100)+'%'}</td>
     <td class="r num" title="${m?esc(m.l):''}">${m?m.fmt(m.f(p)):'—'} <span class="stub">${m?{rfp:'rush FP',rsh:'carries',tsh:'tgt share',fgp:'FG',to:'TO/g'}[m.k]:''}</span></td><td class="r num">${(()=>{const x=xfpOf(p);return x?f1(x.pg):'—'})()}</td><td>${spark(p)}</td></tr>`}).join('')+pgT.moreRow:'<tr><td colspan="9" class="muted">No players match.</td></tr>';
 }
 $('#statSearch').oninput=e=>{ui.qT=e.target.value;renderStats();};
+$('#statsSort').onchange=e=>{ui.sortT=e.target.value;ui.dirT=1;renderStats();};
+$('#statsDir').onclick=()=>{ui.dirT=-(ui.dirT||1);renderStats();};
 document.querySelector('table.dir thead').onclick=e=>{const th=e.target.closest('th.sortable');if(!th)return;if(ui.sortT===th.dataset.sort)ui.dirT=-(ui.dirT||1);else{ui.sortT=th.dataset.sort;ui.dirT=1;}renderStats();};
 
 // Points by week, broadcast style: bars with the score inside, missed weeks marked, this week's projection as a striped bar
