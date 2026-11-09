@@ -2471,7 +2471,8 @@ function blendSummary(){const P=(SD.blend&&SD.blend.pos)||{};return ['QB','RB','
 
 // ---- accuracy scoreboard ----
 let ACC=null,accLoading=false;
-const SRC_COLOR={lab:'var(--gold)',mod:'#8A94A6',espn:'var(--s-espn)',sleeper:'var(--s-sleeper)',cbs:'var(--s-cbs)',fp:'var(--s-yahoo)'};
+// six distinct tokens, checked for colour-blindness in both themes; Ace Lineup Lab keeps the brand orange and the heavy line, Model alone is the dashed neutral
+const SRC_COLOR={lab:'var(--gold)',mod:'var(--ink)',espn:'var(--dst)',sleeper:'var(--data-ink)',cbs:'var(--s-cbs)',fp:'var(--qb)'};
 function loadAcc(){if(ACC||accLoading)return;accLoading=true;
   if(typeof ACC_DATA!=='undefined'){ACC=ACC_DATA;return;}
   const sc=document.createElement('script');sc.src='data/accuracy-data.js?v='+Math.floor(Date.now()/300000);
@@ -2496,7 +2497,7 @@ function accChart(ws){const sc=S.scoring,srcs=Object.keys(ACC.sources).filter(s=
     p.forEach((v,i)=>{if(v!=null)g+=`<circle cx="${x(i)}" cy="${y(v)}" r="${s==='lab'?4:3}" fill="${SRC_COLOR[s]}"><title>${esc(ACC.sources[s])}, week ${ws[i]}: ${v.toFixed(2)} pts</title></circle>`;});
     const li=p.map((v,i)=>v!=null?i:-1).filter(i=>i>=0).pop();if(li!=null)ends.push([y(p[li]),s]);});
   ends.sort((a,b)=>a[0]-b[0]);for(let i=1;i<ends.length;i++)if(ends[i][0]-ends[i-1][0]<13)ends[i][0]=ends[i-1][0]+13;
-  ends.forEach(([yy,s])=>g+=`<text x="${W-pr+8}" y="${yy+4}" style="fill:${SRC_COLOR[s]};font-weight:700;font-family:var(--f-body)">${esc(ACC.sources[s])}</text>`);
+  ends.forEach(([yy,s])=>g+=`<text x="${W-pr+8}" y="${yy+4}" style="fill:var(--ink);font-weight:700;font-family:var(--f-body)">${esc(ACC.sources[s])}</text>`);
   // real Bklit chart (assets/charts) mounts into .ll-island; the svg above is the fallback
   const island=esc(JSON.stringify({weeks:ws,sources:srcs.map((s,j)=>({key:s,name:ACC.sources[s],color:SRC_COLOR[s],miss:pts[j]}))}));
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Average miss per player by week for each source; lower is better">${g}</svg><div class="ll-island" data-island="accuracy" data-props="${island}"></div>`;}
