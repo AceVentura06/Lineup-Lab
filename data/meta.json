@@ -1,13 +1,13 @@
 {
-  "hash": "b7265736853583ea",
-  "updated": "2026-11-09T09:45:30.507Z",
+  "hash": "8ed908db3120f587",
+  "updated": "2026-11-09T16:35:15.387Z",
   "season": 2026,
   "week": 9,
   "through": "Weeks 1–8 plus 14 of 15 week 9 games",
   "sources": {
     "nflverse stats": {
       "ok": true,
-      "detail": "9319 player-weeks"
+      "detail": "9393 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
@@ -23,7 +23,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "8411 targets, 7013 carries"
+      "detail": "8475 targets, 7061 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "176 players with news, 345 of 359 stories with photos (ESPN 1650 articles scanned; ESPN 476, CBS Sports 24, Yahoo Sports 27, ProFootballTalk 24)"
+      "detail": "176 players with news, 343 of 350 stories with photos (ESPN 1650 articles scanned; ESPN 466, CBS Sports 29, Yahoo Sports 13, ProFootballTalk 21)"
     }
   }
 }
