@@ -101,7 +101,7 @@ try {
     const m = f.match(/^(\d{4})-w(\d{2})\.json$/);
     if (m && +m[1] === d.season) history[+m[2]] = JSON.parse(await readFile(new URL(f, HIST), 'utf8'));
   }
-  const acc = gradeAll(history, d.stats, d.week, d.season);
+  const acc = gradeAll(history, d.stats, d.week, d.season, d.ctx);
   // Past weeks for the Site Projections week picker: saved pregame projections plus what each player scored
   const PAST = new URL('past/', DIR); await mkdir(PAST, { recursive: true });
   const act = actualsFrom(d.stats), pastWeeks = [];
