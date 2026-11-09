@@ -1836,8 +1836,8 @@ Health     = injury status (live from ESPN every 3 minutes), adjusted by Wed–F
 Projection = (1 − w) × Model + w × average(ESPN, Sleeper, CBS, FantasyPros)
              w is tuned by position from past accuracy (see Accuracy), unless set in Settings
 On bye, Out, or IR → 0</div>
-        <p class="note">Base is season points per game. Matchup rank is how many fantasy points the opponent has allowed to that position per game (this season; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls assume a 12-team league.</p>
-        <p><b>Start/sit tools.</b> Each player is also run through up to seven tools: this model, the FantasyPros expert consensus, ESPN's analysts, CBS's three experts, and the ESPN, Sleeper and CBS projections. Each tool's rank at the position becomes a vote (12-team league: QB/TE top 12 start, RB top 24, WR top 30; the next tier is flex). The Start / Sit call comes from each player's rank by blended projection at his position; the tools' votes sit beside it.</p>
+        <p class="note">Base is season points per game. Matchup rank is how many fantasy points the opponent has allowed to that position per game (this season; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls use your league's size and lineup (<span id="mLeague"></span>).</p>
+        <p><b>Start/sit tools.</b> Each player is also run through up to seven tools: this model, the FantasyPros expert consensus, ESPN's analysts, CBS's three experts, and the ESPN, Sleeper and CBS projections. Each tool's rank at the position becomes a vote (<span id="mCuts"></span>). The Start / Sit call comes from each player's rank by blended projection at his position; the tools' votes sit beside it.</p>
         <p><b>3. Floor and ceiling.</b> Half from the position's typical swing (QB ±22%, RB ±30%, WR ±35%, TE ±38%, K ±35%, DST ±45%) and half from the player's own week-to-week swings once he has 3+ games. Two players with close projections? The narrower range is the safer start.</p>
         <p><b>4. Rest of season.</b></p>
         <div class="formula">Pts/game  = Base × Schedule × Trend × Health
@@ -1982,9 +1982,9 @@ function stashTeam(){
   if(t.name==='My team'&&S.league&&S.league.teamName)t.name=S.league.teamName;
   t.mine=S.mine.slice();t.league=S.league||null;t.set={};for(const k of TEAM_SET)t.set[k]=S[k]==null?null:clone(S[k]);delete t.sc;delete t.slots;}
 // settings each team keeps for itself: scoring, lineup slots, playoff weeks, model tuning
-const TEAM_SET=['sc','slots','po','w','blendAuto'];
+const TEAM_SET=['sc','slots','nTeams','po','w','blendAuto'];
 const clone=v=>v&&typeof v==='object'?JSON.parse(JSON.stringify(v)):v;
-const freshSet=()=>({sc:clone(DEF_SC),slots:null,po:15,w:{...DEF_W},blendAuto:true});
+const freshSet=()=>({sc:clone(DEF_SC),slots:null,nTeams:null,po:15,w:{...DEF_W},blendAuto:true});
 function loadTeam(t){S.tid=t.id;S.mine=(t.mine||[]).slice();S.league=t.league||null;
   const set=t.set||(t.sc||t.slots?{sc:t.sc,slots:t.slots}:null);
   if(set){for(const k of TEAM_SET)if(k in set&&!(k==='sc'&&!set.sc))S[k]=clone(set[k]);if(!S.w)S.w={...DEF_W};else S.w=Object.assign({...DEF_W},S.w);syncFmt();}
@@ -2231,7 +2231,7 @@ function renderWeek(){
   $('#mineCount').textContent=S.mine.length?`(${S.mine.length})`:'';
   $('#mineOnly').checked=!!ui.mineOnly;
   const all=pool().map(p=>({p,...weekProj(p)}));
-  // calls use 12-team starter cutoffs by projected positional rank
+  // calls use the league's starter cutoffs (cutOf) by projected positional rank
   const call=makeCall(all);
   const q=(ui.qW||'').trim().toLowerCase();
   let rows=all.filter(r=>(ui.posW==='All'||r.p.pos===ui.posW)&&(!ui.mineOnly||isMine(r.p))&&(!q||r.p.name.toLowerCase().includes(q)||(r.p.team||'').toLowerCase()===q));
@@ -2322,7 +2322,7 @@ function renderH2H(){
   // Run both players through every tool
   const ta=toolsFor(A),tb=toolsFor(B),names=[...new Set([...ta,...tb].map(x=>x.name))];
   let va=0,vb=0;const aN=[],bN=[];const rowsT=names.map(nm=>{const x=ta.find(t=>t.name===nm),y=tb.find(t=>t.name===nm);
-    let w='';if(x&&y){const sx=x.rank/CUT[A.pos][0],sy=y.rank/CUT[B.pos][0];if(Math.abs(sx-sy)<1e-9)w='tie';else if(sx<sy){w='a';va++;aN.push(nm);}else{w='b';vb++;bN.push(nm);}}
+    let w='';if(x&&y){const sx=x.rank/Math.max(1,cutOf()[A.pos][0]),sy=y.rank/Math.max(1,cutOf()[B.pos][0]);if(Math.abs(sx-sy)<1e-9)w='tie';else if(sx<sy){w='a';va++;aN.push(nm);}else{w='b';vb++;bN.push(nm);}}
     // "11.3 (WR20)": the tool's projected points and the rank they give at the position (rank only for expert rankings)
     const cell=(t,P)=>!t?'—':t.pts!=null?`${f1(t.pts)} <span class="trk">(${P.pos}${Math.round(t.rank)})</span>`:`${P.pos}${Math.round(t.rank)}`;
     return `<tr><td>${esc(nm)}</td><td class="r num${w==='a'?' win':''}">${cell(x,A)}</td><td class="r num${w==='b'?' win':''}">${cell(y,B)}</td></tr>`;}).join('');
@@ -2405,6 +2405,7 @@ function renderSources(){
 }
 function renderModel(){
   renderSources();
+  $('#mLeague').textContent=`${leagueTeams()} teams${S.league&&S.league.size?', from your connected league':''}`;$('#mCuts').textContent=cutText();
   const c=SC(),sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v);
   $('#scoreFormula').textContent=`Pass yd: 1 pt per ${c.py}   Pass TD ${sg(c.ptd)}   INT ${sg(c.int)}
 Rush/Rec yd: 1 pt per ${c.yd}   Rush/Rec TD ${sg(c.td)}
@@ -2478,11 +2479,11 @@ function renderAcc(){
   const lead=`<div class="card"><div class="u-flex u-wrap u-between u-gap-8 u-ai-base"><h3>${ui.accW==='season'?'Season leaderboard':'Week '+ui.accW+' leaderboard'}</h3>
      <span class="note">${sel.length===1?ACC.weeks[sel[0]].n+' players graded':sel.length+' weeks graded'}${back?' · includes rebuilt weeks':''}</span></div>
     ${best?`<p class="u-m-8-0-12"><b>${esc(ACC.sources[best.s])}</b> has been the most accurate${ui.accW==='season'?' so far':''}, missing by ${best.mae.toFixed(2)} points per player on average.</p>`:''}
-    <div class="tbl-wrap"><table class="u-minw-560"><thead><tr><th>#</th><th>Source</th><th class="r">Avg miss</th><th></th><th class="r" title="Of the players a source ranked as starters, how many finished as starters">Right starters</th><th class="r" title="How well the source ordered players at each position (100 = perfect order)">Ranking order</th>${ui.accW==='season'?'<th class="r">Weeks</th>':''}</tr></thead><tbody>
+    <div class="tbl-wrap"><table class="u-minw-560"><thead><tr><th>#</th><th>Source</th><th class="r">Avg miss</th><th></th><th class="r" title="Fixed 12-team basis: of the players a source ranked as starters, how many finished as starters">Right starters (12-team)</th><th class="r" title="How well the source ordered players at each position (100 = perfect order)">Ranking order</th>${ui.accW==='season'?'<th class="r">Weeks</th>':''}</tr></thead><tbody>
     ${rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td>${label(r.s)}</td><td class="r big">${r.mae.toFixed(2)}</td>
       <td class="u-w-28p"><div class="bar lb" aria-hidden="true" style="--i:${i}"><i style="width:${Math.max(4,100*r.mae/maxM)}%;background:${SRC_COLOR[r.s]}"></i></div></td>
       <td class="r num">${r.hitP!=null?Math.round(100*r.hitP)+'%':'—'}</td><td class="r num">${r.rho!=null?Math.round(100*r.rho):'—'}</td>${ui.accW==='season'?`<td class="r num">${r.weeks}</td>`:''}</tr>`).join('')}
-    </tbody></table></div><p class="note u-mt-8">Avg miss is points per player (lower is better). Right starters: of the players each source ranked as starters in a 12-team league, the share that finished as starters.</p></div>`;
+    </tbody></table></div><p class="note u-mt-8">Avg miss is points per player (lower is better). Right starters always uses a fixed 12-team basis (${ACC.starters?Object.entries(ACC.starters).map(([k,v])=>k+' '+v).join(', '):'12 teams'}), whatever your league size, so sources stay comparable week to week: of the players each source ranked as starters, the share that finished as starters.</p></div>`;
   const chart=ui.accW==='season'&&ws.length>1?`<div class="card has-island"><h3>Average miss by week</h3><p class="note u-m-4-0-8">Lower is better.</p>${accChart(ws)}</div>`:'';
   const P=['QB','RB','WR','TE','K','DST'];
   const posBest={};P.forEach(p=>{let b=null;rows.forEach(r=>{const q=r.pos[p];if(q&&q[1]){const v=q[0]/q[1];if(b==null||v<b)b=v;}});posBest[p]=b;});
@@ -2876,8 +2877,8 @@ async function slpSync(cfg){
   const me=(us||[]).find(x=>x.user_id===cfg.userId);
   const ids=r.players||[],keys=ids.map(slpKey),taken=[...new Set((rs||[]).flatMap(x=>x.players||[]).map(slpKey).filter(Boolean))];
   const uname=id=>{const u=(us||[]).find(x=>x.user_id===id);return (u&&u.metadata&&u.metadata.team_name)||(u&&u.display_name)||'Another team';};
-  const teams=(rs||[]).filter(x=>x!==r).map(x=>({name:uname(x.owner_id),keys:(x.players||[]).map(slpKey).filter(Boolean)}));
-  return {leagueName:lg.name,teamName:(me&&me.metadata&&me.metadata.team_name)||(me&&me.display_name)||cfg.userName,
+  const teams=(rs||[]).filter(x=>x!==r).map(x=>({name:uname(x.owner_id),keys:(x.players||[]).map(slpKey).filter(Boolean)})),size=lg.total_rosters||(rs||[]).length;
+  return {size,leagueName:lg.name,teamName:(me&&me.metadata&&me.metadata.team_name)||(me&&me.display_name)||cfg.userName,
     roster:keys.filter(Boolean),skipped:keys.filter(k=>!k).length,taken,teams,
     starters:(r.starters||[]).map((id,i)=>({slot:SLP_SLOT[slots[i]]||null,key:slpKey(id),empty:!id||id==='0'})).filter(x=>x.slot),
     slots:slotCounts(slots.map(x=>SLP_SLOT[x])),sc:slpScoring(lg.scoring_settings||{})};}
@@ -2897,7 +2898,7 @@ async function espnSync(cfg,lg){lg=lg||await espnLeague(cfg.leagueId);const d=lg
   const keyed=ent.map(e=>({e,key:espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)}));
   const taken=[...new Set((d.teams||[]).flatMap(x=>(x.roster&&x.roster.entries)||[]).map(e=>espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)).filter(Boolean))];
   const teams=(d.teams||[]).filter(x=>x.id!==cfg.teamId).map(x=>({name:x.name||`${x.location||''} ${x.nickname||''}`.trim()||('Team '+x.id),keys:((x.roster&&x.roster.entries)||[]).map(e=>espnKey(e.playerPoolEntry&&e.playerPoolEntry.player)).filter(Boolean)}));
-  return {leagueName:lg.name,teamName:lg.teams.find(x=>x.id===cfg.teamId).name,roster:keyed.map(x=>x.key).filter(Boolean),skipped:keyed.filter(x=>!x.key).length,taken,teams,
+  return {size:(d.settings&&d.settings.size)||(d.teams||[]).length,leagueName:lg.name,teamName:lg.teams.find(x=>x.id===cfg.teamId).name,roster:keyed.map(x=>x.key).filter(Boolean),skipped:keyed.filter(x=>!x.key).length,taken,teams,
     starters:keyed.filter(x=>ESPN_SLOT[x.e.lineupSlotId]).map(x=>({slot:ESPN_SLOT[x.e.lineupSlotId],key:x.key})),slots,
     sc:scOf({rec:pts(53),ptd:pts(4),int:pts(20),py:pts(3)?1/pts(3):null,yd:pts(24)?1/pts(24):null,td:pts(25),fl:pts(72)})};}
 // pull the roster in and adopt the league's scoring and lineup slots
@@ -2906,7 +2907,7 @@ async function syncLeague(cfg,quiet,lg){
   S.mine=[...new Set(r.roster)];
   if(Object.values(r.slots).some(Boolean))S.slots=r.slots;
   if(r.sc&&Object.keys(r.sc).length){S.sc={...SC(),...r.sc};syncFmt();}
-  S.league={...cfg,leagueName:r.leagueName,teamName:r.teamName,starters:r.starters,taken:r.taken,teams:r.teams,skipped:r.skipped,synced:Date.now(),week:SD.week};
+  S.league={...cfg,size:r.size,leagueName:r.leagueName,teamName:r.teamName,starters:r.starters,taken:r.taken,teams:r.teams,skipped:r.skipped,synced:Date.now(),week:SD.week};
   _lp=null;save();if(!quiet)toast(`Synced ${r.roster.length} players from ${SRC_NAME[cfg.src]}`);render();}
 // your league lineup vs the suggested one: who to swap in
 function lineupCheck(){const L=S.league;if(!L||!L.starters||S.week!==SD.week||L.week!==SD.week)return null;
@@ -3219,7 +3220,7 @@ function renderHome(){
   // softest matchups: startable players facing the defenses that give up the most to their position
   const D=dvpData();
   const soft=i4.map((pos,ix)=>{const i=DPOS.indexOf(pos);let best=null;
-    for(const r of top(pos).slice(0,CUT[pos][0])){if(onBye(r.p))continue;const o=(SCHED[r.p.team]||[])[wk-1];const d=o&&o!=='BYE'?D.by[o.replace('@','')]:null;if(!d)continue;
+    for(const r of top(pos).slice(0,cutOf()[pos][0])){if(onBye(r.p))continue;const o=(SCHED[r.p.team]||[])[wk-1];const d=o&&o!=='BYE'?D.by[o.replace('@','')]:null;if(!d)continue;
       const rk=d.rank[i];const soft=rk>=25,bs=best&&best.rk>=25;
       // among players facing a bottom-8 defense, the best projected; otherwise the softest matchup available
       if(!best||(soft&&(!bs||r.proj>best.r.proj))||(!soft&&!bs&&rk>best.rk))best={r,rk,d};}
@@ -3246,7 +3247,7 @@ function renderHome(){
   // injury watch: fantasy starters (by season scoring) and your players with an injury tag or a missed or limited practice
   if(!NEWS)loadNews(()=>{if(ui.tab==='home')renderHome();});
   const sev={Doubtful:0,Questionable:1,Out:2};
-  const startRank={};i4.forEach(pos=>all.filter(r=>r.p.pos===pos).sort((a,b)=>b.b-a.b).slice(0,CUT[pos][0]).forEach(r=>startRank[r.p.key]=1));
+  const startRank={};i4.forEach(pos=>all.filter(r=>r.p.pos===pos).sort((a,b)=>b.b-a.b).slice(0,cutOf()[pos][0]).forEach(r=>startRank[r.p.key]=1));
   const inj=all.filter(r=>{const p=r.p;if(onBye(p))return false;const mineP=isMine(p);if(!mineP&&!startRank[p.key])return false;
       const st=effStatus(p),pr=practiceOf(p),pc=pr?pr[0]:'';if(st==='IR')return mineP;return sev[st]!=null||pc==='DNP'||pc==='LP';})
     .map(r=>{const st=effStatus(r.p);return {r,st,mine:isMine(r.p),o:sev[st]??3};})
@@ -3479,8 +3480,12 @@ function renderLineup(){
   const pool=lineupPool(),slots=Object.assign({},DEF_SLOTS,S.slots||{});
   $('#luWk').textContent=S.week;
   // slot inputs
-  if(!$('#luSlots').dataset.built){$('#luSlots').innerHTML=Object.keys(DEF_SLOTS).map(k=>`<div class="field"><label class="label" for="slot-${k}">${SLOT_LBL[k]}</label><input id="slot-${k}" type="number" inputmode="numeric" min="0" max="4" value="${slots[k]}"></div>`).join('');
+  if(!$('#luSlots').dataset.built){$('#luSlots').innerHTML=`<div class="field"><label class="label" for="slot-teams" id="slotTeamsL">Teams</label><select id="slot-teams"></select></div>`+Object.keys(DEF_SLOTS).map(k=>`<div class="field"><label class="label" for="slot-${k}">${SLOT_LBL[k]}</label><input id="slot-${k}" type="number" inputmode="numeric" min="0" max="4" value="${slots[k]}"></div>`).join('');
+    $('#slot-teams').onchange=e=>{S.nTeams=+e.target.value;save();renderLineup();};
     $('#luSlots').dataset.built='1';Object.keys(DEF_SLOTS).forEach(k=>$('#slot-'+k).oninput=e=>{const v=Math.max(0,Math.min(4,Math.round(n(e.target.value))));S.slots=Object.assign({},DEF_SLOTS,S.slots||{},{[k]:v});save();renderLineup();});}
+  {const T=leagueTeams(),el=$('#slot-teams');el.innerHTML=[...new Set([8,10,12,14,16,T])].sort((a,b)=>a-b).map(v=>`<option${v===T?' selected':''}>${v}</option>`).join('');
+    // a connected league decides its own size
+    el.disabled=!!(S.league&&S.league.size);$('#slotTeamsL').textContent=el.disabled?'Teams (from league)':'Teams';}
   // add-player list
   const lab=x=>`${x.name}${x.team?' ('+x.team+')':''} · ${x.pos}`;
   if(!$('#luAddList').dataset.n||+$('#luAddList').dataset.n!==pool.size){$('#luAddList').innerHTML=[...pool.values()].sort((a,b)=>b.proj-a.proj).map(x=>`<option value="${esc(lab(x))}"></option>`).join('');$('#luAddList').dataset.n=pool.size;}
@@ -3529,10 +3534,23 @@ $('#luClear').onclick=e=>{const b=e.target;if(b.dataset.confirm){S.mine=[];save(
   else{b.dataset.confirm='1';b.textContent='Press again to clear';setTimeout(()=>{if(b.dataset.confirm){delete b.dataset.confirm;b.textContent='Clear roster';}},3000);}};
 
 // ---- start/sit tools: every source ranks the player at his position, then votes ----
-const CUT={QB:[12,18],RB:[24,36],WR:[30,42],TE:[12,18],K:[12,16],DST:[12,16]};
-// a normal flex slot can't hold a QB, so QBs only get a flex tier with a Superflex slot
-const cutFor=pos=>pos==='QB'&&!(S.slots&&S.slots.SFLEX>0)?[CUT.QB[0],CUT.QB[0]]:CUT[pos];
-const voteOf=(pos,rk)=>rk==null?null:rk<=cutFor(pos)[0]?'start':rk<=cutFor(pos)[1]?'flex':'sit';
+// League size: the connected league's, else the one chosen on My Lineup, else 12. Connecting a league also writes its lineup to S.slots.
+const leagueTeams=()=>(S.league&&S.league.size)||S.nTeams||12;
+let _cut=null,_cutK='';
+// {pos:[last starter, last flex]}: starters are teams × that position's slots; the flex tier is whoever fills the league's FLEX then Superflex
+// slots next, by projection. That leaves QBs with no flex tier unless the lineup has a Superflex slot, and K and D/ST with none at all.
+function cutOf(){const T=leagueTeams(),sl=Object.assign({},DEF_SLOTS,S.slots||{}),ck=S.week+'|'+scKey()+'|'+JSON.stringify(S.w)+'|'+T+'|'+JSON.stringify(sl);
+  if(_cut&&_cutK===ck)return _cut;
+  const cut={},left=[];
+  for(const P of ['QB','RB','WR','TE','K','DST']){const N=T*sl[P];cut[P]=[N,N];
+    realPlayers().filter(p=>p.pos===P).map(p=>weekProj(p).proj).filter(v=>v>0).sort((a,b)=>b-a).slice(N).forEach(v=>left.push([P,v]));}
+  left.sort((a,b)=>b[1]-a[1]);
+  for(const slot of ['FLEX','SFLEX'])for(let n=T*sl[slot],i=0;n>0&&i<left.length;){if(SLOT_OK[slot].includes(left[i][0])){cut[left[i][0]][1]++;left.splice(i,1);n--;}else i++;}
+  _cut=cut;_cutK=ck;return cut;}
+const voteOf=(pos,rk)=>rk==null?null:rk<=cutOf()[pos][0]?'start':rk<=cutOf()[pos][1]?'flex':'sit';
+// the cutoffs in words, for How It Works
+function cutText(){const c=cutOf(),fx=['QB','RB','WR','TE'].filter(P=>c[P][1]>c[P][0]);
+  return `${leagueTeams()}-team league: ${['QB','RB','WR','TE'].map(P=>`${P} top ${c[P][0]}`).join(', ')} start${fx.length?`; the next ${fx.map(P=>`${c[P][1]-c[P][0]} ${P}`).join(', ')} are flex`:''}`;}
 const ESPNR=(function(){const m={};(SD.espnRanks||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,avg,n,b,w]=l.split('|');m[nkey(nm,ps)]=[+avg,+n,+b,+w];});return m;})();
 const CBSX=(AD.cbs&&AD.cbs.experts)||[];
 let _tools=null,_toolsKey='';
