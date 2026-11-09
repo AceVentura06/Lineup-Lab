@@ -126,6 +126,9 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
       p.w[w].push(sh(s.rec_tgt, tt.rec_tgt), sh(s.rush_att, tt.rush_att));
     }
   }
+  // current rosters: a traded or released player's team, which his last game can't tell us
+  const pl = asOfWeek ? {} : await fetchJson('https://api.sleeper.app/v1/players/nfl');
+  for (const [id, p] of Object.entries(P)) if (pl[id]) p.team = pl[id].team || 'FA';
   const rows = Object.values(P).filter(p => p.t.pts_ppr >= 3 || p.pos === 'K' || p.pos === 'DEF')
     .map(p => [p.name, p.pos, p.team, p.gp, ...F.map(f => r1(p.t[f])), ...TF.map(f => r1(p.tm[f])),
       weeks.map(w => p.w[w] ? p.w[w].join(':') : '-').join(';')].join('|')).join('\n');
@@ -159,7 +162,6 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
   });
 
   // --- injuries ---
-  const pl = asOfWeek ? {} : await fetchJson('https://api.sleeper.app/v1/players/nfl');
   const inj = Object.values(pl)
     .filter(p => p.injury_status && POS.includes(p.position) && p.team && p.active !== false && (p.search_rank || 9999) < 600)
     .map(p => [p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim(), p.position, p.team, p.injury_status].join('|')).join('\n');

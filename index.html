@@ -2552,7 +2552,7 @@ function tvMax(rep){const k=S.week+'|'+scKey()+'|'+JSON.stringify(S.w)+'|'+JSON.
   for(const p of realPlayers()){const r=rosProj(p),ex=expertPpg(p),b=ex!=null?(r.ppg+ex)/2:r.ppg;m=Math.max(m,(b-(rep[p.pos]||0))*r.games);}_tvm=m;_tvmK=k;return m;}
 // buy low / sell high tag for a player (same rules as the Rest of Season list)
 let _bs=null,_bsK='';
-function bsTag(p){const k=scKey();if(!_bs||_bsK!==k){_bs={};_bsK=k;const rows=[];for(const q of PL.values()){if(!['RB','WR','TE'].includes(q.pos)||q.gp<3)continue;const x=xfpOf(q);if(x&&x.pg>=7)rows.push({q,x});}
+function bsTag(p){const k=scKey();if(!_bs||_bsK!==k){_bs={};_bsK=k;const rows=[];for(const q of PL.values()){if(!['RB','WR','TE'].includes(q.pos)||q.gp<3||INJ[q.key]==='IR'||q.team==='FA')continue;const x=xfpOf(q);if(x&&x.pg>=7)rows.push({q,x});}
     const T={RB:12,WR:12,TE:6},RT={RB:15,WR:18,TE:8};['RB','WR','TE'].forEach(ps=>rows.filter(r=>r.q.pos===ps).sort((a,b)=>b.x.pg-a.x.pg).forEach((r,i)=>{const er=rosRank(r.q),elite=i+1<=T[ps]||(er!=null&&er<=RT[ps]);
       _bs[r.q.key]=r.x.fpoe<=-1.5?'buy':r.x.fpoe>=1.5&&!elite?'sell':null;}));}
   return _bs[p.key]||null;}
@@ -3042,7 +3042,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&Date.now(
 const ESPN_INJ='https://site.api.espn.com/apis/site/v2/sports/football/nfl/injuries';
 function liveInjSt(e){const t=String((e.type&&e.type.name)||'').toUpperCase(),s=String(e.status||'').toLowerCase(),f=String((e.details&&e.details.fantasyStatus&&e.details.fantasyStatus.abbreviation)||'').toUpperCase();
   if(t.endsWith('_ACTIVE')||s==='active')return 'Healthy';
-  if(t.endsWith('_IR')||s.includes('reserve')||/^(IR|PUP|NFI)/.test(f))return 'IR';
+  if(t.endsWith('_IR')||s.includes('reserve')||/^(IR|PUP|NFI|RESERVE)/.test(f))return 'IR';
   if(t.endsWith('_OUT')||t.endsWith('_SUSPENSION')||s==='out'||s.includes('suspen'))return 'Out';
   if(t.endsWith('_DOUBTFUL')||s==='doubtful')return 'Doubtful';
   if(t.endsWith('_QUESTIONABLE')||s==='questionable'||s.includes('day-to-day'))return 'Questionable';
@@ -3458,7 +3458,8 @@ ui.luOwn=50;
 // ---- buy low / sell high: actual scoring vs. what each player's usage predicts (expected points, from play-by-play) ----
 function renderBuySell(){const el=$('#rosBuySell');if(!el)return;
   const pos=['RB','WR','TE'].includes(ui.posBS)?ui.posBS:null,LG=S.league&&Array.isArray(S.league.taken)&&S.league.taken.length?new Set(S.league.taken):null;
-  const rows=[];for(const p of PL.values()){if(!['RB','WR','TE'].includes(p.pos)||p.gp<3)continue;const x=xfpOf(p);if(!x||x.pg<7)continue;rows.push({p,x});}
+  // IR is the only season-ending signal the injury feeds give for every player, so IR/PUP/DNR players stay off until activated
+  baseInj();const rows=[];for(const p of PL.values()){if(!['RB','WR','TE'].includes(p.pos)||p.gp<3||INJ[p.key]==='IR'||p.team==='FA')continue;const x=xfpOf(p);if(!x||x.pg<7)continue;rows.push({p,x});}
   // elite players aren't sells even when running hot: a top-tier role (usage) or a top-tier rest-of-season expert
   // ranking (roughly trade value) keeps them off the sell list
   const TIER={RB:12,WR:12,TE:6},ROS_TIER={RB:15,WR:18,TE:8},urank={};['RB','WR','TE'].forEach(ps=>rows.filter(r=>r.p.pos===ps).sort((a,b)=>b.x.pg-a.x.pg).forEach((r,i)=>urank[r.p.key]=i+1));
