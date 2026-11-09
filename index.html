@@ -3530,7 +3530,9 @@ $('#luClear').onclick=e=>{const b=e.target;if(b.dataset.confirm){S.mine=[];save(
 
 // ---- start/sit tools: every source ranks the player at his position, then votes ----
 const CUT={QB:[12,18],RB:[24,36],WR:[30,42],TE:[12,18],K:[12,16],DST:[12,16]};
-const voteOf=(pos,rk)=>rk==null?null:rk<=CUT[pos][0]?'start':rk<=CUT[pos][1]?'flex':'sit';
+// a normal flex slot can't hold a QB, so QBs only get a flex tier with a Superflex slot
+const cutFor=pos=>pos==='QB'&&!(S.slots&&S.slots.SFLEX>0)?[CUT.QB[0],CUT.QB[0]]:CUT[pos];
+const voteOf=(pos,rk)=>rk==null?null:rk<=cutFor(pos)[0]?'start':rk<=cutFor(pos)[1]?'flex':'sit';
 const ESPNR=(function(){const m={};(SD.espnRanks||'').split('\n').filter(Boolean).forEach(l=>{const [nm,ps,avg,n,b,w]=l.split('|');m[nkey(nm,ps)]=[+avg,+n,+b,+w];});return m;})();
 const CBSX=(AD.cbs&&AD.cbs.experts)||[];
 let _tools=null,_toolsKey='';
