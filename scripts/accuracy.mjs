@@ -18,19 +18,37 @@ export function mergeSnapshot(prev, cur, now = Date.now()) {
   return { week: cur.week, backfilled: prev?.backfilled || false, players };
 }
 
+const snapOf = w => (w || '').split(':')[3];
+// snap % (4th value of a week) is 0, or blank with no points (blank alone only means the snap count hasn't posted)
+const tookField = w => !!w && w !== '-' && !(snapOf(w) === '0' || (!snapOf(w) && !parseFloat(w)));
+
+// Hurt during a game: under half his usual snaps, then missed his team's next game. If that game isn't finished, the injury list decides.
+// shortcut: the schedule is the player's current team and injuries aren't recorded by game, so a mid-season trade can misread a bye, and a one-game knock he played through next week still counts.
+function leftHurt(wks, i, opps, status, currentWeek) {
+  const snap = +snapOf(wks[i]);
+  const usual = wks.filter((w, j) => j !== i && +snapOf(w) > 0).map(w => +snapOf(w)).sort((a, b) => a - b);
+  if (!opps || !snap || usual.length < 2 || snap >= usual[usual.length >> 1] / 2) return false;
+  let n = i + 1; while (opps[n] === 'BYE') n++;
+  return n + 1 < currentWeek ? !tookField(wks[n]) : ['Out', 'IR', 'PUP', 'Doubtful'].includes(status);
+}
+
 // Actual fantasy points by week from the season stats file: key -> { week: [ppr, half, std] }
-export function actualsFrom(STATS) {
-  const F = STATS.fields, iN = F.indexOf('name'), iP = F.indexOf('pos'), iW = F.indexOf('weeks');
+// grading ({ inj, sched, currentWeek }) drops weeks a player didn't take the field or got hurt, so neither counts as a miss.
+// K/DST have no offensive snaps; a week entry means their team played.
+export function actualsFrom(STATS, grading = null) {
+  const F = STATS.fields, iN = F.indexOf('name'), iP = F.indexOf('pos'), iT = F.indexOf('team'), iW = F.indexOf('weeks');
+  const lines = s => String(s || '').split('\n').filter(Boolean).map(l => l.split('|'));
+  const sched = Object.fromEntries(lines(grading?.sched).map(([t, o]) => [t, o.split(',')]));
+  const inj = Object.fromEntries(lines(grading?.inj).map(([n, p, , st]) => [nkey(n, p), st]));
   const out = {};
-  for (const line of String(STATS.rows || '').split('\n')) {
-    if (!line) continue;
-    const c = line.split('|'); const pos = c[iP];
-    const key = nkey(c[iN], pos);
+  for (const c of lines(STATS.rows)) {
+    const pos = c[iP], key = nkey(c[iN], pos), wks = c[iW].split(';');
     const m = out[key] = {};
-    c[iW].split(';').forEach((w, i) => {
+    wks.forEach((w, i) => {
       if (!w || w === '-') return;
       const [ppr, rec] = w.split(':').map(Number);
       if (!Number.isFinite(ppr)) return;
+      if (grading && pos !== 'K' && pos !== 'DEF' && (!tookField(w) || leftHurt(wks, i, sched[c[iT]], inj[key], grading.currentWeek))) return;
       m[i + 1] = [ppr, ppr - 0.5 * (rec || 0), ppr - (rec || 0)];
     });
   }
@@ -90,8 +108,8 @@ export function gradeWeek(snap, act, w) {
 }
 
 // Grade every finished week. history: { week: snapshot }
-export function gradeAll(history, STATS, currentWeek, season) {
-  const act = actualsFrom(STATS);
+export function gradeAll(history, STATS, currentWeek, season, CTX) {
+  const act = actualsFrom(STATS, { ...CTX, currentWeek });
   const weeks = {};
   for (const [w, snap] of Object.entries(history)) {
     if (+w >= currentWeek) continue;           // only weeks whose games are all done
