@@ -1,6 +1,6 @@
 {
-  "hash": "868acafdcc039d29",
-  "updated": "2026-11-09T05:23:54.374Z",
+  "hash": "b7265736853583ea",
+  "updated": "2026-11-09T09:45:30.507Z",
   "season": 2026,
   "week": 9,
   "through": "Weeks 1–8 plus 14 of 15 week 9 games",
@@ -10,24 +10,24 @@
       "detail": "9319 player-weeks"
     },
     "Next Gen Stats receiving": {
-      "ok": false,
-      "detail": "HTTP 504 for https://github.com/nflverse/nflverse-data/releases/download/nextgen_stats/ngs_receiving.csv.gz"
+      "ok": true,
+      "detail": "126 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "45 players"
+      "detail": "51 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
-      "detail": "35 players"
+      "detail": "37 players"
     },
     "Play-by-play": {
-      "ok": false,
-      "detail": "HTTP 504 for https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2026.csv.gz"
+      "ok": true,
+      "detail": "8411 targets, 7013 carries"
     },
     "FTN charting": {
-      "ok": false,
-      "detail": "needs play-by-play"
+      "ok": true,
+      "detail": "20664 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "509 players"
+      "detail": "499 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "174 players with news, 340 of 358 stories with photos (ESPN 1650 articles scanned; ESPN 475, CBS Sports 25, Yahoo Sports 26, ProFootballTalk 26)"
+      "detail": "176 players with news, 345 of 359 stories with photos (ESPN 1650 articles scanned; ESPN 476, CBS Sports 24, Yahoo Sports 27, ProFootballTalk 24)"
     }
   }
 }
