@@ -766,6 +766,7 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .nm-s,.nm-sub{display:none}
 /* the save-on-this-device question */
 .setup{margin-bottom:16px}
+.hl2{display:block;max-height:calc(2*1.35em);line-height:1.35;overflow:hidden;margin-top:2px}
 .su-save{margin-top:14px;min-height:44px}.su-note{margin:0;max-width:62ch}
 .su-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 12px}
 .su-top h2{margin:0}
@@ -3197,6 +3198,16 @@ function teamScore(starters,byKey,wk){let sofar=0,pace=0,proj=0,started=0,done=0
     else if(sc.st==='wait'){started++;pace+=r.proj;}
     else pace+=r.proj;}
   return {sofar,pace,proj,on,started,done,n:starters.length,all:starters.length>0&&done===starters.length};}
+const INJ_WORD=/\b(injur(y|ies|ed)|practic(e|ed|es|ing)|limited|dnp|questionable|doubtful|out|inactive|active|available|return(s|ed|ing)?|status|ruled|sidelined|good to go|game-time|ankle|knee|hamstring|groin|calf|quad|foot|toe|hip|shoulder|concussion|thumb|hand|wrist|elbow|ribs?|neck|illness|achilles|acl|mcl|surgery|mri)\b/i;
+const nzName=s=>String(s).toLowerCase().replace(/[.'’]/g,'').replace(/\b(jr|sr|ii|iii|iv)\b/g,'').replace(/\s+/g,' ').trim();
+const hasWords=(hay,w)=>new RegExp('(^|[^a-z0-9])'+w.replace(/[^a-z0-9 -]/g,'')+'($|[^a-z0-9])').test(hay);
+// full name, or a last name no other player has alongside his team
+function namesPlayer(title,p,lastCount){const h=nzName(title),full=nzName(p.name),last=full.split(' ').pop();
+  if(hasWords(h,full))return true;if(lastCount[last]!==1||!hasWords(h,last))return false;
+  const tn=nzName(TEAM_NAMES[p.team]||'');return hasWords(h,nzName(p.team))||(!!tn&&(hasWords(h,tn)||hasWords(h,tn.split(' ').pop())));}
+// two lines at most, cutting between words; the full headline stays in the link's title
+function clampHeads(root){root.querySelectorAll('.hl2').forEach(a=>{const full=a.title;a.firstChild.textContent=full;if(a.scrollHeight<=a.clientHeight+1)return;
+  const w=full.split(' ');while(w.length>1){w.pop();a.firstChild.textContent=w.join(' ').replace(/[,;:–—-]+$/,'')+'… ';if(a.scrollHeight<=a.clientHeight+1)break;}});}
 function renderHome(){
   const wk=S.week,live=wk===SD.week,lw=Math.min(wk,SD.week)-1,i4=['QB','RB','WR','TE'];
   const sc=scName();
@@ -3296,14 +3307,17 @@ function renderHome(){
       const st=effStatus(p),pr=practiceOf(p),pc=pr?pr[0]:'';if(st==='IR')return mineP;return sev[st]!=null||pc==='DNP'||pc==='LP';})
     .map(r=>{const st=effStatus(r.p);return {r,st,mine:isMine(r.p),o:sev[st]??3};})
     .sort((a,b)=>(b.mine-a.mine)||(a.o-b.o)||(b.r.b-a.r.b)).slice(0,6);
-  const recent=p=>{const l=NEWS&&(NEWS.news||{})[p.key];if(!l)return null;const last=p.name.split(' ').filter(w=>!/^(jr|sr|ii|iii|iv)\.?$/i.test(w)).pop().toLowerCase();
-    return l.find(x=>Date.now()-Date.parse(x[3])<4*864e5&&x[0].toLowerCase().includes(last))||null;};
+  // a story only counts if its headline names the player and is about availability
+  const lastCount={};for(const q of PL.values()){const l=nzName(q.name).split(' ').pop();lastCount[l]=(lastCount[l]||0)+1;}
+  const recent=p=>{const l=NEWS&&(NEWS.news||{})[p.key];if(!l)return null;
+    return l.find(x=>Date.now()-Date.parse(x[3])<4*864e5&&namesPlayer(x[0],p,lastCount)&&INJ_WORD.test(x[0]))||null;};
   $('#hmInj').innerHTML=`<div class="hm-head"><h3>Injury watch</h3>${LIVEINJ.at?`<span class="hm-sm"><span class="livedot"></span>Live from ESPN · ${Date.now()-LIVEINJ.at<9e4?'just now':ago(new Date(LIVEINJ.at).toISOString())}</span>`:''}</div>${inj.length?`<div class="hm-list">${inj.map(x=>{const p=x.r.p,pr=practiceOf(p),pc=pr?pr[0]:'',nw=recent(p);
       const lv=LIVEINJ.map[p.key];
       const note=lv&&lv.note&&(!pc||lv.t>Date.now()-864e5)?esc(lv.note):pc?{DNP:'Did not practice',LP:'Limited in practice',FP:'Full practice'}[pc]+(pr[2]?` (${esc(pr[2])})`:''):{Out:'Not expected to play',Doubtful:'Doubtful to play',Questionable:'Questionable to play',IR:'On injured reserve'}[x.st]||'';
       return `<div class="u-flex u-gap-10 u-ai-start"><span class="u-fix-66">${statusPill(p)||'<span class="pill p-warn">LP</span>'}</span><span>${pname(p)} <span class="hm-sm">${esc(p.team)} ${p.pos}${x.mine?' · your team':''}</span><br>
-        <span class="hm-sm">${note}</span>${nw?`<br><a class="hm-sm" href="${esc(nw[2])}" target="_blank" rel="noopener noreferrer">${esc(nw[1])}: ${esc(nw[0])} ↗</a>`:''}</span></div>`;}).join('')}</div>`
+        <span class="hm-sm">${note}</span>${nw?`<a class="hm-sm hl2" title="${esc(nw[1])}: ${esc(nw[0])}" href="${esc(nw[2])}" target="_blank" rel="noopener noreferrer">${esc(nw[1])}: ${esc(nw[0])}<span aria-hidden="true"> ↗</span></a>`:''}</span></div>`;}).join('')}</div>`
     :'<p class="hm-empty">No injury tags on fantasy starters right now.</p>'}`;
+  clampHeads($('#hmInj'));
   // latest news
   const T=(typeof TICKER_DATA!=='undefined'&&TICKER_DATA)||{};const lat=(T.latest||[]).slice(0,5);
   // the newest story with a photo leads; the rest get small thumbnails
@@ -4352,6 +4366,7 @@ document.addEventListener('click',e=>{const p=e.target.closest('[data-pre]');if(
   ['#themeSeg','#themeSeg2'].forEach(sel=>{const el=$(sel);if(el)el.onclick=e=>{const b=e.target.closest('button');if(!b)return;ui.theme=b.dataset.v;store(k,ui.theme);apply();};});
   (mq.addEventListener?mq.addEventListener('change',apply):mq.addListener(apply));apply();})();
 // the install banner: from the second visit on, never alongside the setup card
+addEventListener('resize',()=>{if(ui.tab==='home'&&$('#hmInj'))clampHeads($('#hmInj'));},{passive:true});
 function syncInstall(){const el=$('#hmInstall');if(el)el.hidden=!(el.innerHTML&&visitNo>=2&&!setupOn());}
 // ---- installable app: offline copy, and a one-time "add to home screen" hint on phones ----
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'))navigator.serviceWorker.register('sw.js').catch(()=>{});
