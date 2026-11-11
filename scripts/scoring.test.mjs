@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ESPN, BASELINE, espnPoints } from './scoring.mjs';
 import { loadModel } from './model.mjs';
-import { actualsFrom } from './accuracy.mjs';
+import { actualsFrom, gradeWeek } from './accuracy.mjs';
 
 const wk = s => s.split(':');
 
@@ -40,3 +40,18 @@ test('actualsFrom grades a quarterback in ESPN scoring', () => {
   assert.deepEqual(act['al passer'], { 1: [18, 18, 18] });
 });
 
+const src = v => ({ espn: [v, v, v], sleeper: [v, v, v] });
+test('gradeWeek: a late scratch projected 5+ is graded as zero; a low projection is left out', () => {
+  const snap = { players: {
+    'joe back': { n: 'Joe Back', pos: 'RB', src: src(18) },
+    'late scratch': { n: 'Late Scratch', pos: 'WR', src: src(12) },
+    'deep bench': { n: 'Deep Bench', pos: 'WR', src: src(3) },
+  } };
+  const g = gradeWeek(snap, { 'joe back': { 1: [20, 20, 20] } }, 1);
+  assert.equal(g.n, 2);
+  assert.equal(g.m.ppr.espn.ae, 2 + 12);
+});
+
+test('gradeWeek: no scores at all for the week means no grade, not all zeros', () => {
+  assert.equal(gradeWeek({ players: { 'joe back': { pos: 'RB', src: src(18) } } }, {}, 1), null);
+});

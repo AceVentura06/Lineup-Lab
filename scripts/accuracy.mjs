@@ -8,11 +8,14 @@ const SC = ['ppr', 'half', 'std'];
 const STARTERS = { QB: 12, RB: 24, WR: 30, TE: 12, K: 12, DST: 12 };
 
 // Keep a player's last projection from before his game kicked off; keep updating everyone else.
+// A player who drops out of the projections before his kickoff (ruled out during the week) is dropped here too,
+// so the players graded as zero for not playing are the late scratches the sites were still projecting.
 export function mergeSnapshot(prev, cur, now = Date.now()) {
-  const players = { ...(prev?.players || {}) };
+  const before = prev?.players || {}, players = {};
+  for (const [k, old] of Object.entries(before)) if (old.k && now >= old.k) players[k] = old;   // frozen at kickoff
   for (const [k, p] of Object.entries(cur.players)) {
-    const old = players[k];
-    if (old && old.k && now >= old.k) continue;          // frozen at kickoff
+    if (players[k]) continue;
+    const old = before[k];
     if (!old && p.k && now >= p.k) continue;             // first seen after kickoff: don't trust it
     players[k] = p;
   }
@@ -54,10 +57,15 @@ function spearman(a, b) {
   return da && db ? num / Math.sqrt(da * db) : null;
 }
 
+const avgOf = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+
 // Grade one week. snap: saved projections; act: actuals map; w: week number.
 export function gradeWeek(snap, act, w) {
-  const players = Object.entries(snap.players).map(([id, p]) => ({ ...p, id, a: act[id]?.[w] })).filter(p => p.a);
-  if (!players.length) return null;
+  const all = Object.entries(snap.players).map(([id, p]) => ({ ...p, id, a: act[id]?.[w] }));
+  if (!all.some(p => p.a)) return null;                  // no scores for that week at all
+  // late scratches: projected 5+ on average but did not play, graded as zero
+  for (const p of all) if (!p.a && avgOf(Object.keys(SOURCES).map(s => p.src[s]?.[0]).filter(v => v != null)) >= 5) p.a = [0, 0, 0];
+  const players = all.filter(p => p.a);
   // sources present for most players that week (a source that only covers a handful would skew the pool)
   const cover = {};
   for (const p of players) for (const s in p.src) if (p.src[s]?.[0] != null) cover[s] = (cover[s] || 0) + 1;
