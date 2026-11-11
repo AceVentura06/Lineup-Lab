@@ -17,7 +17,8 @@ export function mergeSnapshot(prev, cur, now = Date.now()) {
     if (players[k]) continue;
     const old = before[k];
     if (!old && p.k && now >= p.k) continue;             // first seen after kickoff: don't trust it
-    players[k] = p;
+    // kickoff times come from the betting-lines file; if it failed this run, keep the time already saved
+    players[k] = !p.k && old?.k ? { ...p, k: old.k } : p;
   }
   return { week: cur.week, backfilled: prev?.backfilled || false, players };
 }

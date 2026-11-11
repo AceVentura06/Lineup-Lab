@@ -3,7 +3,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { ESPN, BASELINE, espnPoints } from './scoring.mjs';
 import { loadModel } from './model.mjs';
-import { actualsFrom, gradeWeek } from './accuracy.mjs';
+import { actualsFrom, gradeWeek, mergeSnapshot } from './accuracy.mjs';
 
 const wk = s => s.split(':');
 
@@ -54,4 +54,17 @@ test('gradeWeek: a late scratch projected 5+ is graded as zero; a low projection
 
 test('gradeWeek: no scores at all for the week means no grade, not all zeros', () => {
   assert.equal(gradeWeek({ players: { 'joe back': { pos: 'RB', src: src(18) } } }, {}, 1), null);
+});
+
+test('mergeSnapshot: freezes at kickoff, keeps a saved kickoff time, drops players pulled before kickoff', () => {
+  const prev = { players: {
+    played: { src: { lab: [10] }, k: 100 },
+    upcoming: { src: { lab: [11] }, k: 900 },
+    'ruled out': { src: { lab: [12] }, k: 900 },
+  } };
+  const cur = { week: 3, players: { played: { src: { lab: [99] } }, upcoming: { src: { lab: [13] } } } };   // lines file failed: no k
+  const m = mergeSnapshot(prev, cur, 500);
+  assert.deepEqual(m.players.played, { src: { lab: [10] }, k: 100 });
+  assert.deepEqual(m.players.upcoming, { src: { lab: [13] }, k: 900 });
+  assert.equal(m.players['ruled out'], undefined);
 });
