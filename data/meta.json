@@ -1,6 +1,6 @@
 {
-  "hash": "bdb9b3d03886e088",
-  "updated": "2026-11-11T10:52:51.004Z",
+  "hash": "41c1444b6e59aad6",
+  "updated": "2026-11-11T18:41:16.574Z",
   "season": 2026,
   "week": 10,
   "through": "Weeks 1–9",
@@ -27,7 +27,7 @@
     },
     "FTN charting": {
       "ok": true,
-      "detail": "22890 charted plays"
+      "detail": "23060 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "412 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "411 projections, 0 expert rankings (this week's rankings not posted yet)"
     },
     "Player news": {
       "ok": true,
-      "detail": "196 players with news, 372 of 379 stories with photos (ESPN 1647 articles scanned; ESPN 549, CBS Sports 26, Yahoo Sports 25, ProFootballTalk 18)"
+      "detail": "202 players with news, 388 of 396 stories with photos (ESPN 1647 articles scanned; ESPN 571, CBS Sports 31, Yahoo Sports 14, ProFootballTalk 17)"
     }
   }
 }
