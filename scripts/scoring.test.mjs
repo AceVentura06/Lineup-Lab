@@ -56,6 +56,22 @@ test('gradeWeek: no scores at all for the week means no grade, not all zeros', (
   assert.equal(gradeWeek({ players: { 'joe back': { pos: 'RB', src: src(18) } } }, {}, 1), null);
 });
 
+test('gradeWeek: CBS is not graded on kickers or defenses and does not gate their pool', () => {
+  const s3 = (e, s, c) => ({ espn: [e, e, e], sleeper: [s, s, s], ...(c == null ? {} : { cbs: [c, c, c] }) });
+  const snap = { players: {
+    'joe back': { n: 'Joe Back', pos: 'RB', src: s3(18, 18, 19) },
+    'al wide': { n: 'Al Wide', pos: 'WR', src: s3(10, 10, 12) },
+    'def:bears': { n: 'Bears', pos: 'DST', src: s3(7, 7, 30) },
+    'kim kicker': { n: 'Kim Kicker', pos: 'K', src: s3(8, 8) },
+  } };
+  const act = { 'joe back': { 1: [20, 20, 20] }, 'al wide': { 1: [10, 10, 10] }, 'def:bears': { 1: [5, 5, 5] }, 'kim kicker': { 1: [9, 9, 9] } };
+  const g = gradeWeek(snap, act, 1);
+  assert.equal(g.n, 4);
+  assert.equal(g.m.ppr.cbs.n, 2);
+  assert.equal(g.m.ppr.cbs.ae, 1 + 2);
+  assert.equal(g.m.ppr.espn.ae, 2 + 0 + 2 + 1);
+});
+
 test('mergeSnapshot: freezes at kickoff, keeps a saved kickoff time, drops players pulled before kickoff', () => {
   const prev = { players: {
     played: { src: { lab: [10] }, k: 100 },

@@ -3356,7 +3356,8 @@ function siteAdj(r,fromFmt){const p=PL.get(r.key);if(!p||!p.gp||r.pos==='K'||r.p
 function pprConv(r,src){const x=r[src];if(!x)return null;return Math.max(0,x.ppr+siteAdj(r,'ppr'));}
 const fpPts=r=>pprConv(r,'fp');
 function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]&&r[s][S.scoring]!=null?Math.max(0,r[s][S.scoring]+siteAdj(r,S.scoring)):null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
-  const xs=Object.values(v).filter(x=>x!=null);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
+  // CBS stays out of kicker and defense averages: its defense numbers are on a different scale
+  const kd=r.pos==='K'||r.pos==='DST',xs=Object.entries(v).filter(([s,x])=>x!=null&&!(kd&&s==='cbs')).map(([,x])=>x);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
 // ---- past weeks (saved pregame projections + actual points), loaded when picked ----
 function loadPastWeek(w,cb){window.PASTWK=window.PASTWK||{};if(PASTWK[w])return cb();
   const sc=document.createElement('script');sc.src=`data/past/${SD.season||new Date().getFullYear()}-w${String(w).padStart(2,'0')}.js?v=${Math.floor(Date.now()/300000)}`;
@@ -3364,7 +3365,7 @@ function loadPastWeek(w,cb){window.PASTWK=window.PASTWK||{};if(PASTWK[w])return 
 function pastRows(w){const P=PASTWK[w],si=['ppr','half','std'].indexOf(S.scoring),out=[];
   for(const [k,[name,pos,team,src,act]] of Object.entries(P.rows||{})){
     const v={};['espn','sleeper','cbs','fp'].forEach(x=>{v[x]=src[x]&&src[x][si]!=null?src[x][si]:null;});
-    const xs=['espn','sleeper','cbs','fp'].map(x=>v[x]).filter(x=>x!=null);v.n=xs.length;v.avg=xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
+    const xs=['espn','sleeper','cbs','fp'].filter(x=>!(x==='cbs'&&(pos==='K'||pos==='DST'))).map(x=>v[x]).filter(x=>x!=null);v.n=xs.length;v.avg=xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
     v.min=xs.length?Math.min(...xs):0;v.max=xs.length?Math.max(...xs):0;v.spread=xs.length>1?v.max-v.min:0;
     v.model=src.lab&&src.lab[si]!=null?src.lab[si]:null;v.scored=act?act[si]:null;v.live=false;
     out.push({r:{key:k,name,pos,team:team||'',opp:''},v});}

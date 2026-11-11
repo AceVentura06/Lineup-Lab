@@ -58,6 +58,8 @@ function spearman(a, b) {
   return da && db ? num / Math.sqrt(da * db) : null;
 }
 
+// CBS is left out of kicker and defense grading and averages: its defense numbers are on a different scale.
+export const usesSrc = (s, pos) => !(s === 'cbs' && (pos === 'K' || pos === 'DST' || pos === 'DEF'));
 const avgOf = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
 
 // Grade one week. snap: saved projections; act: actuals map; w: week number.
@@ -72,12 +74,14 @@ export function gradeWeek(snap, act, w) {
   for (const p of players) for (const s in p.src) if (p.src[s]?.[0] != null) cover[s] = (cover[s] || 0) + 1;
   const srcs = Object.keys(SOURCES).filter(s => (cover[s] || 0) >= players.length * 0.5);
   // shared pool: every graded source projected him, and he was fantasy-relevant (avg PPR projection 5+, any K/DST)
-  const pool = players.filter(p => srcs.every(s => p.src[s]?.[0] != null) &&
-    (p.pos === 'K' || p.pos === 'DST' || srcs.reduce((t, s) => t + p.src[s][0], 0) / srcs.length >= 5));
-  const out = { srcs, n: pool.length, backfilled: !!snap.backfilled, m: {}, miss: {}, best: {} };
+  const mine = p => srcs.filter(s => usesSrc(s, p.pos));
+  const full = players.filter(p => mine(p).every(s => p.src[s]?.[0] != null) &&
+    (p.pos === 'K' || p.pos === 'DST' || avgOf(mine(p).map(s => p.src[s][0])) >= 5));
+  const out = { srcs, n: full.length, backfilled: !!snap.backfilled, m: {}, miss: {}, best: {} };
   SC.forEach((sc, i) => {
     out.m[sc] = {}; out.miss[sc] = {}; out.best[sc] = {};
     for (const s of srcs) {
+      const pool = full.filter(p => usesSrc(s, p.pos));
       let ae = 0; const pos = {}; let hit = 0, tot = 0, rs = 0, rn = 0;
       for (const p of pool) { const e = Math.abs(p.src[s][i] - p.a[i]); ae += e; const q = pos[p.pos] = pos[p.pos] || [0, 0]; q[0] += e; q[1]++; }
       for (const P of Object.keys(STARTERS)) {
@@ -124,7 +128,7 @@ export function tuneBlend(history, STATS, currentWeek, def = 0.5, pull = 30) {
     for (const [id, p] of Object.entries(snap.players || {})) {
       const a = act[id]?.[+w]?.[0], m = p.src?.mod?.[0];
       if (a == null || m == null) continue;
-      const sv = BLEND_SITES.map(s => p.src[s]?.[0]).filter(v => v != null);
+      const sv = BLEND_SITES.filter(s => usesSrc(s, p.pos)).map(s => p.src[s]?.[0]).filter(v => v != null);
       if (!sv.length) continue;
       const s = sv.reduce((x, y) => x + y, 0) / sv.length;
       if (p.pos !== 'K' && p.pos !== 'DST' && (m + s) / 2 < 5) continue;
