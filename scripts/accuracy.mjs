@@ -1,5 +1,6 @@
 // Saves each week's pregame projections and grades them against what players actually scored.
 import { nkey } from './adv.mjs';
+import { espnPoints } from './scoring.mjs';
 
 export const SOURCES = { lab: 'Ace Lineup Lab', mod: 'Model alone', espn: 'ESPN', sleeper: 'Sleeper', cbs: 'CBS Sports', fp: 'FantasyPros' };
 const SC = ['ppr', 'half', 'std'];
@@ -18,7 +19,7 @@ export function mergeSnapshot(prev, cur, now = Date.now()) {
   return { week: cur.week, backfilled: prev?.backfilled || false, players };
 }
 
-// Actual fantasy points by week from the season stats file: key -> { week: [ppr, half, std] }
+// Actual fantasy points by week from the season stats file, in ESPN default scoring: key -> { week: [ppr, half, std] }
 export function actualsFrom(STATS) {
   const F = STATS.fields, iN = F.indexOf('name'), iP = F.indexOf('pos'), iW = F.indexOf('weeks');
   const out = {};
@@ -29,15 +30,16 @@ export function actualsFrom(STATS) {
     const m = out[key] = {};
     c[iW].split(';').forEach((w, i) => {
       if (!w || w === '-') return;
-      const [ppr, rec] = w.split(':').map(Number);
-      if (!Number.isFinite(ppr)) return;
+      const f = w.split(':'), rec = +f[1];
+      if (!Number.isFinite(+f[0])) return;
+      const ppr = r2(espnPoints(pos, f));
       m[i + 1] = [ppr, ppr - 0.5 * (rec || 0), ppr - (rec || 0)];
     });
   }
   return out;
 }
 
-const r2 = v => Math.round(v * 100) / 100;
+function r2(v) { return Math.round(v * 100) / 100; }
 function ranks(vals) { // average ranks, 1 = highest
   const idx = vals.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
   const r = Array(vals.length);
