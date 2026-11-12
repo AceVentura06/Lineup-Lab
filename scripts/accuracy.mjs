@@ -105,6 +105,25 @@ export function gradeWeek(snap, act, w, sources = SOURCES) {
   return out;
 }
 
+// The usage model is saved in the history as the hidden source "mod2" while it is tested. It is graded
+// apart from the public scoreboard (which never lists it and whose player pool it does not touch), on
+// QB/RB/WR/TE only: average miss per source, overall and by position, on players that also have a mod2 number.
+export const SHADOW = { ...SOURCES, mod2: 'Usage model (testing)' };
+const SKILL = ['QB', 'RB', 'WR', 'TE'];
+export const publicSrc = src => { const { mod2, ...rest } = src; return rest; };
+export function gradeShadow(history, STATS, currentWeek) {
+  const act = actualsFrom(STATS), weeks = {};
+  for (const [w, snap] of Object.entries(history)) {
+    if (+w >= currentWeek) continue;
+    const players = Object.fromEntries(Object.entries(snap.players).filter(([, p]) => SKILL.includes(p.pos)));
+    const g = gradeWeek({ ...snap, players }, act, +w, SHADOW);
+    if (!g || !g.srcs.includes('mod2')) continue;
+    weeks[w] = { n: g.n, miss: Object.fromEntries(g.srcs.map(s => { const m = g.m.ppr[s];
+      return [s, { all: r2(m.ae / m.n), ...Object.fromEntries(Object.entries(m.pos).map(([p, [e, c]]) => [p, r2(e / c)])) }]; })) };
+  }
+  return { sources: SHADOW, weeks };
+}
+
 // Grade every finished week. history: { week: snapshot }
 export function gradeAll(history, STATS, currentWeek, season) {
   const act = actualsFrom(STATS);

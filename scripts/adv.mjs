@@ -45,8 +45,10 @@ const STADIUMS = {
 
 import { buildCbs } from './cbs.mjs';
 import { minRows } from './checks.mjs';
+import { prepare, shadowProjections } from './usage.mjs';
 
-export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {} }) {
+// coef: the usage model's fitted weights (assets/model/coefficients.json); without it the shadow step is skipped.
+export async function buildAdv({ fetchText, fetchGz, season, week, coef = null, log = () => {} }) {
   const out = { season, week, sources: {}, players: {}, games: {}, ecr: {}, practice: {} };
   const ok = (name, detail) => { out.sources[name] = { ok: true, detail }; log(`${name}: ${detail}`); };
   const fail = (name, e) => { out.sources[name] = { ok: false, detail: String(e.message || e) }; log(`${name} FAILED: ${e.message || e}`); };
@@ -193,9 +195,10 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
   } catch (e) { fail('NFL injury reports', e); }
 
   // 6. Betting lines and game info
-  let games = [];
+  let games = [], allGames = [];
   try {
-    games = parseCSV(await fetchText(`${NFLV}/schedules/games.csv`)).filter(r => r.season === String(season) && r.week === String(week) && r.game_type === 'REG');
+    allGames = parseCSV(await fetchText(`${NFLV}/schedules/games.csv`)).filter(r => r.season === String(season) && r.game_type === 'REG');
+    games = allGames.filter(r => r.week === String(week));
     for (const g of games) {
       const sp = has(g.spread_line) ? num(g.spread_line) : null, tot = has(g.total_line) ? num(g.total_line) : null;
       const base = { total: tot, roof: g.roof, stadium: g.stadium, day: g.gameday, time: g.gametime };
@@ -204,7 +207,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       out.games[away] = { ...base, opp: home, home: false, spread: sp, implied: sp == null || tot == null ? null : r2(tot / 2 - sp / 2) };
     }
     // each team's average points scored in completed games (baseline for the Vegas adjustment)
-    const done = parseCSV(await fetchText(`${NFLV}/schedules/games.csv`)).filter(r => r.season === String(season) && r.game_type === 'REG' && has(r.home_score) && has(r.away_score));
+    const done = allGames.filter(r => has(r.home_score) && has(r.away_score));
     const pts = {};
     for (const g of done) for (const [t, v] of [[team(g.home_team), num(g.home_score)], [team(g.away_team), num(g.away_score)]]) { pts[t] = pts[t] || [0, 0]; pts[t][0] += v; pts[t][1]++; }
     out.teamPts = Object.fromEntries(Object.entries(pts).map(([t, [s, n]]) => [t, r2(s / n)]));
@@ -274,6 +277,20 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
     out.cbs = c;
     ok('CBS Sports', `${Object.keys(c.proj).length} projections, ${Object.keys(c.ranks).length} expert rankings${c.ranksCurrent ? '' : ' (this week\'s rankings not posted yet)'}`);
   } catch (e) { fail('CBS Sports', e); }
+
+  // 10. Usage model, in testing as the hidden source "mod2": expected points and snap counts, joined with the
+  // play-by-play and schedule already loaded. Kept off the returned data's visible fields (out.shadow is
+  // non-enumerable), so it never reaches adv-data.js or the page; update.mjs saves it to the history only.
+  if (coef) try {
+    if (!pbp.length || !allGames.length) throw new Error('needs play-by-play and the schedule');
+    const ep = parseCSV(await fetchText('https://github.com/ffverse/ffopportunity/releases/download/latest-data/ep_weekly_' + season + '.csv'));
+    const snaps = parseCSV(await fetchText(`${NFLV}/snap_counts/snap_counts_${season}.csv`));
+    minRows('Expected points', ep.length, week); minRows('Snap counts', snaps.length, week);
+    const shadow = shadowProjections(prepare({ ep, snaps, games: allGames, pbp }), week, coef);
+    Object.defineProperty(out, 'shadow', { value: shadow, enumerable: false });
+    ok('Usage model (testing)', `${Object.keys(shadow).length} players from ${ep.length} expected-points rows`);
+  } catch (e) { fail('Usage model (testing)', e); }
+  if (out.sources['Usage model (testing)']) out.sources['Usage model (testing)'].hidden = true;
 
   // Compact per-player output keyed like the site's other data
   const F = ['g', 'tgt', 'tmTgt', 'ay', 'tmAy', 'rec', 'recYd', 'yac', 'recEpa', 'car', 'rushYd', 'rushEpa', 'att', 'cmp', 'passEpa', 'sacks', 'passAy', 'cpoeW', 'cpoeN',

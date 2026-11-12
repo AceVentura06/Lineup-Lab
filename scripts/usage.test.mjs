@@ -62,3 +62,20 @@ test('saved coefficients fit the model: every position, one weight per input', (
   assert.ok(v[0] > 0 && v[0] < 40);
   assert.ok(Math.abs(v[0] - v[1] - 2) < 0.11 && Math.abs(v[0] - v[2] - 4) < 0.11, 'four catches a game: half-PPR is 2 lower, standard 4 lower');
 });
+
+test('the shadow source stays out of everything the page reads', async () => {
+  const { gradeAll, gradeShadow, publicSrc } = await import('./accuracy.mjs');
+  const src = (v, m2) => ({ lab: [v, v, v], mod: [v, v, v], sleeper: [v, v, v], ...(m2 ? { mod2: [m2, m2, m2] } : {}) });
+  const players = {}, rows = [];
+  for (let i = 0; i < 8; i++) { players['back ' + i] = { n: 'Back ' + i, pos: 'RB', tm: 'ATL', src: src(10 + i, 12 + i) }; rows.push(`Back ${i}|RB|${12 + i}:0`); }
+  players['kim kicker'] = { n: 'Kim Kicker', pos: 'K', tm: 'ATL', src: src(8) }; rows.push('Kim Kicker|K|8:0');
+  const history = { 1: { players } }, STATS = { fields: ['name', 'pos', 'weeks'], rows: rows.join('\n') };
+  const pub = gradeAll(history, STATS, 2, 2026);
+  assert.ok(!JSON.stringify(pub).includes('mod2'), 'public scoreboard never mentions mod2');
+  assert.equal(pub.weeks[1].n, 9);                                   // and its pool is unchanged by it
+  assert.deepEqual(publicSrc(players['back 0'].src), src(10));
+  const sh = gradeShadow(history, STATS, 2);
+  assert.equal(sh.weeks[1].n, 8);                                    // skill positions only
+  assert.equal(sh.weeks[1].miss.mod2.RB, 0);
+  assert.equal(sh.weeks[1].miss.mod.RB, 2);
+});
