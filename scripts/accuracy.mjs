@@ -1,5 +1,6 @@
 // Saves each week's pregame projections and grades them against what players actually scored.
 import { nkey } from './adv.mjs';
+import { espnPoints } from './scoring.mjs';
 
 export const SOURCES = { lab: 'Ace Lineup Lab', mod: 'Model alone', espn: 'ESPN', sleeper: 'Sleeper', cbs: 'CBS Sports', fp: 'FantasyPros' };
 const SC = ['ppr', 'half', 'std'];
@@ -7,18 +8,22 @@ const SC = ['ppr', 'half', 'std'];
 const STARTERS = { QB: 12, RB: 24, WR: 30, TE: 12, K: 12, DST: 12 };
 
 // Keep a player's last projection from before his game kicked off; keep updating everyone else.
+// A player who drops out of the projections before his kickoff (ruled out during the week) is dropped here too,
+// so the players graded as zero for not playing are the late scratches the sites were still projecting.
 export function mergeSnapshot(prev, cur, now = Date.now()) {
-  const players = { ...(prev?.players || {}) };
+  const before = prev?.players || {}, players = {};
+  for (const [k, old] of Object.entries(before)) if (old.k && now >= old.k) players[k] = old;   // frozen at kickoff
   for (const [k, p] of Object.entries(cur.players)) {
-    const old = players[k];
-    if (old && old.k && now >= old.k) continue;          // frozen at kickoff
+    if (players[k]) continue;
+    const old = before[k];
     if (!old && p.k && now >= p.k) continue;             // first seen after kickoff: don't trust it
-    players[k] = p;
+    // kickoff times come from the betting-lines file; if it failed this run, keep the time already saved
+    players[k] = !p.k && old?.k ? { ...p, k: old.k } : p;
   }
   return { week: cur.week, backfilled: prev?.backfilled || false, players };
 }
 
-// Actual fantasy points by week from the season stats file: key -> { week: [ppr, half, std] }
+// Actual fantasy points by week from the season stats file, in ESPN default scoring: key -> { week: [ppr, half, std] }
 export function actualsFrom(STATS) {
   const F = STATS.fields, iN = F.indexOf('name'), iP = F.indexOf('pos'), iW = F.indexOf('weeks');
   const out = {};
@@ -29,15 +34,16 @@ export function actualsFrom(STATS) {
     const m = out[key] = {};
     c[iW].split(';').forEach((w, i) => {
       if (!w || w === '-') return;
-      const [ppr, rec] = w.split(':').map(Number);
-      if (!Number.isFinite(ppr)) return;
+      const f = w.split(':'), rec = +f[1];
+      if (!Number.isFinite(+f[0])) return;
+      const ppr = r2(espnPoints(pos, f));
       m[i + 1] = [ppr, ppr - 0.5 * (rec || 0), ppr - (rec || 0)];
     });
   }
   return out;
 }
 
-const r2 = v => Math.round(v * 100) / 100;
+function r2(v) { return Math.round(v * 100) / 100; }
 function ranks(vals) { // average ranks, 1 = highest
   const idx = vals.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]);
   const r = Array(vals.length);
@@ -52,21 +58,31 @@ function spearman(a, b) {
   return da && db ? num / Math.sqrt(da * db) : null;
 }
 
+// CBS is left out of kicker and defense grading and averages: its defense numbers are on a different scale.
+export const usesSrc = (s, pos) => !(s === 'cbs' && (pos === 'K' || pos === 'DST' || pos === 'DEF'));
+const avgOf = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
+
 // Grade one week. snap: saved projections; act: actuals map; w: week number.
-export function gradeWeek(snap, act, w) {
-  const players = Object.entries(snap.players).map(([id, p]) => ({ ...p, id, a: act[id]?.[w] })).filter(p => p.a);
-  if (!players.length) return null;
+// sources: which saved sources to grade (the public scoreboard by default; the shadow grade adds mod2).
+export function gradeWeek(snap, act, w, sources = SOURCES) {
+  const all = Object.entries(snap.players).map(([id, p]) => ({ ...p, id, a: act[id]?.[w] }));
+  if (!all.some(p => p.a)) return null;                  // no scores for that week at all
+  // late scratches: projected 5+ on average but did not play, graded as zero
+  for (const p of all) if (!p.a && avgOf(Object.keys(sources).map(s => p.src[s]?.[0]).filter(v => v != null)) >= 5) p.a = [0, 0, 0];
+  const players = all.filter(p => p.a);
   // sources present for most players that week (a source that only covers a handful would skew the pool)
   const cover = {};
   for (const p of players) for (const s in p.src) if (p.src[s]?.[0] != null) cover[s] = (cover[s] || 0) + 1;
-  const srcs = Object.keys(SOURCES).filter(s => (cover[s] || 0) >= players.length * 0.5);
+  const srcs = Object.keys(sources).filter(s => (cover[s] || 0) >= players.length * 0.5);
   // shared pool: every graded source projected him, and he was fantasy-relevant (avg PPR projection 5+, any K/DST)
-  const pool = players.filter(p => srcs.every(s => p.src[s]?.[0] != null) &&
-    (p.pos === 'K' || p.pos === 'DST' || srcs.reduce((t, s) => t + p.src[s][0], 0) / srcs.length >= 5));
-  const out = { srcs, n: pool.length, backfilled: !!snap.backfilled, m: {}, miss: {}, best: {} };
+  const mine = p => srcs.filter(s => usesSrc(s, p.pos));
+  const full = players.filter(p => mine(p).every(s => p.src[s]?.[0] != null) &&
+    (p.pos === 'K' || p.pos === 'DST' || avgOf(mine(p).map(s => p.src[s][0])) >= 5));
+  const out = { srcs, n: full.length, backfilled: !!snap.backfilled, m: {}, miss: {}, best: {} };
   SC.forEach((sc, i) => {
     out.m[sc] = {}; out.miss[sc] = {}; out.best[sc] = {};
     for (const s of srcs) {
+      const pool = full.filter(p => usesSrc(s, p.pos));
       let ae = 0; const pos = {}; let hit = 0, tot = 0, rs = 0, rn = 0;
       for (const p of pool) { const e = Math.abs(p.src[s][i] - p.a[i]); ae += e; const q = pos[p.pos] = pos[p.pos] || [0, 0]; q[0] += e; q[1]++; }
       for (const P of Object.keys(STARTERS)) {
@@ -87,6 +103,25 @@ export function gradeWeek(snap, act, w) {
     }
   });
   return out;
+}
+
+// The usage model is saved in the history as the hidden source "mod2" while it is tested. It is graded
+// apart from the public scoreboard (which never lists it and whose player pool it does not touch), on
+// QB/RB/WR/TE only: average miss per source, overall and by position, on players that also have a mod2 number.
+export const SHADOW = { ...SOURCES, mod2: 'Usage model (testing)' };
+const SKILL = ['QB', 'RB', 'WR', 'TE'];
+export const publicSrc = src => { const { mod2, ...rest } = src; return rest; };
+export function gradeShadow(history, STATS, currentWeek) {
+  const act = actualsFrom(STATS), weeks = {};
+  for (const [w, snap] of Object.entries(history)) {
+    if (+w >= currentWeek) continue;
+    const players = Object.fromEntries(Object.entries(snap.players).filter(([, p]) => SKILL.includes(p.pos)));
+    const g = gradeWeek({ ...snap, players }, act, +w, SHADOW);
+    if (!g || !g.srcs.includes('mod2')) continue;
+    weeks[w] = { n: g.n, miss: Object.fromEntries(g.srcs.map(s => { const m = g.m.ppr[s];
+      return [s, { all: r2(m.ae / m.n), ...Object.fromEntries(Object.entries(m.pos).map(([p, [e, c]]) => [p, r2(e / c)])) }]; })) };
+  }
+  return { sources: SHADOW, weeks };
 }
 
 // Grade every finished week. history: { week: snapshot }
@@ -113,7 +148,7 @@ export function tuneBlend(history, STATS, currentWeek, def = 0.5, pull = 30) {
     for (const [id, p] of Object.entries(snap.players || {})) {
       const a = act[id]?.[+w]?.[0], m = p.src?.mod?.[0];
       if (a == null || m == null) continue;
-      const sv = BLEND_SITES.map(s => p.src[s]?.[0]).filter(v => v != null);
+      const sv = BLEND_SITES.filter(s => usesSrc(s, p.pos)).map(s => p.src[s]?.[0]).filter(v => v != null);
       if (!sv.length) continue;
       const s = sv.reduce((x, y) => x + y, 0) / sv.length;
       if (p.pos !== 'K' && p.pos !== 'DST' && (m + s) / 2 < 5) continue;

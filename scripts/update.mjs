@@ -7,7 +7,9 @@ import { build } from './build.mjs';
 import { buildAdv } from './adv.mjs';
 import { projectAll } from './model.mjs';
 import { buildNews } from './news.mjs';
-import { mergeSnapshot, gradeAll, actualsFrom, tuneBlend } from './accuracy.mjs';
+import { mergeSnapshot, gradeAll, gradeShadow, publicSrc, actualsFrom, tuneBlend } from './accuracy.mjs';
+import { BASELINE } from './scoring.mjs';
+import { ALIAS, collisions } from './keys.mjs';
 import { readdir } from 'node:fs/promises';
 
 const DIR = new URL('../data/', import.meta.url);
@@ -33,11 +35,24 @@ const readJson = async name => { try { return JSON.parse(await readFile(new URL(
 
 await mkdir(DIR, { recursive: true });
 const prevEspn = await readJson('espn-cache.json');
-const d = await build(fetchJson, { prevEspn, log: m => console.log(m) });
+const d = await build(fetchJson, { prevEspn, prevPlayers: await readJson('players-cache.json'), log: m => console.log(m) });
+
+// Problems that must not pass quietly but should not hold back fresh data: the data is still written,
+// then the run exits with code 2 and the workflow turns red after committing (see update.yml).
+const problems = [];
+const problem = m => { problems.push(m); console.error('PROBLEM: ' + m); };
+process.on('exit', () => { if (problems.length && !process.exitCode) process.exitCode = 2; });
+
+// Players are keyed by name. Two players on one key would silently share stats and projections.
+for (const [k, who] of collisions(d.stats.rows)) problem(`player key collision on "${k}": ${who.join(' and ')}`);
 
 let adv = null;
-try { adv = await buildAdv({ fetchText, fetchGz, season: d.season, week: d.week, log: m => console.log(m) }); }
+const coef = JSON.parse(await readFile(new URL('../assets/model/coefficients.json', import.meta.url), 'utf8'));
+try { adv = await buildAdv({ fetchText, fetchGz, season: d.season, week: d.week, coef, log: m => console.log(m) }); }
 catch (e) { console.log('Advanced data failed entirely:', e.message); }
+// the usage model in testing: its projections ride along outside the published data (see adv.mjs step 10)
+const shadow = adv?.shadow || null;
+if (!shadow) problem('usage model (testing) produced no projections this run: ' + (adv?.sources['Usage model (testing)']?.detail || 'advanced data failed'));
 
 // Recent news for each player
 let news = null, latest = [];
@@ -51,9 +66,14 @@ try {
 } catch (e) { console.log('Player news failed:', e.message); if (adv) adv.sources['Player news'] = { ok: false, detail: e.message }; }
 
 // Skip writing (and committing) when nothing changed.
-const hash = createHash('sha256').update(JSON.stringify([d.sites, d.stats, d.ctx, adv, news])).digest('hex').slice(0, 16);
+const hash = createHash('sha256').update(JSON.stringify([d.sites, d.stats, d.ctx, adv, news, d.sources])).digest('hex').slice(0, 16);
 const meta = await readJson('meta.json');
-if (meta && meta.hash === hash && !process.argv.includes('--force')) { console.log('No changes in the data.'); process.exit(0); }
+if (meta && meta.hash === hash && !process.argv.includes('--force')) { console.log('No changes in the data.'); process.exit(problems.length ? 2 : 0); }
+
+// Every source's status, Sleeper and ESPN included; the page lists the ones that are down (SITE_DATA.down).
+const sources = { ...d.sources, ...(adv ? adv.sources : { 'Advanced data': { ok: false, detail: 'failed entirely' } }) };
+const down = Object.keys(sources).filter(k => !sources[k].ok && !sources[k].hidden);
+if (down.length) console.log('Sources down: ' + down.join(', '));
 
 const updated = new Date();
 const pulled = updated.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET';
@@ -70,26 +90,29 @@ try {
   }
   blend = tuneBlend(hist, d.stats, d.week);
   console.log('Blend:', Object.entries(blend.pos).map(([p, x]) => `${p} ${Math.round(x.w * 100)}% sites`).join(', ') || 'not enough graded weeks yet');
-} catch (e) { console.log('Blend tuning skipped:', e.message); }
+} catch (e) { problem('blend tuning failed: ' + e.message); }
 
-await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend }));
+await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS, down }));
 await writeFile(new URL('stats-data.js', DIR), js('STATS_DATA', d.stats));
 await writeFile(new URL('ctx-data.js', DIR), js('CTX_DATA', { ...d.ctx, pulled }));
 if (adv) await writeFile(new URL('adv-data.js', DIR), js('ADV_DATA', { ...adv, pulled }));
 if (news) await writeFile(new URL('news-data.js', DIR), js('NEWS_DATA', { pulled, news }));
 await writeFile(new URL('espn-cache.json', DIR), JSON.stringify(d.espnCache));
-await writeFile(new URL('meta.json', DIR), JSON.stringify({ hash, updated: updated.toISOString(), season: d.season, week: d.week, through: d.through, sources: adv?.sources }, null, 2));
+await writeFile(new URL('players-cache.json', DIR), JSON.stringify(d.playersCache));
+await writeFile(new URL('meta.json', DIR), JSON.stringify({ hash, updated: updated.toISOString(), season: d.season, week: d.week, through: d.through, sources }, null, 2));
 console.log(`Wrote data for ${d.season} week ${d.week} (${d.through}).`);
 
 // Accuracy scoreboard: save this week's pregame projections, then grade every finished week.
 try {
   const HIST = new URL('history/', DIR);
   await mkdir(HIST, { recursive: true });
-  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString(), blend };
+  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS, down };
   const ADV_DATA = adv ? { ...adv, pulled } : undefined;
   const cur = projectAll({ SITE_DATA, STATS_DATA: d.stats, CTX_DATA: { ...d.ctx, pulled }, ADV_DATA });
   const name = `${d.season}-w${String(cur.week).padStart(2, '0')}.json`;
   const prev = await readJson('history/' + name);
+  // hidden shadow source: saved in the history only. If this run has no number, keep the last one saved.
+  for (const [k, p] of Object.entries(cur.players)) { const v = shadow?.[k] || prev?.players?.[k]?.src.mod2; if (v && ['QB', 'RB', 'WR', 'TE'].includes(p.pos)) p.src.mod2 = v; }
   const snap = mergeSnapshot(prev, cur);
   await writeFile(new URL(name, HIST), JSON.stringify(snap));
   // lock the site's projection at kickoff for the Site Projections table
@@ -108,13 +131,15 @@ try {
   for (const [w, h] of Object.entries(history)) {
     if (+w >= d.week) continue;
     const rows = {};
-    for (const [k, p] of Object.entries(h.players)) rows[k] = [p.n, p.pos, p.tm, p.src, act[k]?.[+w] || null];
+    for (const [k, p] of Object.entries(h.players)) rows[k] = [p.n, p.pos, p.tm, publicSrc(p.src), act[k]?.[+w] || null];
     await writeFile(new URL(`${d.season}-w${String(w).padStart(2, '0')}.js`, PAST),
       `// Generated by scripts/update.mjs — do not edit by hand.\n(window.PASTWK=window.PASTWK||{})[${+w}]=${JSON.stringify({ backfilled: !!h.backfilled, rows })};\n`);
     pastWeeks.push(+w);
   }
   await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...SITE_DATA, season: d.season, frozen, pastWeeks: pastWeeks.sort((a, b) => a - b) }));
   await writeFile(new URL('accuracy-data.js', DIR), js('ACC_DATA', { ...acc, pulled }));
+  // the usage model's private report card; no page loads this file
+  await writeFile(new URL('shadow.json', DIR), JSON.stringify(gradeShadow(history, d.stats, d.week), null, 1));
   // ticker: latest headlines and last week's most accurate source
   const lw = Math.max(0, ...Object.keys(acc.weeks).map(Number));
   let best = null;
@@ -122,4 +147,4 @@ try {
     if (s) best = { week: lw, name: acc.sources[s], miss: +(m[s].ae / m[s].n).toFixed(2) }; }
   await writeFile(new URL('ticker-data.js', DIR), js('TICKER_DATA', { latest, best }));
   console.log(`Saved ${Object.keys(snap.players).length} pregame projections for week ${cur.week}; graded weeks: ${Object.keys(acc.weeks).join(', ') || 'none yet'}.`);
-} catch (e) { console.log('Accuracy scoreboard failed:', e.message); }
+} catch (e) { problem('accuracy scoreboard failed, this week\'s projections were not saved: ' + (e.stack || e.message)); }

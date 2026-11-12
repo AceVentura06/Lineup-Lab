@@ -1344,11 +1344,13 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 .sf-links a:focus-visible{outline:2px solid var(--turf);outline-offset:-2px}
 @media (hover:hover) and (pointer:fine){.sf-links a:hover{color:var(--turf);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}}
 .sf-note{max-width:72ch}
+.stale{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);font-size:var(--t-sm);line-height:1.4;color:var(--ink)}
+.stale[hidden]{display:none}
 .legal{display:flex;flex-direction:column;gap:12px;max-width:760px;font-size:var(--t-base);line-height:1.55}
 .legal .lg-lead{font-size:var(--t-base);color:var(--ink)}
 .legal h2{font-family:var(--f-body);font-style:normal;font-size:var(--t-lg);font-weight:700;line-height:1.25;letter-spacing:0;text-transform:none;padding:0;border:0;margin:10px 0 -4px}
 .legal ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
-.legal a{color:var(--turf);text-decoration:underline;text-underline-offset:3px}
+.legal a,.prose .note a{color:var(--turf);text-decoration:underline;text-underline-offset:3px}
 .legal .btns{margin-top:2px}
 @media (max-width:760px){.legal h2{font-size:var(--t-base)}}
 /* one-off layout utilities (were inline style=""). !important keeps the inline style's old precedence over component rules */
@@ -1539,6 +1541,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
   </div>
 
   <div id="main" tabindex="-1" aria-label="Main content"></div>
+  <p class="stale" id="staleNote" role="status" hidden></p>
   <!-- HOME -->
   <section class="panel" id="p-home" role="tabpanel">
     <div class="hm-install" id="hmInstall" hidden></div>
@@ -1825,6 +1828,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
     <div>
       <div class="card prose">
         <h1 class="pg-title">How a Player Is Graded</h1>
+        <p class="note">These are the formulas. For the plain-language version, and what the numbers cannot do, see <a href="#method" data-go="method">How We Evaluate Players</a>.</p>
         <p><b>1. Base points.</b> Per-game stats are converted with your scoring:</p>
         <div class="formula" id="scoreFormula"></div>
         <p><b>2. This week.</b> The model adjusts base points, then blends in the sites:</p>
@@ -1835,13 +1839,14 @@ Weather    = wind 15+ mph: passing −5%, kickers −10% (20+ mph: −10% / −1
 Health     = injury status (live from ESPN every 3 minutes), adjusted by Wed–Fri practice (DNP / limited / full)
 Projection = (1 − w) × Model + w × average(ESPN, Sleeper, CBS, FantasyPros)
              w is tuned by position from past accuracy (see Accuracy), unless set in Settings
-On bye, Out, or IR → 0</div>
+On bye, Out, or IR → 0
+No outside site projects him this week → Not projected (no number, no Start / Sit call)</div>
         <p class="note">Base is season points per game. Matchup rank is how many fantasy points the opponent has allowed to that position per game (this season; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls assume a 12-team league.</p>
         <p><b>Start/sit tools.</b> Each player is also run through up to seven tools: this model, the FantasyPros expert consensus, ESPN's analysts, CBS's three experts, and the ESPN, Sleeper and CBS projections. Each tool's rank at the position becomes a vote (12-team league: QB/TE top 12 start, RB top 24, WR top 30; the next tier is flex). The Start / Sit call uses the average rank across tools.</p>
         <p><b>3. Floor and ceiling.</b> Half from the position's typical swing (QB ±22%, RB ±30%, WR ±35%, TE ±38%, K ±35%, DST ±45%) and half from the player's own week-to-week swings once he has 3+ games. Two players with close projections? The narrower range is the safer start.</p>
         <p><b>4. Rest of season.</b></p>
         <div class="formula">Pts/game  = Base × Schedule × Trend × Health
-Games left = 18 − week (minus bye if still ahead)
+Games left = this week through Week 17 (minus the bye, if it falls in that span)
 Total      = Pts/game × Games left</div>
         <p class="note">Kickers and defenses use fantasy points per game under your kicker and D/ST rules.</p>
       </div>
@@ -1872,6 +1877,41 @@ Total      = Pts/game × Games left</div>
           <li><b>Vegas implied totals</b>, <b>weather</b>, <b>practice reports</b> and <b>expert consensus</b> – used in each week's projections.</li>
         </ul></div>
       </div>
+    </div>
+  </section>
+
+  <!-- HOW WE EVALUATE PLAYERS (plain-language method; reached from the footer and How It Works) -->
+  <section class="panel" id="p-method" role="tabpanel" aria-labelledby="methodH" hidden>
+    <div><h1 class="pg-title" id="methodH">How We Evaluate Players</h1></div>
+    <div class="card legal">
+      <p class="lg-lead">Ace Lineup Lab does not ask you to trust one opinion. Every weekly number combines several independent projections with our own read on the matchup.</p>
+      <h2>What goes in</h2>
+      <ul>
+        <li><b>Outside projections.</b> Weekly point projections from ESPN, Sleeper, CBS Sports and FantasyPros, converted to your league’s scoring.</li>
+        <li><b>Season production.</b> Each player’s fantasy points per game this year.</li>
+        <li><b>Matchup.</b> How many points the opposing defense has allowed to the position.</li>
+        <li><b>Role trend.</b> Whether a player’s share of snaps has risen or fallen over his last two games (for quarterbacks, his recent scoring).</li>
+        <li><b>Betting lines.</b> The points Las Vegas expects his team to score.</li>
+        <li><b>Weather.</b> Wind and rain at outdoor stadiums.</li>
+        <li><b>Injury reports.</b> Game status and practice participation.</li>
+      </ul>
+      <h2>How it is weighted</h2>
+      <p>Our own model starts from points per game and adjusts for matchup, trend, betting line, weather and injury status. That number is then blended with the average of the outside projections.</p>
+      <p>The blend is not a guess. After every week we grade each source against what players scored, then set the weights by position to whatever would have been most accurate so far. Right now that puts most of the weight on the outside projections, because across this season they have been more accurate than our model alone. We publish those grades on the <a href="#acc" data-go="acc">Accuracy page</a>, including the weeks we lose.</p>
+      <p>Start, Flex and Sit calls come from a player’s average rank at his position across our model, the outside projections and the expert rankings.</p>
+      <h2>What it cannot do</h2>
+      <ul>
+        <li><b>It cannot predict a single game.</b> The best projections in fantasy football miss by five or six points per player in a typical week. Treat the range next to each number as seriously as the number.</li>
+        <li><b>It reacts slowly to role changes.</b> When a starter is hurt, his backup’s projection depends on the outside sites catching it first.</li>
+        <li><b>Touchdowns are noisy.</b> A player who has scored often on few chances will look better than his workload supports.</li>
+        <li><b>Small samples mislead.</b> For players with fewer than three games, we lean more on the outside projections than on our own model.</li>
+        <li><b>Late news can beat us.</b> Data refreshes every 30 minutes, and every 15 minutes on Sundays from noon to midnight Eastern. A player ruled out minutes before kickoff may still show a projection. If no outside site projects a player, we show “Not projected” instead of a number.</li>
+      </ul>
+      <h2>What is changing</h2>
+      <p>We are testing a new model built on workload: targets, carries, snap share, and red-zone and goal-line chances. Research on fantasy scoring keeps finding that workload predicts next week better than last week’s points. The new model is being graded behind the scenes and will replace the current one only if it proves more accurate.</p>
+      <h2>Our promise</h2>
+      <p>No accuracy claim appears on this site unless the Accuracy page can back it up.</p>
+      <p>For the formulas themselves, see <a href="#model" data-go="model">How It Works</a>.</p>
     </div>
   </section>
 
@@ -1936,7 +1976,7 @@ Total      = Pts/game × Games left</div>
   <footer class="site-foot" aria-label="Site information">
     <div class="sf-row">
       <span class="sf-mark" translate="no"><b>Ace</b> Lineup Lab</span>
-      <nav class="sf-links" aria-label="Legal"><a href="#privacy" data-go="privacy">Privacy</a><a href="#terms" data-go="terms">Terms</a></nav>
+      <nav class="sf-links" aria-label="About and legal"><a href="#method" data-go="method">Method</a><a href="#privacy" data-go="privacy">Privacy</a><a href="#terms" data-go="terms">Terms</a></nav>
     </div>
     <p class="sf-note">Projections are estimates for fun, not betting advice. Not affiliated with or endorsed by the NFL, ESPN, Sleeper, CBS Sports or FantasyPros. Team names and logos belong to their owners.</p>
     <p>© <span id="sfYear">2026</span> Ace Lineup Lab</p>
@@ -2038,8 +2078,9 @@ function scPreset(){const c=SC();return Object.keys(PRESETS).find(k=>OFF_KEYS.ev
 const scAllDefaultBut=()=>Object.keys(DEF_SC).filter(f=>!OFF_KEYS.includes(f)).every(f=>SC()[f]===DEF_SC[f]);
 const scName=(short)=>(scAllDefaultBut()&&{ppr:'PPR',half:short?'Half':'Half-PPR',std:short?'Std':'Standard'}[scPreset()])||'Custom';
 // points to add to a Sleeper-standard PPR total for a stat line c {rec,py,ptd,pint,ry,rtd,recy,rectd,fl}
-function scDelta(c,pos,skipRec){if(!c||pos==='K'||pos==='DST'||pos==='DEF')return 0;const s=SC(),v=k=>+c[k]||0;
-  return (skipRec?0:(s.rec-1)*v('rec'))+(pos==='TE'?s.te*v('rec'):0)+v('py')*(1/s.py-.04)+(s.ptd-4)*v('ptd')+(s.int+1)*v('pint')
+// b: the pass-TD and interception rules the number already uses, when it isn't Sleeper's (4 and -1)
+function scDelta(c,pos,skipRec,b){if(!c||pos==='K'||pos==='DST'||pos==='DEF')return 0;const s=SC(),v=k=>+c[k]||0;b=b||{};
+  return (skipRec?0:(s.rec-1)*v('rec'))+(pos==='TE'?s.te*v('rec'):0)+v('py')*(1/s.py-.04)+(s.ptd-(b.ptd??4))*v('ptd')+(s.int-(b.int??-1))*v('pint')
     +(v('ry')+v('recy'))*(1/s.yd-.1)+(s.td-6)*(v('rtd')+v('rectd'))+(s.fl+2)*v('fl');}
 
 // ---- real players for start/sit ----
@@ -2120,8 +2161,11 @@ function weekProj(p){
     const bAdj=sa==null&&gp<3?(gp*b+(3-gp)*(POSBASE[p.pos]||6))/3:b;
     const model=bAdj*matchM(p)*trendM(p)*vegasM(p)*weatherM(p)*h;
     const wB=gp<3?bl+(1-bl)*(3-gp)/3:bl;
-    const proj=h===0?0:sa!=null?(1-wB)*model+wB*sa*(h<1?Math.max(.4,h):1):model;
-    const v=volOf(p);r={b,proj,model,sites:sa,lo:proj*(1-v),hi:proj*(1+v)};}
+    // No outside site projects him: no number, and he stays out of Start/Sit. Only for the week the sites
+    // have posted; other weeks still show our own model, as do players you add by hand.
+    const np=!!p.real&&sa==null&&h>0&&S.week===SD.week;
+    const proj=h===0||np?0:sa!=null?(1-wB)*model+wB*sa*(h<1?Math.max(.4,h):1):model;
+    const v=volOf(p);r={b,proj,model,sites:sa,lo:proj*(1-v),hi:proj*(1+v),np};}
   if(_wp.size>4000)_wp.clear();_wp.set(ck,r);return r;
 }
 // Rest-of-season scoring rate: season average, blended with recent form and (RB/WR/TE) expected points from usage,
@@ -2135,8 +2179,8 @@ function rosBase(p){const b=base(p);if(!p.real||p.pos==='K'||p.pos==='DST')retur
   if(gp<3)v=(gp*v+(3-gp)*(POSBASE[p.pos]||6))/3;
   return v;}
 function rosProj(p){
-  let games=Math.max(0,18-S.week);
-  if(n(p.bye)>S.week&&n(p.bye)<=17)games-=1;
+  let games=Math.max(0,18-S.week);          // this week through Week 17, the same window as the schedule strength
+  if(n(p.bye)>=S.week&&n(p.bye)<=17)games-=1;
   const ppg=rosBase(p)*schedM(p)*trendM(p)*healthRos(p);
   return {ppg,games,total:ppg*games};
 }
@@ -2209,10 +2253,12 @@ function chips(el,cur,key){
 }
 
 // Start / Sit call for a row {p,proj}: the tools' consensus when 3+ weigh in, else 12-team cutoffs by projected rank
+const NP='<span class="pill p-mute" title="No outside site has a projection for him this week">Not projected</span>',DASH='<span class="muted">—</span>';
 function makeCall(all){
   const byPos={};all.filter(r=>r.p.real&&r.proj>0).forEach(r=>{(byPos[r.p.pos]=byPos[r.p.pos]||[]).push(r.proj)});
   Object.values(byPos).forEach(a=>a.sort((x,y)=>y-x));
   return r=>{
+    if(r.np)return NP;
     if(r.proj===0)return `<span class="pill p-bad">Sit · ${onBye(r.p)?'bye':'out'}</span>`;
     const cn=r.p.real?consensus(r.p):null;
     if(cn&&cn.total>=3){const rk=Math.round(cn.avg),cls={start:'p-good',flex:'p-gold',sit:'p-mute'}[cn.vote];return `<span class="pill ${cls}" title="Average rank across ${cn.total} tools">${cn.vote[0].toUpperCase()+cn.vote.slice(1)} · ${r.p.pos}${rk}</span>`;}
@@ -2259,8 +2305,8 @@ function renderWeek(){
     <td class="r num muted">${f1(r.b)}</td><td class="u-nowrap">${onBye(r.p)?'<span class="muted">—</span>':matchPill(r.p)}</td>
     <td class="r num">${onBye(r.p)?'<span class="muted">—</span>':vegasCell(r.p)}</td>
     <td>${r.proj>0&&r.p.real?votesBar(consensus(r.p)):'<span class="muted">—</span>'}</td>
-    <td class="r big">${f1(r.proj)}${r.sites!=null&&r.proj>0?`<span class="subn">model ${f1(r.model)} · sites ${f1(r.sites)}</span>`:''}</td>
-    <td><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></td>
+    <td class="r big">${r.np?DASH:f1(r.proj)}${r.sites!=null&&r.proj>0?`<span class="subn">model ${f1(r.model)} · sites ${f1(r.sites)}</span>`:''}</td>
+    <td><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted u-t-xs">${r.np?'—':f1(r.lo)+' – '+f1(r.hi)}</div></td>
     <td>${call(r)}</td></tr>`}).join('')+pgW.moreRow:`<tr><td colspan="9" class="muted">${none}</td></tr>`;
   renderH2H();
 }
@@ -2271,14 +2317,14 @@ function wkCard(r,call,maxHi){const p=r.p,bye=onBye(p),c=r.proj>0&&p.real?consen
   const nm=p.real&&PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:`<span class="pname">${esc(p.name)}</span>`;
   return `<li class="wkc"><div class="wkc-face">${starBtn(p.key||p.id)}
     <div class="wkc-nm"><span class="pos ${p.pos}">${p.pos}</span>${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}</div>
-    <div class="wkc-proj big">${f1(r.proj)}</div>
+    <div class="wkc-proj big">${r.np?DASH:f1(r.proj)}</div>
     <div class="wkc-sub">${p.team?`<span>${esc(p.team)}</span>`:''}${bye?'<span class="muted">Bye</span>':matchPill(p)}</div>
     <div class="wkc-call">${call(r)}</div></div>
     <details class="tools-d wkc-more"><summary><span>${c?votesBar(c):'<span class="muted">No tool votes</span>'}</span>Details</summary>
       <dl class="wkc-dl"><div><dt>Avg pts</dt><dd class="num">${f1(r.b)}</dd></div>
         <div><dt>Vegas</dt><dd class="num">${bye?'—':vegasCell(p)}</dd></div>
         <div><dt>Model · sites</dt><dd class="num">${r.sites!=null&&r.proj>0?`${f1(r.model)} · ${f1(r.sites)}`:'—'}</dd></div>
-        <div class="wkc-rg"><dt>Floor – ceiling</dt><dd><div class="range">${r.proj?`<div class="track"></div><div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:'<div class="track"></div>'}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></dd></div></dl>
+        <div class="wkc-rg"><dt>Floor – ceiling</dt><dd><div class="range">${r.proj?`<div class="track"></div><div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:'<div class="track"></div>'}</div><div class="num muted u-t-xs">${r.np?'—':f1(r.lo)+' – '+f1(r.hi)}</div></dd></div></dl>
     </details></li>`;}
 $('#wkSort').onchange=e=>{ui.sortW=e.target.value;ui.dirW=1;renderWeek();};
 $('#wkDir').onclick=()=>{ui.dirW=-(ui.dirW||1);renderWeek();};
@@ -2298,7 +2344,7 @@ function renderH2H(){
   const byLabel=new Map(ps.map(x=>[label(x.p).toLowerCase(),x.p.id]));
   const opts=groups.map(([pos,g])=>g.map(x=>`<option value="${esc(label(x.p))}">${isMine(x.p)?'★ On my team':''}</option>`).join('')).join('');
   const A=byId.get(ui.a),B=byId.get(ui.b),wa=weekProj(A),wb=weekProj(B);
-  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';const pg=p.real&&PL.has(p.key);return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${pg?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name)}</div><div class="side-row"><div class="proj">${f1(w.proj)}</div>${pg?`<button class="side-pg" data-k="${esc(p.key)}" aria-label="Open ${esc(p.name)}'s player page">Player page<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}</div>
+  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';const pg=p.real&&PL.has(p.key);return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${pg?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name)}</div><div class="side-row"><div class="proj">${w.np?'—':f1(w.proj)}</div>${pg?`<button class="side-pg" data-k="${esc(p.key)}" aria-label="Open ${esc(p.name)}'s player page">Player page<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}</div><div class="note">${w.np?'Not projected: no outside site has a number for him this week':`projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}`}</div>
     ${g&&g.implied!=null?`<div class="note">Vegas: team implied ${f1(g.implied)} pts (${g.spread>0?'+':''}${g.spread}, O/U ${g.total})${wt?' · '+esc(wt):''}</div>`:''}
     ${e?`<div class="note">Experts: ${p.pos}${e[1]} (best ${e[3]}, worst ${e[4]})${e[5]?' · grade '+esc(e[5]):''}</div>`:''}
     <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p,true)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
@@ -2315,8 +2361,9 @@ function renderH2H(){
       if(hit){ui[slot]=hit;renderH2H();}else{el.value=label(slot==='a'?A:B);toast('No player matches that name');}};};
   pick('selA','a');pick('selB','b');
   const diff=Math.abs(wa.proj-wb.proj),W=wa.proj>=wb.proj?A:B,L=W===A?B:A,ww=W===A?wa:wb,wl=W===A?wb:wa;
-  let msg;
-  if(wa.proj===0&&wb.proj===0)msg=`<b>Neither</b><br>Both are out or on bye this week.`;
+  let msg;const npAny=wa.np||wb.np;
+  if(npAny)msg=`<b>No call</b><br>${wa.np&&wb.np?'Neither player is':esc((wa.np?A:B).name)+' is not'} projected by any outside site this week, so there is no number to compare.`;
+  else if(wa.proj===0&&wb.proj===0)msg=`<b>Neither</b><br>Both are out or on bye this week.`;
   else if(diff<1){const safe=(ww.hi-ww.lo)<=(wl.hi-wl.lo)?W:L,risky=safe===W?L:W;
     msg=`<b>Coin flip</b><br>Less than a point apart. Need a safe week? Start <b class="u-t-base">${esc(safe.name)}</b> (steadier). Chasing a big score? Start <b class="u-t-base">${esc(risky.name)}</b>.`;}
   else msg=`<b>Start ${esc(W.name)}</b><br>Projected ${f1(diff)} points ahead${diff>4?', a clear edge':''}.${L.status!=='Healthy'&&!onBye(L)?` ${esc(L.name)} is ${L.status.toLowerCase()}, which adds risk.`:''}`;
@@ -2327,13 +2374,13 @@ function renderH2H(){
     // "11.3 (WR20)": the tool's projected points and the rank they give at the position (rank only for expert rankings)
     const cell=(t,P)=>!t?'—':t.pts!=null?`${f1(t.pts)} <span class="trk">(${P.pos}${Math.round(t.rank)})</span>`:`${P.pos}${Math.round(t.rank)}`;
     return `<tr><td>${esc(nm)}</td><td class="r num${w==='a'?' win':''}">${cell(x,A)}</td><td class="r num${w==='b'?' win':''}">${cell(y,B)}</td></tr>`;}).join('');
-  if(va+vb>0&&!(wa.proj===0&&wb.proj===0)){const TW=va>=vb?A:B,tv=Math.max(va,vb),tt=va+vb;
+  if(va+vb>0&&!npAny&&!(wa.proj===0&&wb.proj===0)){const TW=va>=vb?A:B,tv=Math.max(va,vb),tt=va+vb;
     if(diff<1&&tt>=3&&tv/tt>=2/3)msg=`<b>Start ${esc(TW.name)}</b><br>The projections are within a point, so the tools break the tie: <b class="u-t-base">${tv} of ${tt}</b> pick ${esc(TW.name)}.`;
     else msg+=TW===W||diff<1?` <b class="u-t-base">${tv} of ${tt}</b> tools pick ${esc(TW.name)}.`:` But <b class="u-t-base">${tv} of ${tt}</b> tools pick ${esc(TW.name)}, so it's closer than the projection says.`;}
   const tblT=names.length?`<div class="tbl-wrap u-mt-10"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div>`:'';
   // the call first, as a band; how each tool voted sits underneath, folded away
   const last=P=>esc(lastName(P.name)),tvA=va>=vb;
-  const tally=va+vb>0&&!(wa.proj===0&&wb.proj===0)?`<div class="vd-tally" role="img" aria-label="${Math.max(va,vb)} of ${va+vb} tools pick ${esc((tvA?A:B).name)}">
+  const tally=va+vb>0&&!npAny&&!(wa.proj===0&&wb.proj===0)?`<div class="vd-tally" role="img" aria-label="${Math.max(va,vb)} of ${va+vb} tools pick ${esc((tvA?A:B).name)}">
     <div class="vd-sq">${'<i class="on"></i>'.repeat(Math.max(va,vb))}${'<i></i>'.repeat(Math.min(va,vb))}</div>
     <div class="vd-who"><span><b>${last(tvA?A:B)}:</b> ${esc((tvA?aN:bN).join(', ')||'none')}</span><span><b>${last(tvA?B:A)}:</b> ${esc((tvA?bN:aN).join(', ')||'none')}</span></div></div>`:'';
   $('#verdict').innerHTML=`<div class="verdict"><div class="vd-msg">${msg}</div>${tally}</div>`;
@@ -2401,7 +2448,9 @@ const SRC_INFO=[
  ['ESPN analysts','ESPN analysts','Weekly positional rankings from ESPN\'s fantasy analysts'],
  ['CBS Sports','CBS Sports','Weekly rankings from Jamey Eisenberg, Dave Richard and Heath Cummings, plus CBS projections']];
 function renderSources(){
-  $('#srcNote').textContent=`Last updated ${SD.pulled||'—'}. Data refreshes automatically every few hours, and every hour on Sunday afternoons.`;
+  const down=SD.down||[];
+  $('#srcNote').innerHTML=`Last updated ${esc(SD.pulled||'—')}. Data refreshes automatically every 30 minutes, and every 15 minutes on Sundays from noon to midnight Eastern.`
+    +(down.length?`<br><span class="pill p-warn">Not updating</span> ${esc(down.join(', '))}. ${down.length>1?'These sources':'This source'} failed on the last update; the last good copy is shown where there is one.`:'');
   $('#srcList').innerHTML=SRC_INFO.map(([k,name,what])=>`<div class="srcrow u-cols-a1"><b>${esc(name)}</b><span class="note">${esc(what)}</span></div>`).join('');
 }
 function renderModel(){
@@ -2476,6 +2525,9 @@ function renderAcc(){
   const maxM=Math.max(...rows.map(r=>r.mae));
   const label=s=>`<span class="sw" style="background:${SRC_COLOR[s]}"></span> <b>${esc(ACC.sources[s])}</b>`;
   const back=sel.some(w=>ACC.weeks[w].backfilled);
+  // the season table mixes sources graded on different weeks: say so rather than imply a like-for-like ranking
+  const wkOf=s=>sel.filter(w=>ACC.weeks[w].srcs.includes(s)),span=a=>a.length>1?`Weeks ${a[0]}–${a[a.length-1]}`:`Week ${a[0]}`,few=rows.filter(r=>r.weeks<sel.length);
+  const mixed=few.length?`<p class="note u-mt-8"><span class="pill p-warn">Not like for like</span> ${esc(few.map(r=>ACC.sources[r.s]).join(', '))} ${few.length>1?'were':'was'} graded on ${esc(span(wkOf(few[0].s)))} only; the rest on ${esc(span(sel))}. Different weeks mean different games, so compare those rows with care, or pick a single week above.</p>`:'';
   const lead=`<div class="card"><div class="u-flex u-wrap u-between u-gap-8 u-ai-base"><h3>${ui.accW==='season'?'Season leaderboard':'Week '+ui.accW+' leaderboard'}</h3>
      <span class="note">${sel.length===1?ACC.weeks[sel[0]].n+' players graded':sel.length+' weeks graded'}${back?' · includes rebuilt weeks':''}</span></div>
     ${best?`<p class="u-m-8-0-12"><b>${esc(ACC.sources[best.s])}</b> has been the most accurate${ui.accW==='season'?' so far':''}, missing by ${best.mae.toFixed(2)} points per player on average.</p>`:''}
@@ -2483,7 +2535,7 @@ function renderAcc(){
     ${rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td>${label(r.s)}</td><td class="r big">${r.mae.toFixed(2)}</td>
       <td class="u-w-28p"><div class="bar lb" aria-hidden="true" style="--i:${i}"><i style="width:${Math.max(4,100*r.mae/maxM)}%;background:${SRC_COLOR[r.s]}"></i></div></td>
       <td class="r num">${r.hitP!=null?Math.round(100*r.hitP)+'%':'—'}</td><td class="r num">${r.rho!=null?Math.round(100*r.rho):'—'}</td>${ui.accW==='season'?`<td class="r num">${r.weeks}</td>`:''}</tr>`).join('')}
-    </tbody></table></div><p class="note u-mt-8">Avg miss is points per player (lower is better). Right starters: of the players each source ranked as starters in a 12-team league, the share that finished as starters.</p></div>`;
+    </tbody></table></div>${mixed}<p class="note u-mt-8">Avg miss is points per player (lower is better). Right starters: of the players each source ranked as starters in a 12-team league, the share that finished as starters.</p></div>`;
   const chart=ui.accW==='season'&&ws.length>1?`<div class="card has-island"><h3>Average miss by week</h3><p class="note u-m-4-0-8">Lower is better.</p>${accChart(ws)}</div>`:'';
   const P=['QB','RB','WR','TE','K','DST'];
   const posBest={};P.forEach(p=>{let b=null;rows.forEach(r=>{const q=r.pos[p];if(q&&q[1]){const v=q[0]/q[1];if(b==null||v<b)b=v;}});posBest[p]=b;});
@@ -3102,7 +3154,7 @@ function renderChanges(byKey,pname){
   if(S.week!==SD.week){el.hidden=true;return;}
   const ctx=SD.week+'|'+scKey()+'|'+JSON.stringify(S.w),snap={};
   for(const k of S.mine){const r=byKey.get(k);if(!r)continue;const pr=practiceOf(r.p);
-    snap[k]={s:effStatus(r.p)||'Healthy',pc:(pr&&pr[0])||'',pj:Math.round(r.proj*10)/10};}
+    snap[k]={s:effStatus(r.p)||'Healthy',pc:(pr&&pr[0])||'',pj:r.np?null:Math.round(r.proj*10)/10};}
   SEEN.cur={t:Date.now(),ctx,p:snap};saveSeen();
   const P=SEEN.prev;if(!P||!P.p){el.hidden=true;return;}
   const items=[];
@@ -3110,7 +3162,7 @@ function renderChanges(byKey,pname){
     if(c.s!==was.s){const worse=(ST_SEV[c.s]??0)>(ST_SEV[was.s]??0);
       notes.push(c.s==='Healthy'?`Injury tag cleared (was ${ST_LBL[was.s]||was.s})`:`Now ${ST_LBL[c.s]||c.s}${was.s!=='Healthy'?` (was ${ST_LBL[was.s]||was.s})`:''}`);score+=worse?100:50;}
     else if(c.pc&&c.pc!==was.pc){notes.push(`${PC_LBL[c.pc]||c.pc}${was.pc?` (was ${(PC_LBL[was.pc]||was.pc).toLowerCase()})`:''}`);score+=c.pc==='DNP'?60:c.pc==='LP'?40:20;}
-    if(P.ctx===ctx){const d=c.pj-was.pj;
+    if(P.ctx===ctx&&c.pj!=null&&was.pj!=null){const d=c.pj-was.pj;
       if(Math.abs(d)>=Math.max(1.5,.15*was.pj)){notes.push(`Projection ${f1(was.pj)} → <b>${f1(c.pj)}</b> (${d>0?'+':'−'}${f1(Math.abs(d))})`);score+=Math.abs(d)*5;}}
     const nw=newsSince(p,P.t);
     if(notes.length||nw.length)items.push({p,notes,nw,score:score+(nw.length?5:0)});}
@@ -3182,7 +3234,7 @@ function renderHome(){
       if(sc.st==='bye')return `<span class="sc-s">Bye</span>`;
       if(sc.st==='wait')return `<span class="lvp sc-zero">—</span><span class="sc-s">Final · stats soon</span>`;
       return call(r);};
-    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span>${xcols(r)}<span class="hm-pr">${f1(r.proj)}</span><span class="sc-c">${scoreCell(r)}</span>`;
+    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span>${xcols(r)}<span class="hm-pr">${r.np?'—':f1(r.proj)}</span><span class="sc-c">${scoreCell(r)}</span>`;
     // the Start/Sit board's columns, shown when the box is wide enough (see .hm-tt .xc)
     const NA='<span class="muted">—</span>',maxHi=Math.max(1,...starters.map(x=>byKey.get(x.x.key).hi||0));
     const xcols=r=>{const bye=onBye(r.p);return `<span class="xc num muted u-ta-r">${f1(r.b)}</span><span class="xc">${bye?NA:matchPill(r.p)}</span><span class="xc num u-ta-r">${bye?NA:vegasCell(r.p)}</span>
@@ -3199,7 +3251,7 @@ function renderHome(){
         <span class="sc-c">${scoring?`<span class="lvp">${f1(T.sofar)}</span><span class="sc-s">${T.all?diff(T.sofar,T.proj)+' vs projection':`on pace for <b>${f1(T.pace)}</b> · ${T.n-T.done} still to play`}</span>`:`<span class="sc-s">Projected</span>`}</span></div></div>
       ${bench.length?`<div class="hm-bench"><b>Bench:</b> ${bench.slice(0,6).map(x=>{const r=byKey.get(x.key),sc=r?weekScore(r.p,wk):{st:'pre'},has=sc.st==='live'||sc.st==='final';
         const beat=has&&starters.some(st=>{if(!SLOT_OK[st.slot].includes(x.pos))return false;const s2=weekScore(byKey.get(st.x.key).p,wk);return (s2.st==='final'||s2.st==='out')&&sc.st==='final'&&sc.pts>s2.pts;});
-        return `${esc(x.name)} <span class="bn">${f1(x.proj)}${has?` → <b${beat?' class="beat" title="Outscored one of your starters at this spot"':''}>${f1(sc.pts)}</b>`:''}</span>`;}).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
+        return `${esc(x.name)} <span class="bn">${x.np?'not projected':f1(x.proj)}${has?` → <b${beat?' class="beat" title="Outscored one of your starters at this spot"':''}>${f1(sc.pts)}</b>`:''}</span>`;}).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
       ${!LG&&close&&close.gap<=4?`<div class="hm-close"><b>Closest call:</b> ${esc(close.a.name)} ${f1(close.a.proj)} vs ${esc(close.b.name)} ${f1(close.b.proj)} for your ${SLOT_LBL[close.slot]==='D/ST'?'D/ST':SLOT_LBL[close.slot].toLowerCase()} spot. <button class="hm-link" data-cmp="${esc(close.a.key)}|${esc(close.b.key)}">Compare</button></div>`:''}`;}
   // this week's games, once any has started or one kicks off within 12 hours
   {const el=$('#hmGames'),now=Date.now(),gs=[...new Set(LIVE.games.values())].filter(g=>g.state==='in'||Math.abs(now-g.date)<12*36e5).sort((a,b)=>({in:0,pre:1,post:2}[a.state]-{in:0,pre:1,post:2}[b.state])||a.date-b.date);
@@ -3292,18 +3344,18 @@ function render(){
    const mb=$('#tMoreBtn');if(mb)mb.classList.toggle('on',inM);
    const rec=SC().rec;$('#ctxWk').textContent=S.week;$('#ctxSc').textContent=rec===1?'PPR':rec===.5?'Half PPR':rec===0?'Standard':'Custom';
    segThumb($('#scoringSeg'));}
-  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model','settings','privacy','terms'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model','settings','method','privacy','terms'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
   document.querySelectorAll('.sf-links [data-go]').forEach(a=>a.dataset.go===ui.tab?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
   // only the open tab is drawn; the others are drawn fresh when you switch to them (go() calls render())
   const R={home:renderHome,week:renderWeek,sites:renderSites,stats:renderStats,player:renderPlayer,ros:renderRos,lineup:renderLineup,
-    acc:renderAcc,trade:renderTrade,dvp:renderDvp,model:renderModel,settings:()=>{renderSettings();renderModel();},privacy:()=>{},terms:()=>{}};
+    acc:renderAcc,trade:renderTrade,dvp:renderDvp,model:renderModel,settings:()=>{renderSettings();renderModel();},method:()=>{},privacy:()=>{},terms:()=>{}};
   (R[ui.tab]||renderHome)();
 }
 
 // ---- site projections ----
 const SD=(typeof SITE_DATA!=='undefined'&&SITE_DATA)||{week:5,sleeper:'',espn:'',yahoo:''};
 const SUFFIX=/\b(jr|sr|ii|iii|iv|v)\b/g;
-const ALIAS={'mitchell tinsley':'mitch tinsley'};
+const ALIAS=SD.alias||{};   // one shared table, from scripts/keys.mjs
 function nkey(name,pos){
   if(pos==='DEF'){const w=name.replace(/D\/ST/i,'').trim().split(/\s+/);return 'def:'+w[w.length-1].toLowerCase();}
   let k=name.toLowerCase().replace(/[.'’]/g,'').replace(SUFFIX,'').replace(/\s+/g,' ').trim();
@@ -3349,14 +3401,16 @@ const SITES=(function(){
 const hasFP=SITES.some(r=>r.fp);
 ui.posS='All';ui.sortS='avg';ui.q='';
 // FantasyPros and CBS publish PPR only; other formats subtract the player's catches per game
-// outside projections are published as totals, so custom rules are applied with the player's per-game stats this season
-function siteAdj(r,fromFmt){const p=PL.get(r.key);if(!p||!p.gp||r.pos==='K'||r.pos==='DST')return 0;const s=p.s,g=p.gp;
+// outside projections are published as totals, so custom rules are applied with the player's per-game stats this season.
+// Each site publishes in its own rules (SITE_DATA.base, from scripts/scoring.mjs): ESPN already counts an interception as -2.
+function siteAdj(r,fromFmt,src){const p=PL.get(r.key);if(!p||!p.gp||r.pos==='K'||r.pos==='DST')return 0;const s=p.s,g=p.gp;
   const c={rec:s.rec/g,py:s.pass_yd/g,ptd:s.pass_td/g,pint:s.pass_int/g,ry:s.rush_yd/g,rtd:s.rush_td/g,recy:s.rec_yd/g,rectd:s.rec_td/g,fl:s.fum_lost/g};
-  return scDelta(c,r.pos,true)+(SC().rec-{ppr:1,half:.5,std:0}[fromFmt])*c.rec;}
-function pprConv(r,src){const x=r[src];if(!x)return null;return Math.max(0,x.ppr+siteAdj(r,'ppr'));}
+  return scDelta(c,r.pos,true,(SD.base||{})[src])+(SC().rec-{ppr:1,half:.5,std:0}[fromFmt])*c.rec;}
+function pprConv(r,src){const x=r[src];if(!x)return null;return Math.max(0,x.ppr+siteAdj(r,'ppr',src));}
 const fpPts=r=>pprConv(r,'fp');
-function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]&&r[s][S.scoring]!=null?Math.max(0,r[s][S.scoring]+siteAdj(r,S.scoring)):null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
-  const xs=Object.values(v).filter(x=>x!=null);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
+function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]&&r[s][S.scoring]!=null?Math.max(0,r[s][S.scoring]+siteAdj(r,S.scoring,s)):null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
+  // CBS stays out of kicker and defense averages: its defense numbers are on a different scale
+  const kd=r.pos==='K'||r.pos==='DST',xs=Object.entries(v).filter(([s,x])=>x!=null&&!(kd&&s==='cbs')).map(([,x])=>x);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
 // ---- past weeks (saved pregame projections + actual points), loaded when picked ----
 function loadPastWeek(w,cb){window.PASTWK=window.PASTWK||{};if(PASTWK[w])return cb();
   const sc=document.createElement('script');sc.src=`data/past/${SD.season||new Date().getFullYear()}-w${String(w).padStart(2,'0')}.js?v=${Math.floor(Date.now()/300000)}`;
@@ -3364,7 +3418,7 @@ function loadPastWeek(w,cb){window.PASTWK=window.PASTWK||{};if(PASTWK[w])return 
 function pastRows(w){const P=PASTWK[w],si=['ppr','half','std'].indexOf(S.scoring),out=[];
   for(const [k,[name,pos,team,src,act]] of Object.entries(P.rows||{})){
     const v={};['espn','sleeper','cbs','fp'].forEach(x=>{v[x]=src[x]&&src[x][si]!=null?src[x][si]:null;});
-    const xs=['espn','sleeper','cbs','fp'].map(x=>v[x]).filter(x=>x!=null);v.n=xs.length;v.avg=xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
+    const xs=['espn','sleeper','cbs','fp'].filter(x=>!(x==='cbs'&&(pos==='K'||pos==='DST'))).map(x=>v[x]).filter(x=>x!=null);v.n=xs.length;v.avg=xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:null;
     v.min=xs.length?Math.min(...xs):0;v.max=xs.length?Math.max(...xs):0;v.spread=xs.length>1?v.max-v.min:0;
     v.model=src.lab&&src.lab[si]!=null?src.lab[si]:null;v.scored=act?act[si]:null;v.live=false;
     out.push({r:{key:k,name,pos,team:team||'',opp:''},v});}
@@ -3441,7 +3495,7 @@ let _lp=null,_lpKey='';
 function lineupPool(){
   const ck=S.week+'|'+scKey()+'|'+JSON.stringify(S.w);if(_lp&&_lpKey===ck)return _lp;
   const m=new Map();
-  for(const p of realPlayers()){const w=weekProj(p);m.set(p.key,{key:p.key,p,name:p.name,pos:p.pos,team:p.team,proj:w.proj,real:true});}
+  for(const p of realPlayers()){const w=weekProj(p);m.set(p.key,{key:p.key,p,name:p.name,pos:p.pos,team:p.team,proj:w.proj,np:w.np,real:true});}
   if(S.week===SD.week)for(const r of SITES){if(m.has(r.key))continue;const v=siteVals(r);if(!v.n)continue;
     m.set(r.key,{key:r.key,p:null,name:r.name,pos:r.pos,team:r.team,proj:v.avg,real:false});}
   _lp=m;_lpKey=ck;return m;}
@@ -3496,7 +3550,7 @@ function renderLineup(){
   const pname=x=>x.real&&PL.has(x.key)?`<button class="plink" data-k="${esc(x.key)}">${esc(x.name)}</button>`:esc(x.name);
   $('#luStart').innerHTML=L.start.map(r=>`<tr><td><b>${SLOT_LBL[r.slot]}</b></td><td>${r.x?`<span class="pos ${r.x.pos}">${r.x.pos}</span> ${pname(r.x)} <span class="muted">${esc(r.x.team||'')}</span>`:'<span class="muted">Empty: add a player who fits this slot</span>'}</td><td class="r big">${r.x?f1(r.x.proj):'—'}</td><td>${r.x?tcell(r.x):''}</td><td class="u-nowrap">${mcell(r.x)}</td></tr>`).join('');
   $('#luTotal').textContent=roster.length?`Projected total: ${f1(L.total)} pts`:'';
-  $('#luBench').innerHTML=L.bench.length?L.bench.map(x=>{const why=x.proj<=0?(x.real&&onBye(x.p)?'On bye':'Out or not expected to play'):'Lower projection';return `<tr><td class="u-w-40p"><span class="pos ${x.pos}">${x.pos}</span> ${pname(x)} <span class="muted">${esc(x.team||'')}</span></td><td class="r num">${f1(x.proj)}</td><td class="note">${why}</td></tr>`;}).join(''):'<tr><td class="muted">Nobody on the bench.</td></tr>';
+  $('#luBench').innerHTML=L.bench.length?L.bench.map(x=>{const why=x.np?'Not projected by any outside site':x.proj<=0?(x.real&&onBye(x.p)?'On bye':'Out or not expected to play'):'Lower projection';return `<tr><td class="u-w-40p"><span class="pos ${x.pos}">${x.pos}</span> ${pname(x)} <span class="muted">${esc(x.team||'')}</span></td><td class="r num">${x.np?'—':f1(x.proj)}</td><td class="note">${why}</td></tr>`;}).join(''):'<tr><td class="muted">Nobody on the bench.</td></tr>';
   // waiver scan
   $('#luOwn').value=ui.luOwn;$('#luOwnV').textContent=ui.luOwn+'% of leagues';
   const rs=new Set(roster);
@@ -3565,7 +3619,7 @@ function oppText(r,wk=SD.week){const sc=(SCHED[r.team]||[])[wk-1];
 function modelScored(r,RP){const out={model:null,scored:null,live:false};if(S.week!==SD.week)return out;
   const t=kickTime(gameOf(r)),started=t!=null&&Date.now()>t,si=['ppr','half','std'].indexOf(S.scoring);
   const fz=SD.frozen&&SD.frozen[r.key];
-  if(started&&fz&&fz[si]!=null)out.model=fz[si];else{const p=RP.get(r.key);if(p&&!onBye(p))out.model=weekProj(p).proj;}
+  if(started&&fz&&fz[si]!=null)out.model=fz[si];else{const p=RP.get(r.key),w=p&&!onBye(p)?weekProj(p):null;if(w&&!w.np)out.model=w.proj;}
   const pl=PL.get(r.key),w=pl&&pl.weeks[SD.week-1];
   if(started&&w){out.scored=wpts(w);out.live=Date.now()<t+3.75*36e5;}
   const lv=liveOf(pl||r);if(lv&&(lv.g.state==='in'||out.scored==null)){out.scored=lv.pts;out.live=lv.g.state==='in';out.clock=lv.g.short;}
@@ -3575,7 +3629,7 @@ function toolsFor(p){
   const t=toolTable(),sameWk=S.week===SD.week,k=p.key,out=[];
   const add=(name,rk,detail,pts)=>{if(rk!=null)out.push({name,rank:rk,vote:voteOf(p.pos,Math.round(rk)),detail,pts:pts??null});};
   if(t.model[k])add('Ace Lineup Lab model',t.model[k].rank,`${f1(t.model[k].val)} pts before blending with sites`,t.model[k].val);
-  const e=ecrOf(p);if(e&&e[1])add('FantasyPros consensus (100+ experts)',e[1],`best ${e[3]}, worst ${e[4]} overall${e[5]?' · grade '+e[5]:''}`,e[6]!=null?Math.max(0,e[6]+siteAdj(p,'ppr')):null);
+  const e=ecrOf(p);if(e&&e[1])add('FantasyPros consensus (100+ experts)',e[1],`best ${e[3]}, worst ${e[4]} overall${e[5]?' · grade '+e[5]:''}`,e[6]!=null?Math.max(0,e[6]+siteAdj(p,'ppr','fp')):null);
   // ESPN drops players to the bottom once their game has kicked off, so skip it then
   const er=sameWk&&!kickedOff(p)?ESPNR[k]:null;if(er)add('ESPN analysts',er[0],`${er[1]} analysts · best ${p.pos}${er[2]}, worst ${p.pos}${er[3]}`);
   const c=advWeek()&&AD.cbs&&AD.cbs.ranks?AD.cbs.ranks[k]:null;
@@ -3973,21 +4027,21 @@ function renderPlayer(){
   const tr=(()=>{const peers=[...PL.values()].filter(q=>q.pos===p.pos);
     const rk=(pool,fn)=>{const me=fn(p);if(me==null||!Number.isFinite(me)||!pool.includes(p))return null;return p.pos+(1+pool.filter(q=>{const v=fn(q);return Number.isFinite(v)&&v>me;}).length);};
     const snapF=q=>dv(q.s.off_snp,q.s.tm_off_snp);
-    const real=realPlayers(),me=real.find(x=>x.key===p.key);let proj=null,projV=null;
-    if(me){projV=weekProj(me).proj;if(projV>0){const ps=real.filter(x=>x.pos===p.pos).map(x=>weekProj(x).proj).filter(v=>v>0);proj=p.pos+(1+ps.filter(v=>v>projV).length);}}
+    const real=realPlayers(),me=real.find(x=>x.key===p.key);let proj=null,projV=null,np=false;
+    if(me){projV=weekProj(me).proj;np=!!weekProj(me).np;if(projV>0){const ps=real.filter(x=>x.pos===p.pos).map(x=>weekProj(x).proj).filter(v=>v>0);proj=p.pos+(1+ps.filter(v=>v>projV).length);}}
     // consistency: share of weeks at a starter-level score first, then the smaller week-to-week swing (relative to his average); regulars with 3+ games
     const cvF=q=>{const v=q.weeks.map(wpts).filter(x=>x!=null);if(v.length<3)return null;const m=v.reduce((a,b)=>a+b,0)/v.length;if(m<=0)return null;
       const rate=v.filter(x=>x>=startLine).length/v.length,cv=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length)/m;return rate*10-Math.min(cv,9.9);};
     const cons=rk(peers.filter(q=>q.gp>=3&&ppg(q)>=startLine/2&&cvF(q)!=null),cvF);
     const us=usageOf(p.pos);
     const share=us?rk(peers.filter(us.pool),us.seas):null;
-    return {share,cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
+    return {share,cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null,np};})();
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
   const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${rkTxt(tr.share,p.pos)}</b>, `:''}${US.sub(p)}</span></div>`:'';
   // stat strip, first thing on Overview: this week's projection leads; a card whose number we don't have is left out
   const wkBye=rp&&onBye(rp),wkSt=rp&&effStatus(rp),wkOut=!wkBye&&(wkSt==='Out'||wkSt==='IR');
   const opp=g?`${g.home?'vs':'at'} ${esc(g.opp)}`:sv?esc(oppText(site)):'';
-  const leadV=!rp?null:wkBye?'Bye':wkOut?esc(wkSt):tr.projV>0?f1(tr.projV):null;
+  const leadV=!rp?null:wkBye?'Bye':wkOut?esc(wkSt):tr.np?NP:tr.projV>0?f1(tr.projV):null;
   const strip=[leadV!=null&&`<div class="tile ps-lead"><span class="label">Wk ${S.week} proj${opp?' · '+opp:''}</span><b class="ps-v">${leadV}</b></div>`,
     vals.length&&`<div class="tile"><span class="label">Season avg</span><b class="ps-v">${f1(ppg(p))}</b></div>`,
     tr.ppg&&`<div class="tile"><span class="label">Position rank</span><b class="ps-v">${esc(tr.ppg)}</b><span class="s">by pts / game</span></div>`].filter(Boolean).join('');
@@ -4136,7 +4190,7 @@ $('#setup').addEventListener('click',e=>{const sc=e.target.closest('[data-v]'),a
   S.setup='done';save();renderSetup();const t=$('#hmTitle');t.tabIndex=-1;t.focus();});
 // Features that are built but switched off. To bring one back, change false to true.
 const FEATURES={trade:true};
-const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model','privacy','terms'].filter(t=>FEATURES[t]!==false);
+const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model','method','privacy','terms'].filter(t=>FEATURES[t]!==false);
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
@@ -4329,6 +4383,16 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   window.heroChk=heroChk;
   window.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',()=>pad());chk();pad();})();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
+// Warn when the data is old: the updater runs every 30 minutes, so 6 hours without one means it has stopped,
+// or this is a saved copy shown without a connection (sw.js says so with a message).
+let savedCopy=false;
+function staleCheck(){const el=$('#staleNote'),t=Date.parse(SD.updated||''),h=Number.isFinite(t)?(Date.now()-t)/36e5:0;
+  if(h<6&&!savedCopy){el.hidden=true;return;}
+  const age=h>=48?Math.round(h/24)+' days':h>=1?Math.round(h)+' hour'+(Math.round(h)===1?'':'s'):'less than an hour';
+  el.innerHTML=`<span class="pill p-warn">${h>=6?'Out of date':'Saved copy'}</span><span>${h>=6?`Data was last updated ${esc(age)} ago (${esc(SD.pulled||'')}). Projections and injury statuses may have changed since.`:`No connection, so this is the copy saved on your device, from ${esc(SD.pulled||'earlier')}.`}</span>`;
+  el.hidden=false;}
+try{staleCheck();setInterval(staleCheck,6e5);
+  if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='saved-copy'){savedCopy=true;staleCheck();}});}catch(e){}
 document.documentElement.removeAttribute('data-boot');document.documentElement.removeAttribute('data-loading');{const pb=$('#p-boot');if(pb)pb.remove();}$('#p-home').removeAttribute('aria-busy');
 })();
 </script>

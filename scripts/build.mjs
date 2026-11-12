@@ -1,7 +1,9 @@
 // Builds Lineup Lab's data from Sleeper and ESPN.
 // Pure logic: takes a fetchJson(url, headers) function so it can run in Node or a browser.
 // asOfWeek: rebuild the data as it stood right before that week's games (used to backfill past weeks).
-export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWeek = null, season: forceSeason = null } = {}) {
+import { minRows } from './checks.mjs';
+
+export async function build(fetchJson, { prevEspn = null, prevPlayers = null, log = () => {}, asOfWeek = null, season: forceSeason = null } = {}) {
   const POS = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'];
   const qs = POS.map(p => 'position[]=' + p).join('&');
   const r1 = v => { v = Math.round(v * 10) / 10; return v ? String(v) : ''; };
@@ -31,7 +33,12 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
       x.team || x.player.team || '', x.opponent || '',
       +(x.stats.pts_ppr || 0).toFixed(1), +(x.stats.pts_half_ppr || 0).toFixed(1), +(x.stats.pts_std || 0).toFixed(1)].join('|'))
     .join('\n');
-  log(`Sleeper projections: ${sleeper.split('\n').length}`);
+  const nProj = sleeper ? sleeper.split('\n').length : 0;
+  log(`Sleeper projections: ${nProj}`);
+  // Sleeper is the backbone. In season, an empty answer stops the run so the last good data stays up.
+  const inSeason = state.season_type === 'regular' && !asOfWeek;
+  if (inSeason) try { minRows('Sleeper projections', nProj, week); } catch (e) { throw new Error('Sleeper projections: ' + e.message); }
+  const sources = { Sleeper: { ok: nProj > 0, detail: `${nProj} projections` } };
 
   // --- ESPN projections (unofficial API; keep last good copy if it fails) ---
   let espn = '', espnRanks = '', espnOwn = '';
@@ -62,13 +69,16 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     const rankOut = {}, ownOut = {};
     const ppr = await get(3), std = await get(1);
     espn = Object.keys(ppr).filter(k => ppr[k][2] > 0.5).map(k => [ppr[k][0], ppr[k][1], ppr[k][2], std[k] ? std[k][2] : ppr[k][2]].join('|')).join('\n');
-    if (!espn) throw new Error('ESPN returned no projections');
+    minRows('ESPN projections', espn ? espn.split('\n').length : 0, week);
     espnRanks = Object.values(rankOut).map(r => r.join('|')).join('\n');
     espnOwn = Object.values(ownOut).map(r => r.join('|')).join('\n');
     log(`ESPN projections: ${espn.split('\n').length}, analyst rankings: ${Object.keys(rankOut).length}`);
+    sources.ESPN = { ok: true, detail: `${espn.split('\n').length} projections` };
   } catch (e) {
-    log(`ESPN failed (${e.message}); ${prevEspn && prevEspn.week === week ? 'keeping last copy' : 'leaving empty'}`);
-    espn = prevEspn && prevEspn.week === week ? prevEspn.text : '';
+    const kept = prevEspn && prevEspn.week === week && prevEspn.text;
+    log(`ESPN failed (${e.message}); ${kept ? 'keeping last copy' : 'leaving empty'}`);
+    espn = kept || '';
+    sources.ESPN = { ok: false, detail: `${e.message}; ${kept ? 'showing the last saved copy' : 'no ESPN projections shown'}` };
   }
 
   // --- schedule ---
@@ -126,14 +136,34 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
       p.w[w].push(sh(s.rec_tgt, tt.rec_tgt), sh(s.rush_att, tt.rush_att));
     }
   }
-  // current rosters: a traded or released player's team, which his last game can't tell us
-  const pl = asOfWeek ? {} : await fetchJson('https://api.sleeper.app/v1/players/nfl');
-  for (const [id, p] of Object.entries(P)) if (pl[id]) p.team = pl[id].team || 'FA';
+  // current rosters (a traded or released player's team, which his last game can't tell us) and injury tags.
+  // Sleeper's full player list is several megabytes, so it is fetched once a day and only the team of each
+  // player with stats and the injury rows are kept (data/players-cache.json). The day rolls over at 16:30 UTC,
+  // late Sunday morning Eastern, so the one fetch lands right after teams announce inactives.
+  const day = new Date(Date.now() - 16.5 * 36e5).toISOString().slice(0, 10);
+  let roster = prevPlayers || { day: '', team: {}, inj: '' };
+  if (!asOfWeek) sources['Sleeper player list'] = { ok: true, detail: `${Object.keys(roster.team).length} rosters, saved copy from ${roster.day}` };
+  if (!asOfWeek && roster.day !== day) try {
+    const pl = await fetchJson('https://api.sleeper.app/v1/players/nfl');
+    minRows('Sleeper player list', Object.keys(pl || {}).length, week);
+    roster = { day, team: Object.fromEntries(Object.keys(P).filter(id => pl[id]).map(id => [id, pl[id].team || 'FA'])),
+      inj: Object.values(pl)
+        .filter(p => p.injury_status && POS.includes(p.position) && p.team && p.active !== false && (p.search_rank || 9999) < 600)
+        .map(p => [p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim(), p.position, p.team, p.injury_status].join('|')).join('\n') };
+    sources['Sleeper player list'] = { ok: true, detail: `${Object.keys(roster.team).length} rosters, refreshed today` };
+  } catch (e) {
+    log(`Sleeper player list failed (${e.message}); keeping ${roster.day ? 'the copy from ' + roster.day : 'last-game teams, no injury tags'}`);
+    sources['Sleeper player list'] = { ok: false, detail: `${e.message}; ${roster.day ? 'using the copy from ' + roster.day : 'no saved copy'}` };
+  }
+  if (!asOfWeek) for (const [id, p] of Object.entries(P)) if (roster.team[id]) p.team = roster.team[id];
   const rows = Object.values(P).filter(p => p.t.pts_ppr >= 3 || p.pos === 'K' || p.pos === 'DEF')
     .map(p => [p.name, p.pos, p.team, p.gp, ...F.map(f => r1(p.t[f])), ...TF.map(f => r1(p.tm[f])),
       weeks.map(w => p.w[w] ? p.w[w].join(':') : '-').join(';')].join('|')).join('\n');
   const dstText = Object.entries(dst).map(([t, a]) => t + '|' + a.join('|')).join('\n');
-  log(`Player stat rows: ${rows.split('\n').length}`);
+  const nRows = rows ? rows.split('\n').length : 0;
+  log(`Player stat rows: ${nRows}`);
+  if (inSeason) try { minRows('Sleeper stats', nRows, week); } catch (e) { throw new Error('Sleeper stats: ' + e.message); }
+  sources.Sleeper.detail += `, ${nRows} stat rows`;
 
   // --- fantasy points allowed by each defense, completed weeks only ---
   const al = {}, gm = {}, dv = {};
@@ -161,17 +191,15 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
       .forEach(([t, v], i) => { ranks[t] = ranks[t] || {}; ranks[t][p] = [i + 1, +v.toFixed(1)]; });
   });
 
-  // --- injuries ---
-  const inj = Object.values(pl)
-    .filter(p => p.injury_status && POS.includes(p.position) && p.team && p.active !== false && (p.search_rank || 9999) < 600)
-    .map(p => [p.full_name || ((p.first_name || '') + ' ' + (p.last_name || '')).trim(), p.position, p.team, p.injury_status].join('|')).join('\n');
+  // --- injuries (from the daily player list above) ---
+  const inj = asOfWeek ? '' : roster.inj;
 
   const through = week === 1 && !done ? 'No games played yet'
     : done >= wkGames.length ? `Weeks 1–${week}`
     : `Weeks 1–${week - 1}` + (done ? ` plus ${done} of ${wkGames.length} week ${week} games` : '');
 
   return {
-    season, week, through,
+    season, week, through, sources,
     sites: { week, sleeper, espn, espnRanks, espnOwn, yahoo: '' },
     stats: { through, fields: ['name', 'pos', 'team', 'gp', ...F, 'tm_pass_att', 'tm_rush_att', 'tm_tgt', 'tm_air', 'tm_rz_rush', 'tm_rz_tgt', 'weeks'], rows, dst: dstText },
     ctx: {
@@ -184,7 +212,8 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
       // Sleeper player ids, used for headshots on player pages
       ids: Object.entries(P).filter(([, p]) => p.pos !== 'DEF').map(([id, p]) => [p.name, p.pos, id].join('|')).join('\n')
     },
-    espnCache: { week, text: espn }
+    espnCache: { week, text: espn },
+    playersCache: roster
   };
 }
 

@@ -36,7 +36,13 @@ jobs:
         with:
           node-version: '20'
       - name: Fetch fresh data
-        run: node scripts/update.mjs
+        id: fetch
+        # exit code 2 means the data was written but something needs attention (the accuracy scoreboard
+        # failed, or two players share a key): commit the data first, then fail the run at the end
+        run: |
+          code=0
+          node scripts/update.mjs || code=$?
+          if [ "$code" -eq 2 ]; then echo "attention=1" >> "$GITHUB_OUTPUT"; else exit "$code"; fi
       - name: Commit if the data changed
         run: |
           git config user.name "github-actions[bot]"
@@ -51,5 +57,10 @@ jobs:
           fi
       # after the commit, so a broken model never holds back fresh data; a red run means the accuracy
       # history stopped saving (see scripts/accuracy.test.mjs)
-      - name: Check the page model still runs
-        run: node --test scripts/accuracy.test.mjs
+      - name: Run the tests
+        run: node --test scripts/*.test.mjs
+      - name: Fail if the updater reported a problem
+        if: steps.fetch.outputs.attention == '1'
+        run: |
+          echo "The data was updated, but the updater reported a problem. Search the 'Fetch fresh data' log for PROBLEM."
+          exit 1

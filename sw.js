@@ -19,7 +19,11 @@ const isStatic = url => /\/(fonts|icons\/sites)\//.test(url.pathname);
 function networkFirst(req, key) {
   return caches.open(CACHE).then(cache => new Promise(resolve => {
     let done = false;
-    const fallback = () => cache.match(key, { ignoreSearch: true }).then(hit => hit || null);
+    // tell the page when it gets a saved copy instead of fresh data, so it can say so
+    const fallback = () => cache.match(key, { ignoreSearch: true }).then(hit => {
+      if (hit && /\/data\/sites-data\.js$/.test(key)) self.clients.matchAll().then(cs => cs.forEach(c => c.postMessage({ type: 'saved-copy' })));
+      return hit || null;
+    });
     const timer = setTimeout(() => fallback().then(hit => { if (hit && !done) { done = true; resolve(hit); } }), 4000);
     fetch(req).then(res => {
       if (res && res.ok) cache.put(key, res.clone());

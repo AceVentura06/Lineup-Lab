@@ -7,14 +7,9 @@ const FP_URL = 'https://raw.githubusercontent.com/dynastyprocess/data/master/fil
 const TEAM_FIX = { LA: 'LAR', JAC: 'JAX', WSH: 'WAS', LVR: 'LV', OAK: 'LV', SD: 'LAC', STL: 'LAR' };
 const team = t => TEAM_FIX[t] || t;
 
-// Same key the site uses to match players across sources.
-const SUFFIX = /\b(jr|sr|ii|iii|iv|v)\b/g;
-const ALIAS = { 'mitchell tinsley': 'mitch tinsley', 'marquise brown': 'hollywood brown', 'gabe davis': 'gabriel davis', 'chigoziem okonkwo': 'chig okonkwo', 'josh palmer': 'joshua palmer', 'matthew hibner': 'matt hibner' };
-export function nkey(name, pos) {
-  if (pos === 'DEF' || pos === 'DST') { const w = String(name).replace(/D\/ST/i, '').trim().split(/\s+/); return 'def:' + w[w.length - 1].toLowerCase(); }
-  const k = String(name).toLowerCase().replace(/[.'’]/g, '').replace(SUFFIX, '').replace(/\s+/g, ' ').trim();
-  return ALIAS[k] || k;
-}
+// Player keys: one shared table and function (scripts/keys.mjs).
+import { nkey } from './keys.mjs';
+export { nkey };
 
 // Minimal CSV parser (handles quotes, escaped quotes, newlines in fields).
 export function parseCSV(text) {
@@ -49,8 +44,11 @@ const STADIUMS = {
 };
 
 import { buildCbs } from './cbs.mjs';
+import { minRows } from './checks.mjs';
+import { prepare, shadowProjections } from './usage.mjs';
 
-export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {} }) {
+// coef: the usage model's fitted weights (assets/model/coefficients.json); without it the shadow step is skipped.
+export async function buildAdv({ fetchText, fetchGz, season, week, coef = null, log = () => {} }) {
   const out = { season, week, sources: {}, players: {}, games: {}, ecr: {}, practice: {} };
   const ok = (name, detail) => { out.sources[name] = { ok: true, detail }; log(`${name}: ${detail}`); };
   const fail = (name, e) => { out.sources[name] = { ok: false, detail: String(e.message || e) }; log(`${name} FAILED: ${e.message || e}`); };
@@ -84,7 +82,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       if (has(r.passing_cpoe)) { add(p, 'cpoeW', num(r.passing_cpoe) * num(r.attempts)); add(p, 'cpoeN', num(r.attempts)); }
       if (t) { add(p, 'tmTgt', t.tgt); add(p, 'tmAy', t.ay); }
     }
-    ok('nflverse stats', `${weeklyRows.length} player-weeks`);
+    ok('nflverse stats', `${minRows('nflverse stats', weeklyRows.length, week)} player-weeks`);
   } catch (e) { fail('nflverse stats', e); }
 
   // 2. Next Gen Stats (season-to-date rows are week 0)
@@ -97,7 +95,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
         if (kind === 'rushing') Object.assign(p.s, { ryoe: num(r.rush_yards_over_expected_per_att), box8: num(r.percent_attempts_gte_eight_defenders), ttl: num(r.avg_time_to_los), rpoe: num(r.rush_pct_over_expected) });
         if (kind === 'passing') Object.assign(p.s, { ttt: num(r.avg_time_to_throw), aggr: num(r.aggressiveness), ays: num(r.avg_air_yards_to_sticks), cpae: num(r.completion_percentage_above_expectation) });
       }
-      ok(`Next Gen Stats ${kind}`, `${rows.length} players`);
+      ok(`Next Gen Stats ${kind}`, `${minRows(`Next Gen Stats ${kind}`, rows.length, week)} players`);
     } catch (e) { fail(`Next Gen Stats ${kind}`, e); }
   }
 
@@ -147,7 +145,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       if (p.s.rzTgt !== undefined || p.s.pbpTgt) { p.s.tmRzTgt = tmRz[tm] || 0; p.s.tmEzTgt = tmEz[tm] || 0; p.s.tmDeep = tmDeep[tm] || 0; }
       if (p.s.pbpCar) { p.s.tmRz10Car = tmRz[tm + 'c'] || 0; p.s.tmGlCar = tmGl[tm] || 0; }
     }
-    ok('Play-by-play', `${targets.length} targets, ${rushes.length} carries`);
+    ok('Play-by-play', `${minRows('Play-by-play', targets.length, week)} targets, ${rushes.length} carries`);
   } catch (e) { fail('Play-by-play', e); }
 
   // 4. FTN charting joined to play-by-play
@@ -181,7 +179,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       }
     }
     for (const p of Object.values(P)) if (p.s.ftnTgt) p.s.tmFirst = tmFirst[p.team] || 0;
-    ok('FTN charting', `${joined} charted plays`);
+    ok('FTN charting', `${minRows('FTN charting', joined, week)} charted plays`);
   } catch (e) { fail('FTN charting', e); }
 
   // 5. Official injury reports with practice participation (this week's report only)
@@ -197,9 +195,10 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
   } catch (e) { fail('NFL injury reports', e); }
 
   // 6. Betting lines and game info
-  let games = [];
+  let games = [], allGames = [];
   try {
-    games = parseCSV(await fetchText(`${NFLV}/schedules/games.csv`)).filter(r => r.season === String(season) && r.week === String(week) && r.game_type === 'REG');
+    allGames = parseCSV(await fetchText(`${NFLV}/schedules/games.csv`)).filter(r => r.season === String(season) && r.game_type === 'REG');
+    games = allGames.filter(r => r.week === String(week));
     for (const g of games) {
       const sp = has(g.spread_line) ? num(g.spread_line) : null, tot = has(g.total_line) ? num(g.total_line) : null;
       const base = { total: tot, roof: g.roof, stadium: g.stadium, day: g.gameday, time: g.gametime };
@@ -208,13 +207,13 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       out.games[away] = { ...base, opp: home, home: false, spread: sp, implied: sp == null || tot == null ? null : r2(tot / 2 - sp / 2) };
     }
     // each team's average points scored in completed games (baseline for the Vegas adjustment)
-    const done = parseCSV(await fetchText(`${NFLV}/schedules/games.csv`)).filter(r => r.season === String(season) && r.game_type === 'REG' && has(r.home_score) && has(r.away_score));
+    const done = allGames.filter(r => has(r.home_score) && has(r.away_score));
     const pts = {};
     for (const g of done) for (const [t, v] of [[team(g.home_team), num(g.home_score)], [team(g.away_team), num(g.away_score)]]) { pts[t] = pts[t] || [0, 0]; pts[t][0] += v; pts[t][1]++; }
     out.teamPts = Object.fromEntries(Object.entries(pts).map(([t, [s, n]]) => [t, r2(s / n)]));
     const all = Object.values(out.games).map(g => g.implied).filter(v => v != null);
     out.avgImplied = all.length ? r2(all.reduce((a, b) => a + b, 0) / all.length) : null;
-    ok('Betting lines', `${games.length} week ${week} games, ${games.filter(g => has(g.total_line)).length} with lines`);
+    ok('Betting lines', `${minRows('Betting lines', games.length, week)} week ${week} games, ${games.filter(g => has(g.total_line)).length} with lines`);
   } catch (e) { fail('Betting lines', e); }
 
   // 7. Weather at outdoor and open-roof stadiums
@@ -252,7 +251,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       out.ecr[key] = [num(r.ecr), parseInt(String(r.pos_rank).replace(/\D/g, ''), 10) || null, r2(num(r.sd)), num(r.best), num(r.worst), r.start_sit_grade || '', has(r.r2p_pts) ? num(r.r2p_pts) : null, r.scrape_date || '', has(r.player_owned_avg) ? num(r.player_owned_avg) : null];
     }
     out.ecrCurrent = checked > 0 && match / checked > 0.6;
-    ok('FantasyPros consensus', `${Object.keys(out.ecr).length} players${out.ecrCurrent ? '' : ' (last week\'s rankings; this week\'s not posted yet)'}`);
+    ok('FantasyPros consensus', `${minRows('FantasyPros consensus', Object.keys(out.ecr).length, week)} players${out.ecrCurrent ? '' : ' (last week\'s rankings; this week\'s not posted yet)'}`);
   } catch (e) { fail('FantasyPros consensus', e); }
 
   // 8b. FantasyPros rest-of-season rankings (PPR, by position): how experts value a player for the rest of the
@@ -268,15 +267,30 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       if (r.ecr_type === 'ro' && r.page_type === 'redraft-overall' && overall[key] == null) overall[key] = r2(num(r.ecr));
     }
     for (const k in out.ros) out.ros[k][1] = overall[k] ?? null;
-    ok('FantasyPros rest of season', `${Object.keys(out.ros).length} players`);
+    ok('FantasyPros rest of season', `${minRows('FantasyPros rest of season', Object.keys(out.ros).length, week)} players`);
   } catch (e) { fail('FantasyPros rest of season', e); }
 
   // 9. CBS Sports: three experts' weekly rankings + consensus, and weekly projections
   try {
     const c = await buildCbs({ fetchText, season, week, nkey, games: out.games, log });
+    minRows('CBS Sports', Object.keys(c.proj).length, week);
     out.cbs = c;
     ok('CBS Sports', `${Object.keys(c.proj).length} projections, ${Object.keys(c.ranks).length} expert rankings${c.ranksCurrent ? '' : ' (this week\'s rankings not posted yet)'}`);
   } catch (e) { fail('CBS Sports', e); }
+
+  // 10. Usage model, in testing as the hidden source "mod2": expected points and snap counts, joined with the
+  // play-by-play and schedule already loaded. Kept off the returned data's visible fields (out.shadow is
+  // non-enumerable), so it never reaches adv-data.js or the page; update.mjs saves it to the history only.
+  if (coef) try {
+    if (!pbp.length || !allGames.length) throw new Error('needs play-by-play and the schedule');
+    const ep = parseCSV(await fetchText('https://github.com/ffverse/ffopportunity/releases/download/latest-data/ep_weekly_' + season + '.csv'));
+    const snaps = parseCSV(await fetchText(`${NFLV}/snap_counts/snap_counts_${season}.csv`));
+    minRows('Expected points', ep.length, week); minRows('Snap counts', snaps.length, week);
+    const shadow = shadowProjections(prepare({ ep, snaps, games: allGames, pbp }), week, coef);
+    Object.defineProperty(out, 'shadow', { value: shadow, enumerable: false });
+    ok('Usage model (testing)', `${Object.keys(shadow).length} players from ${ep.length} expected-points rows`);
+  } catch (e) { fail('Usage model (testing)', e); }
+  if (out.sources['Usage model (testing)']) out.sources['Usage model (testing)'].hidden = true;
 
   // Compact per-player output keyed like the site's other data
   const F = ['g', 'tgt', 'tmTgt', 'ay', 'tmAy', 'rec', 'recYd', 'yac', 'recEpa', 'car', 'rushYd', 'rushEpa', 'att', 'cmp', 'passEpa', 'sacks', 'passAy', 'cpoeW', 'cpoeN',
