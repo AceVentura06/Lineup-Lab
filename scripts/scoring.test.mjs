@@ -101,3 +101,14 @@ test('page: each site is converted from its own scoring (no second interception 
   assert.equal(v.espn, 20);      // ESPN already has it at -2
   assert.equal(v.cbs, 16);       // CBS pays 6 per pass TD: 2 TDs a game is 4 points too many
 });
+
+test('history fix: adds back the interception point ESPN lost, once', async () => {
+  const { migrate } = await import('./migrate-history.mjs');
+  // two games before week 3: 1 and 2 interceptions, so 1.5 a game
+  const STATS = { fields: ['name', 'pos', 'weeks'], rows: 'Al Passer|QB|20:0:2:100:250:1;18:0:1:100:230:2;-' };
+  const snap = { week: 3, players: { 'al passer': { pos: 'QB', src: { espn: [15.9, 15.9, 15.9], sleeper: [17, 17, 17] } } } };
+  assert.equal(migrate(snap, STATS, ['espn']), 1);
+  assert.deepEqual(snap.players['al passer'].src, { espn: [17.4, 17.4, 17.4], sleeper: [17, 17, 17] });
+  assert.equal(migrate(snap, STATS, ['espn']), 0);   // second run changes nothing
+  assert.deepEqual(snap.fixed, ['espn']);
+});
