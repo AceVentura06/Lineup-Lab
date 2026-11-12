@@ -84,3 +84,20 @@ test('mergeSnapshot: freezes at kickoff, keeps a saved kickoff time, drops playe
   assert.deepEqual(m.players.upcoming, { src: { lab: [13] }, k: 900 });
   assert.equal(m.players['ruled out'], undefined);
 });
+
+test('page: each site is converted from its own scoring (no second interception penalty for ESPN)', () => {
+  // one QB, 2 games, 2 pass TD and 1 interception per game; every site projects 20
+  const week = '20:0:2:100:250:1:0:0:0:0:0';
+  const data = {
+    SITE_DATA: { week: 3, base: BASELINE, sleeper: 'Al Passer|QB|ATL|MIN|20|20|20', espn: 'Al Passer|QB|20|20' },
+    STATS_DATA: { fields: ['name', 'pos', 'team', 'gp', 'pts_ppr', 'pass_yd', 'pass_td', 'pass_int', 'rec', 'rush_yd', 'rush_td', 'rec_yd', 'rec_td', 'fum_lost', 'weeks'],
+      rows: `Al Passer|QB|ATL|2|40|500|4|2|0|0|0|0|0|0|${week};${week}` },
+    CTX_DATA: {}, ADV_DATA: { week: 3, players: {}, games: {}, ecr: {}, practice: {}, cbs: { proj: { 'al passer': 20 } } },
+  };
+  const M = loadModel(data);
+  M.S.week = 3;
+  const v = M.siteVals(M.SITEBY.get('al passer'));
+  assert.equal(v.sleeper, 19);   // Sleeper counts the interception as -1: one more point off
+  assert.equal(v.espn, 20);      // ESPN already has it at -2
+  assert.equal(v.cbs, 16);       // CBS pays 6 per pass TD: 2 TDs a game is 4 points too many
+});

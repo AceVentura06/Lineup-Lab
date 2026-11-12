@@ -8,6 +8,7 @@ import { buildAdv } from './adv.mjs';
 import { projectAll } from './model.mjs';
 import { buildNews } from './news.mjs';
 import { mergeSnapshot, gradeAll, actualsFrom, tuneBlend } from './accuracy.mjs';
+import { BASELINE } from './scoring.mjs';
 import { readdir } from 'node:fs/promises';
 
 const DIR = new URL('../data/', import.meta.url);
@@ -72,7 +73,7 @@ try {
   console.log('Blend:', Object.entries(blend.pos).map(([p, x]) => `${p} ${Math.round(x.w * 100)}% sites`).join(', ') || 'not enough graded weeks yet');
 } catch (e) { console.log('Blend tuning skipped:', e.message); }
 
-await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend }));
+await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE }));
 await writeFile(new URL('stats-data.js', DIR), js('STATS_DATA', d.stats));
 await writeFile(new URL('ctx-data.js', DIR), js('CTX_DATA', { ...d.ctx, pulled }));
 if (adv) await writeFile(new URL('adv-data.js', DIR), js('ADV_DATA', { ...adv, pulled }));
@@ -85,7 +86,7 @@ console.log(`Wrote data for ${d.season} week ${d.week} (${d.through}).`);
 try {
   const HIST = new URL('history/', DIR);
   await mkdir(HIST, { recursive: true });
-  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString(), blend };
+  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE };
   const ADV_DATA = adv ? { ...adv, pulled } : undefined;
   const cur = projectAll({ SITE_DATA, STATS_DATA: d.stats, CTX_DATA: { ...d.ctx, pulled }, ADV_DATA });
   const name = `${d.season}-w${String(cur.week).padStart(2, '0')}.json`;

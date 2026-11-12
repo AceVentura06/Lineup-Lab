@@ -2038,8 +2038,9 @@ function scPreset(){const c=SC();return Object.keys(PRESETS).find(k=>OFF_KEYS.ev
 const scAllDefaultBut=()=>Object.keys(DEF_SC).filter(f=>!OFF_KEYS.includes(f)).every(f=>SC()[f]===DEF_SC[f]);
 const scName=(short)=>(scAllDefaultBut()&&{ppr:'PPR',half:short?'Half':'Half-PPR',std:short?'Std':'Standard'}[scPreset()])||'Custom';
 // points to add to a Sleeper-standard PPR total for a stat line c {rec,py,ptd,pint,ry,rtd,recy,rectd,fl}
-function scDelta(c,pos,skipRec){if(!c||pos==='K'||pos==='DST'||pos==='DEF')return 0;const s=SC(),v=k=>+c[k]||0;
-  return (skipRec?0:(s.rec-1)*v('rec'))+(pos==='TE'?s.te*v('rec'):0)+v('py')*(1/s.py-.04)+(s.ptd-4)*v('ptd')+(s.int+1)*v('pint')
+// b: the pass-TD and interception rules the number already uses, when it isn't Sleeper's (4 and -1)
+function scDelta(c,pos,skipRec,b){if(!c||pos==='K'||pos==='DST'||pos==='DEF')return 0;const s=SC(),v=k=>+c[k]||0;b=b||{};
+  return (skipRec?0:(s.rec-1)*v('rec'))+(pos==='TE'?s.te*v('rec'):0)+v('py')*(1/s.py-.04)+(s.ptd-(b.ptd??4))*v('ptd')+(s.int-(b.int??-1))*v('pint')
     +(v('ry')+v('recy'))*(1/s.yd-.1)+(s.td-6)*(v('rtd')+v('rectd'))+(s.fl+2)*v('fl');}
 
 // ---- real players for start/sit ----
@@ -3349,13 +3350,14 @@ const SITES=(function(){
 const hasFP=SITES.some(r=>r.fp);
 ui.posS='All';ui.sortS='avg';ui.q='';
 // FantasyPros and CBS publish PPR only; other formats subtract the player's catches per game
-// outside projections are published as totals, so custom rules are applied with the player's per-game stats this season
-function siteAdj(r,fromFmt){const p=PL.get(r.key);if(!p||!p.gp||r.pos==='K'||r.pos==='DST')return 0;const s=p.s,g=p.gp;
+// outside projections are published as totals, so custom rules are applied with the player's per-game stats this season.
+// Each site publishes in its own rules (SITE_DATA.base, from scripts/scoring.mjs): ESPN already counts an interception as -2.
+function siteAdj(r,fromFmt,src){const p=PL.get(r.key);if(!p||!p.gp||r.pos==='K'||r.pos==='DST')return 0;const s=p.s,g=p.gp;
   const c={rec:s.rec/g,py:s.pass_yd/g,ptd:s.pass_td/g,pint:s.pass_int/g,ry:s.rush_yd/g,rtd:s.rush_td/g,recy:s.rec_yd/g,rectd:s.rec_td/g,fl:s.fum_lost/g};
-  return scDelta(c,r.pos,true)+(SC().rec-{ppr:1,half:.5,std:0}[fromFmt])*c.rec;}
-function pprConv(r,src){const x=r[src];if(!x)return null;return Math.max(0,x.ppr+siteAdj(r,'ppr'));}
+  return scDelta(c,r.pos,true,(SD.base||{})[src])+(SC().rec-{ppr:1,half:.5,std:0}[fromFmt])*c.rec;}
+function pprConv(r,src){const x=r[src];if(!x)return null;return Math.max(0,x.ppr+siteAdj(r,'ppr',src));}
 const fpPts=r=>pprConv(r,'fp');
-function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]&&r[s][S.scoring]!=null?Math.max(0,r[s][S.scoring]+siteAdj(r,S.scoring)):null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
+function siteVals(r){const v={};['espn','sleeper'].forEach(s=>{v[s]=r[s]&&r[s][S.scoring]!=null?Math.max(0,r[s][S.scoring]+siteAdj(r,S.scoring,s)):null});v.cbs=pprConv(r,'cbs');v.fp=fpPts(r);
   // CBS stays out of kicker and defense averages: its defense numbers are on a different scale
   const kd=r.pos==='K'||r.pos==='DST',xs=Object.entries(v).filter(([s,x])=>x!=null&&!(kd&&s==='cbs')).map(([,x])=>x);v.n=xs.length;v.avg=xs.reduce((a,b)=>a+b,0)/(xs.length||1);v.min=Math.min(...xs);v.max=Math.max(...xs);v.spread=xs.length>1?v.max-v.min:0;return v;}
 // ---- past weeks (saved pregame projections + actual points), loaded when picked ----
@@ -3576,7 +3578,7 @@ function toolsFor(p){
   const t=toolTable(),sameWk=S.week===SD.week,k=p.key,out=[];
   const add=(name,rk,detail,pts)=>{if(rk!=null)out.push({name,rank:rk,vote:voteOf(p.pos,Math.round(rk)),detail,pts:pts??null});};
   if(t.model[k])add('Ace Lineup Lab model',t.model[k].rank,`${f1(t.model[k].val)} pts before blending with sites`,t.model[k].val);
-  const e=ecrOf(p);if(e&&e[1])add('FantasyPros consensus (100+ experts)',e[1],`best ${e[3]}, worst ${e[4]} overall${e[5]?' · grade '+e[5]:''}`,e[6]!=null?Math.max(0,e[6]+siteAdj(p,'ppr')):null);
+  const e=ecrOf(p);if(e&&e[1])add('FantasyPros consensus (100+ experts)',e[1],`best ${e[3]}, worst ${e[4]} overall${e[5]?' · grade '+e[5]:''}`,e[6]!=null?Math.max(0,e[6]+siteAdj(p,'ppr','fp')):null);
   // ESPN drops players to the bottom once their game has kicked off, so skip it then
   const er=sameWk&&!kickedOff(p)?ESPNR[k]:null;if(er)add('ESPN analysts',er[0],`${er[1]} analysts · best ${p.pos}${er[2]}, worst ${p.pos}${er[3]}`);
   const c=advWeek()&&AD.cbs&&AD.cbs.ranks?AD.cbs.ranks[k]:null;
