@@ -63,16 +63,17 @@ export const usesSrc = (s, pos) => !(s === 'cbs' && (pos === 'K' || pos === 'DST
 const avgOf = xs => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
 
 // Grade one week. snap: saved projections; act: actuals map; w: week number.
-export function gradeWeek(snap, act, w) {
+// sources: which saved sources to grade (the public scoreboard by default; the shadow grade adds mod2).
+export function gradeWeek(snap, act, w, sources = SOURCES) {
   const all = Object.entries(snap.players).map(([id, p]) => ({ ...p, id, a: act[id]?.[w] }));
   if (!all.some(p => p.a)) return null;                  // no scores for that week at all
   // late scratches: projected 5+ on average but did not play, graded as zero
-  for (const p of all) if (!p.a && avgOf(Object.keys(SOURCES).map(s => p.src[s]?.[0]).filter(v => v != null)) >= 5) p.a = [0, 0, 0];
+  for (const p of all) if (!p.a && avgOf(Object.keys(sources).map(s => p.src[s]?.[0]).filter(v => v != null)) >= 5) p.a = [0, 0, 0];
   const players = all.filter(p => p.a);
   // sources present for most players that week (a source that only covers a handful would skew the pool)
   const cover = {};
   for (const p of players) for (const s in p.src) if (p.src[s]?.[0] != null) cover[s] = (cover[s] || 0) + 1;
-  const srcs = Object.keys(SOURCES).filter(s => (cover[s] || 0) >= players.length * 0.5);
+  const srcs = Object.keys(sources).filter(s => (cover[s] || 0) >= players.length * 0.5);
   // shared pool: every graded source projected him, and he was fantasy-relevant (avg PPR projection 5+, any K/DST)
   const mine = p => srcs.filter(s => usesSrc(s, p.pos));
   const full = players.filter(p => mine(p).every(s => p.src[s]?.[0] != null) &&
