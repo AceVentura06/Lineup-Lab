@@ -2412,7 +2412,9 @@ const SRC_INFO=[
  ['ESPN analysts','ESPN analysts','Weekly positional rankings from ESPN\'s fantasy analysts'],
  ['CBS Sports','CBS Sports','Weekly rankings from Jamey Eisenberg, Dave Richard and Heath Cummings, plus CBS projections']];
 function renderSources(){
-  $('#srcNote').textContent=`Last updated ${SD.pulled||'—'}. Data refreshes automatically every few hours, and every hour on Sunday afternoons.`;
+  const down=SD.down||[];
+  $('#srcNote').innerHTML=`Last updated ${esc(SD.pulled||'—')}. Data refreshes automatically every 30 minutes, and every 15 minutes on Sundays from noon to midnight Eastern.`
+    +(down.length?`<br><span class="pill p-warn">Not updating</span> ${esc(down.join(', '))}. ${down.length>1?'These sources':'This source'} failed on the last update; the last good copy is shown where there is one.`:'');
   $('#srcList').innerHTML=SRC_INFO.map(([k,name,what])=>`<div class="srcrow u-cols-a1"><b>${esc(name)}</b><span class="note">${esc(what)}</span></div>`).join('');
 }
 function renderModel(){
