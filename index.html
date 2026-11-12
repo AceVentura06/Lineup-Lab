@@ -1835,7 +1835,8 @@ Weather    = wind 15+ mph: passing −5%, kickers −10% (20+ mph: −10% / −1
 Health     = injury status (live from ESPN every 3 minutes), adjusted by Wed–Fri practice (DNP / limited / full)
 Projection = (1 − w) × Model + w × average(ESPN, Sleeper, CBS, FantasyPros)
              w is tuned by position from past accuracy (see Accuracy), unless set in Settings
-On bye, Out, or IR → 0</div>
+On bye, Out, or IR → 0
+No outside site projects him this week → Not projected (no number, no Start / Sit call)</div>
         <p class="note">Base is season points per game. Matchup rank is how many fantasy points the opponent has allowed to that position per game (this season; 32 = most allowed). Trend compares snap share over the last two games to the season (for QBs, recent points). Health is the current injury designation. Schedule averages the matchup ranks of the remaining opponents. Start / Flex / Sit calls assume a 12-team league.</p>
         <p><b>Start/sit tools.</b> Each player is also run through up to seven tools: this model, the FantasyPros expert consensus, ESPN's analysts, CBS's three experts, and the ESPN, Sleeper and CBS projections. Each tool's rank at the position becomes a vote (12-team league: QB/TE top 12 start, RB top 24, WR top 30; the next tier is flex). The Start / Sit call uses the average rank across tools.</p>
         <p><b>3. Floor and ceiling.</b> Half from the position's typical swing (QB ±22%, RB ±30%, WR ±35%, TE ±38%, K ±35%, DST ±45%) and half from the player's own week-to-week swings once he has 3+ games. Two players with close projections? The narrower range is the safer start.</p>
@@ -2121,8 +2122,11 @@ function weekProj(p){
     const bAdj=sa==null&&gp<3?(gp*b+(3-gp)*(POSBASE[p.pos]||6))/3:b;
     const model=bAdj*matchM(p)*trendM(p)*vegasM(p)*weatherM(p)*h;
     const wB=gp<3?bl+(1-bl)*(3-gp)/3:bl;
-    const proj=h===0?0:sa!=null?(1-wB)*model+wB*sa*(h<1?Math.max(.4,h):1):model;
-    const v=volOf(p);r={b,proj,model,sites:sa,lo:proj*(1-v),hi:proj*(1+v)};}
+    // No outside site projects him: no number, and he stays out of Start/Sit. Only for the week the sites
+    // have posted; other weeks still show our own model, as do players you add by hand.
+    const np=!!p.real&&sa==null&&h>0&&S.week===SD.week;
+    const proj=h===0||np?0:sa!=null?(1-wB)*model+wB*sa*(h<1?Math.max(.4,h):1):model;
+    const v=volOf(p);r={b,proj,model,sites:sa,lo:proj*(1-v),hi:proj*(1+v),np};}
   if(_wp.size>4000)_wp.clear();_wp.set(ck,r);return r;
 }
 // Rest-of-season scoring rate: season average, blended with recent form and (RB/WR/TE) expected points from usage,
@@ -2210,10 +2214,12 @@ function chips(el,cur,key){
 }
 
 // Start / Sit call for a row {p,proj}: the tools' consensus when 3+ weigh in, else 12-team cutoffs by projected rank
+const NP='<span class="pill p-mute" title="No outside site has a projection for him this week">Not projected</span>',DASH='<span class="muted">—</span>';
 function makeCall(all){
   const byPos={};all.filter(r=>r.p.real&&r.proj>0).forEach(r=>{(byPos[r.p.pos]=byPos[r.p.pos]||[]).push(r.proj)});
   Object.values(byPos).forEach(a=>a.sort((x,y)=>y-x));
   return r=>{
+    if(r.np)return NP;
     if(r.proj===0)return `<span class="pill p-bad">Sit · ${onBye(r.p)?'bye':'out'}</span>`;
     const cn=r.p.real?consensus(r.p):null;
     if(cn&&cn.total>=3){const rk=Math.round(cn.avg),cls={start:'p-good',flex:'p-gold',sit:'p-mute'}[cn.vote];return `<span class="pill ${cls}" title="Average rank across ${cn.total} tools">${cn.vote[0].toUpperCase()+cn.vote.slice(1)} · ${r.p.pos}${rk}</span>`;}
@@ -2260,8 +2266,8 @@ function renderWeek(){
     <td class="r num muted">${f1(r.b)}</td><td class="u-nowrap">${onBye(r.p)?'<span class="muted">—</span>':matchPill(r.p)}</td>
     <td class="r num">${onBye(r.p)?'<span class="muted">—</span>':vegasCell(r.p)}</td>
     <td>${r.proj>0&&r.p.real?votesBar(consensus(r.p)):'<span class="muted">—</span>'}</td>
-    <td class="r big">${f1(r.proj)}${r.sites!=null&&r.proj>0?`<span class="subn">model ${f1(r.model)} · sites ${f1(r.sites)}</span>`:''}</td>
-    <td><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></td>
+    <td class="r big">${r.np?DASH:f1(r.proj)}${r.sites!=null&&r.proj>0?`<span class="subn">model ${f1(r.model)} · sites ${f1(r.sites)}</span>`:''}</td>
+    <td><div class="range" title="${f1(r.lo)} – ${f1(r.hi)}"><div class="track"></div>${r.proj?`<div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:''}</div><div class="num muted u-t-xs">${r.np?'—':f1(r.lo)+' – '+f1(r.hi)}</div></td>
     <td>${call(r)}</td></tr>`}).join('')+pgW.moreRow:`<tr><td colspan="9" class="muted">${none}</td></tr>`;
   renderH2H();
 }
@@ -2272,14 +2278,14 @@ function wkCard(r,call,maxHi){const p=r.p,bye=onBye(p),c=r.proj>0&&p.real?consen
   const nm=p.real&&PL.has(p.key)?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:`<span class="pname">${esc(p.name)}</span>`;
   return `<li class="wkc"><div class="wkc-face">${starBtn(p.key||p.id)}
     <div class="wkc-nm"><span class="pos ${p.pos}">${p.pos}</span>${nm}${p.real?'':'<span class="ex">Custom</span>'} ${statusPill(p)}</div>
-    <div class="wkc-proj big">${f1(r.proj)}</div>
+    <div class="wkc-proj big">${r.np?DASH:f1(r.proj)}</div>
     <div class="wkc-sub">${p.team?`<span>${esc(p.team)}</span>`:''}${bye?'<span class="muted">Bye</span>':matchPill(p)}</div>
     <div class="wkc-call">${call(r)}</div></div>
     <details class="tools-d wkc-more"><summary><span>${c?votesBar(c):'<span class="muted">No tool votes</span>'}</span>Details</summary>
       <dl class="wkc-dl"><div><dt>Avg pts</dt><dd class="num">${f1(r.b)}</dd></div>
         <div><dt>Vegas</dt><dd class="num">${bye?'—':vegasCell(p)}</dd></div>
         <div><dt>Model · sites</dt><dd class="num">${r.sites!=null&&r.proj>0?`${f1(r.model)} · ${f1(r.sites)}`:'—'}</dd></div>
-        <div class="wkc-rg"><dt>Floor – ceiling</dt><dd><div class="range">${r.proj?`<div class="track"></div><div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:'<div class="track"></div>'}</div><div class="num muted u-t-xs">${f1(r.lo)} – ${f1(r.hi)}</div></dd></div></dl>
+        <div class="wkc-rg"><dt>Floor – ceiling</dt><dd><div class="range">${r.proj?`<div class="track"></div><div class="band" style="left:${r.lo/maxHi*100}%;width:${(r.hi-r.lo)/maxHi*100}%"></div><div class="dot" style="left:${r.proj/maxHi*100}%"></div>`:'<div class="track"></div>'}</div><div class="num muted u-t-xs">${r.np?'—':f1(r.lo)+' – '+f1(r.hi)}</div></dd></div></dl>
     </details></li>`;}
 $('#wkSort').onchange=e=>{ui.sortW=e.target.value;ui.dirW=1;renderWeek();};
 $('#wkDir').onclick=()=>{ui.dirW=-(ui.dirW||1);renderWeek();};
@@ -2299,7 +2305,7 @@ function renderH2H(){
   const byLabel=new Map(ps.map(x=>[label(x.p).toLowerCase(),x.p.id]));
   const opts=groups.map(([pos,g])=>g.map(x=>`<option value="${esc(label(x.p))}">${isMine(x.p)?'★ On my team':''}</option>`).join('')).join('');
   const A=byId.get(ui.a),B=byId.get(ui.b),wa=weekProj(A),wb=weekProj(B);
-  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';const pg=p.real&&PL.has(p.key);return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${pg?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name)}</div><div class="side-row"><div class="proj">${f1(w.proj)}</div>${pg?`<button class="side-pg" data-k="${esc(p.key)}" aria-label="Open ${esc(p.name)}'s player page">Player page<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}</div><div class="note">projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}</div>
+  const side=(id,p,w,win,lbl)=>{const g=p.real?gameOf(p):null,e=p.real?ecrOf(p):null,wt=g&&g.weather?weatherText(g.weather):'';const pg=p.real&&PL.has(p.key);return `<div class="side-nm"><span class="pos ${p.pos}">${p.pos}</span> ${pg?`<button class="plink" data-k="${esc(p.key)}">${esc(p.name)}</button>`:esc(p.name)}</div><div class="side-row"><div class="proj">${w.np?'—':f1(w.proj)}</div>${pg?`<button class="side-pg" data-k="${esc(p.key)}" aria-label="Open ${esc(p.name)}'s player page">Player page<svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16"><path d="M6 3l5 5-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`:''}</div><div class="note">${w.np?'Not projected: no outside site has a number for him this week':`projection · range ${f1(w.lo)}–${f1(w.hi)}${w.sites!=null?` · model ${f1(w.model)}, sites ${f1(w.sites)}`:''}`}</div>
     ${g&&g.implied!=null?`<div class="note">Vegas: team implied ${f1(g.implied)} pts (${g.spread>0?'+':''}${g.spread}, O/U ${g.total})${wt?' · '+esc(wt):''}</div>`:''}
     ${e?`<div class="note">Experts: ${p.pos}${e[1]} (best ${e[3]}, worst ${e[4]})${e[5]?' · grade '+esc(e[5]):''}</div>`:''}
     <div>${onBye(p)?'<span class="pill p-mute">Bye</span>':matchPill(p,true)} ${statusPill(p)}${p.trend&&p.trend!=='Steady'?` <span class="pill ${p.trend==='Rising'?'p-good':'p-warn'}">${p.trend==='Rising'?'Role rising':'Role falling'}</span>`:''}</div>`;};
@@ -2316,8 +2322,9 @@ function renderH2H(){
       if(hit){ui[slot]=hit;renderH2H();}else{el.value=label(slot==='a'?A:B);toast('No player matches that name');}};};
   pick('selA','a');pick('selB','b');
   const diff=Math.abs(wa.proj-wb.proj),W=wa.proj>=wb.proj?A:B,L=W===A?B:A,ww=W===A?wa:wb,wl=W===A?wb:wa;
-  let msg;
-  if(wa.proj===0&&wb.proj===0)msg=`<b>Neither</b><br>Both are out or on bye this week.`;
+  let msg;const npAny=wa.np||wb.np;
+  if(npAny)msg=`<b>No call</b><br>${wa.np&&wb.np?'Neither player is':esc((wa.np?A:B).name)+' is not'} projected by any outside site this week, so there is no number to compare.`;
+  else if(wa.proj===0&&wb.proj===0)msg=`<b>Neither</b><br>Both are out or on bye this week.`;
   else if(diff<1){const safe=(ww.hi-ww.lo)<=(wl.hi-wl.lo)?W:L,risky=safe===W?L:W;
     msg=`<b>Coin flip</b><br>Less than a point apart. Need a safe week? Start <b class="u-t-base">${esc(safe.name)}</b> (steadier). Chasing a big score? Start <b class="u-t-base">${esc(risky.name)}</b>.`;}
   else msg=`<b>Start ${esc(W.name)}</b><br>Projected ${f1(diff)} points ahead${diff>4?', a clear edge':''}.${L.status!=='Healthy'&&!onBye(L)?` ${esc(L.name)} is ${L.status.toLowerCase()}, which adds risk.`:''}`;
@@ -2328,13 +2335,13 @@ function renderH2H(){
     // "11.3 (WR20)": the tool's projected points and the rank they give at the position (rank only for expert rankings)
     const cell=(t,P)=>!t?'—':t.pts!=null?`${f1(t.pts)} <span class="trk">(${P.pos}${Math.round(t.rank)})</span>`:`${P.pos}${Math.round(t.rank)}`;
     return `<tr><td>${esc(nm)}</td><td class="r num${w==='a'?' win':''}">${cell(x,A)}</td><td class="r num${w==='b'?' win':''}">${cell(y,B)}</td></tr>`;}).join('');
-  if(va+vb>0&&!(wa.proj===0&&wb.proj===0)){const TW=va>=vb?A:B,tv=Math.max(va,vb),tt=va+vb;
+  if(va+vb>0&&!npAny&&!(wa.proj===0&&wb.proj===0)){const TW=va>=vb?A:B,tv=Math.max(va,vb),tt=va+vb;
     if(diff<1&&tt>=3&&tv/tt>=2/3)msg=`<b>Start ${esc(TW.name)}</b><br>The projections are within a point, so the tools break the tie: <b class="u-t-base">${tv} of ${tt}</b> pick ${esc(TW.name)}.`;
     else msg+=TW===W||diff<1?` <b class="u-t-base">${tv} of ${tt}</b> tools pick ${esc(TW.name)}.`:` But <b class="u-t-base">${tv} of ${tt}</b> tools pick ${esc(TW.name)}, so it's closer than the projection says.`;}
   const tblT=names.length?`<div class="tbl-wrap u-mt-10"><table class="tooltbl"><thead><tr><th>Start/sit tool</th><th class="r">${esc(A.name)}</th><th class="r">${esc(B.name)}</th></tr></thead><tbody>${rowsT}</tbody></table></div>`:'';
   // the call first, as a band; how each tool voted sits underneath, folded away
   const last=P=>esc(lastName(P.name)),tvA=va>=vb;
-  const tally=va+vb>0&&!(wa.proj===0&&wb.proj===0)?`<div class="vd-tally" role="img" aria-label="${Math.max(va,vb)} of ${va+vb} tools pick ${esc((tvA?A:B).name)}">
+  const tally=va+vb>0&&!npAny&&!(wa.proj===0&&wb.proj===0)?`<div class="vd-tally" role="img" aria-label="${Math.max(va,vb)} of ${va+vb} tools pick ${esc((tvA?A:B).name)}">
     <div class="vd-sq">${'<i class="on"></i>'.repeat(Math.max(va,vb))}${'<i></i>'.repeat(Math.min(va,vb))}</div>
     <div class="vd-who"><span><b>${last(tvA?A:B)}:</b> ${esc((tvA?aN:bN).join(', ')||'none')}</span><span><b>${last(tvA?B:A)}:</b> ${esc((tvA?bN:aN).join(', ')||'none')}</span></div></div>`:'';
   $('#verdict').innerHTML=`<div class="verdict"><div class="vd-msg">${msg}</div>${tally}</div>`;
@@ -3103,7 +3110,7 @@ function renderChanges(byKey,pname){
   if(S.week!==SD.week){el.hidden=true;return;}
   const ctx=SD.week+'|'+scKey()+'|'+JSON.stringify(S.w),snap={};
   for(const k of S.mine){const r=byKey.get(k);if(!r)continue;const pr=practiceOf(r.p);
-    snap[k]={s:effStatus(r.p)||'Healthy',pc:(pr&&pr[0])||'',pj:Math.round(r.proj*10)/10};}
+    snap[k]={s:effStatus(r.p)||'Healthy',pc:(pr&&pr[0])||'',pj:r.np?null:Math.round(r.proj*10)/10};}
   SEEN.cur={t:Date.now(),ctx,p:snap};saveSeen();
   const P=SEEN.prev;if(!P||!P.p){el.hidden=true;return;}
   const items=[];
@@ -3111,7 +3118,7 @@ function renderChanges(byKey,pname){
     if(c.s!==was.s){const worse=(ST_SEV[c.s]??0)>(ST_SEV[was.s]??0);
       notes.push(c.s==='Healthy'?`Injury tag cleared (was ${ST_LBL[was.s]||was.s})`:`Now ${ST_LBL[c.s]||c.s}${was.s!=='Healthy'?` (was ${ST_LBL[was.s]||was.s})`:''}`);score+=worse?100:50;}
     else if(c.pc&&c.pc!==was.pc){notes.push(`${PC_LBL[c.pc]||c.pc}${was.pc?` (was ${(PC_LBL[was.pc]||was.pc).toLowerCase()})`:''}`);score+=c.pc==='DNP'?60:c.pc==='LP'?40:20;}
-    if(P.ctx===ctx){const d=c.pj-was.pj;
+    if(P.ctx===ctx&&c.pj!=null&&was.pj!=null){const d=c.pj-was.pj;
       if(Math.abs(d)>=Math.max(1.5,.15*was.pj)){notes.push(`Projection ${f1(was.pj)} → <b>${f1(c.pj)}</b> (${d>0?'+':'−'}${f1(Math.abs(d))})`);score+=Math.abs(d)*5;}}
     const nw=newsSince(p,P.t);
     if(notes.length||nw.length)items.push({p,notes,nw,score:score+(nw.length?5:0)});}
@@ -3183,7 +3190,7 @@ function renderHome(){
       if(sc.st==='bye')return `<span class="sc-s">Bye</span>`;
       if(sc.st==='wait')return `<span class="lvp sc-zero">—</span><span class="sc-s">Final · stats soon</span>`;
       return call(r);};
-    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span>${xcols(r)}<span class="hm-pr">${f1(r.proj)}</span><span class="sc-c">${scoreCell(r)}</span>`;
+    const row=(r,slot)=>`<span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)} ${statusPill(r.p)}<br><span class="hm-sm">${oppLine(r.p)}${slot==='FLEX'||slot==='SFLEX'?' · '+SLOT_LBL[slot]:''}</span></span>${xcols(r)}<span class="hm-pr">${r.np?'—':f1(r.proj)}</span><span class="sc-c">${scoreCell(r)}</span>`;
     // the Start/Sit board's columns, shown when the box is wide enough (see .hm-tt .xc)
     const NA='<span class="muted">—</span>',maxHi=Math.max(1,...starters.map(x=>byKey.get(x.x.key).hi||0));
     const xcols=r=>{const bye=onBye(r.p);return `<span class="xc num muted u-ta-r">${f1(r.b)}</span><span class="xc">${bye?NA:matchPill(r.p)}</span><span class="xc num u-ta-r">${bye?NA:vegasCell(r.p)}</span>
@@ -3200,7 +3207,7 @@ function renderHome(){
         <span class="sc-c">${scoring?`<span class="lvp">${f1(T.sofar)}</span><span class="sc-s">${T.all?diff(T.sofar,T.proj)+' vs projection':`on pace for <b>${f1(T.pace)}</b> · ${T.n-T.done} still to play`}</span>`:`<span class="sc-s">Projected</span>`}</span></div></div>
       ${bench.length?`<div class="hm-bench"><b>Bench:</b> ${bench.slice(0,6).map(x=>{const r=byKey.get(x.key),sc=r?weekScore(r.p,wk):{st:'pre'},has=sc.st==='live'||sc.st==='final';
         const beat=has&&starters.some(st=>{if(!SLOT_OK[st.slot].includes(x.pos))return false;const s2=weekScore(byKey.get(st.x.key).p,wk);return (s2.st==='final'||s2.st==='out')&&sc.st==='final'&&sc.pts>s2.pts;});
-        return `${esc(x.name)} <span class="bn">${f1(x.proj)}${has?` → <b${beat?' class="beat" title="Outscored one of your starters at this spot"':''}>${f1(sc.pts)}</b>`:''}</span>`;}).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
+        return `${esc(x.name)} <span class="bn">${x.np?'not projected':f1(x.proj)}${has?` → <b${beat?' class="beat" title="Outscored one of your starters at this spot"':''}>${f1(sc.pts)}</b>`:''}</span>`;}).join(' · ')}${bench.length>6?' · …':''}</div>`:''}
       ${!LG&&close&&close.gap<=4?`<div class="hm-close"><b>Closest call:</b> ${esc(close.a.name)} ${f1(close.a.proj)} vs ${esc(close.b.name)} ${f1(close.b.proj)} for your ${SLOT_LBL[close.slot]==='D/ST'?'D/ST':SLOT_LBL[close.slot].toLowerCase()} spot. <button class="hm-link" data-cmp="${esc(close.a.key)}|${esc(close.b.key)}">Compare</button></div>`:''}`;}
   // this week's games, once any has started or one kicks off within 12 hours
   {const el=$('#hmGames'),now=Date.now(),gs=[...new Set(LIVE.games.values())].filter(g=>g.state==='in'||Math.abs(now-g.date)<12*36e5).sort((a,b)=>({in:0,pre:1,post:2}[a.state]-{in:0,pre:1,post:2}[b.state])||a.date-b.date);
@@ -3444,7 +3451,7 @@ let _lp=null,_lpKey='';
 function lineupPool(){
   const ck=S.week+'|'+scKey()+'|'+JSON.stringify(S.w);if(_lp&&_lpKey===ck)return _lp;
   const m=new Map();
-  for(const p of realPlayers()){const w=weekProj(p);m.set(p.key,{key:p.key,p,name:p.name,pos:p.pos,team:p.team,proj:w.proj,real:true});}
+  for(const p of realPlayers()){const w=weekProj(p);m.set(p.key,{key:p.key,p,name:p.name,pos:p.pos,team:p.team,proj:w.proj,np:w.np,real:true});}
   if(S.week===SD.week)for(const r of SITES){if(m.has(r.key))continue;const v=siteVals(r);if(!v.n)continue;
     m.set(r.key,{key:r.key,p:null,name:r.name,pos:r.pos,team:r.team,proj:v.avg,real:false});}
   _lp=m;_lpKey=ck;return m;}
@@ -3499,7 +3506,7 @@ function renderLineup(){
   const pname=x=>x.real&&PL.has(x.key)?`<button class="plink" data-k="${esc(x.key)}">${esc(x.name)}</button>`:esc(x.name);
   $('#luStart').innerHTML=L.start.map(r=>`<tr><td><b>${SLOT_LBL[r.slot]}</b></td><td>${r.x?`<span class="pos ${r.x.pos}">${r.x.pos}</span> ${pname(r.x)} <span class="muted">${esc(r.x.team||'')}</span>`:'<span class="muted">Empty: add a player who fits this slot</span>'}</td><td class="r big">${r.x?f1(r.x.proj):'—'}</td><td>${r.x?tcell(r.x):''}</td><td class="u-nowrap">${mcell(r.x)}</td></tr>`).join('');
   $('#luTotal').textContent=roster.length?`Projected total: ${f1(L.total)} pts`:'';
-  $('#luBench').innerHTML=L.bench.length?L.bench.map(x=>{const why=x.proj<=0?(x.real&&onBye(x.p)?'On bye':'Out or not expected to play'):'Lower projection';return `<tr><td class="u-w-40p"><span class="pos ${x.pos}">${x.pos}</span> ${pname(x)} <span class="muted">${esc(x.team||'')}</span></td><td class="r num">${f1(x.proj)}</td><td class="note">${why}</td></tr>`;}).join(''):'<tr><td class="muted">Nobody on the bench.</td></tr>';
+  $('#luBench').innerHTML=L.bench.length?L.bench.map(x=>{const why=x.np?'Not projected by any outside site':x.proj<=0?(x.real&&onBye(x.p)?'On bye':'Out or not expected to play'):'Lower projection';return `<tr><td class="u-w-40p"><span class="pos ${x.pos}">${x.pos}</span> ${pname(x)} <span class="muted">${esc(x.team||'')}</span></td><td class="r num">${x.np?'—':f1(x.proj)}</td><td class="note">${why}</td></tr>`;}).join(''):'<tr><td class="muted">Nobody on the bench.</td></tr>';
   // waiver scan
   $('#luOwn').value=ui.luOwn;$('#luOwnV').textContent=ui.luOwn+'% of leagues';
   const rs=new Set(roster);
@@ -3568,7 +3575,7 @@ function oppText(r,wk=SD.week){const sc=(SCHED[r.team]||[])[wk-1];
 function modelScored(r,RP){const out={model:null,scored:null,live:false};if(S.week!==SD.week)return out;
   const t=kickTime(gameOf(r)),started=t!=null&&Date.now()>t,si=['ppr','half','std'].indexOf(S.scoring);
   const fz=SD.frozen&&SD.frozen[r.key];
-  if(started&&fz&&fz[si]!=null)out.model=fz[si];else{const p=RP.get(r.key);if(p&&!onBye(p))out.model=weekProj(p).proj;}
+  if(started&&fz&&fz[si]!=null)out.model=fz[si];else{const p=RP.get(r.key),w=p&&!onBye(p)?weekProj(p):null;if(w&&!w.np)out.model=w.proj;}
   const pl=PL.get(r.key),w=pl&&pl.weeks[SD.week-1];
   if(started&&w){out.scored=wpts(w);out.live=Date.now()<t+3.75*36e5;}
   const lv=liveOf(pl||r);if(lv&&(lv.g.state==='in'||out.scored==null)){out.scored=lv.pts;out.live=lv.g.state==='in';out.clock=lv.g.short;}
@@ -3976,21 +3983,21 @@ function renderPlayer(){
   const tr=(()=>{const peers=[...PL.values()].filter(q=>q.pos===p.pos);
     const rk=(pool,fn)=>{const me=fn(p);if(me==null||!Number.isFinite(me)||!pool.includes(p))return null;return p.pos+(1+pool.filter(q=>{const v=fn(q);return Number.isFinite(v)&&v>me;}).length);};
     const snapF=q=>dv(q.s.off_snp,q.s.tm_off_snp);
-    const real=realPlayers(),me=real.find(x=>x.key===p.key);let proj=null,projV=null;
-    if(me){projV=weekProj(me).proj;if(projV>0){const ps=real.filter(x=>x.pos===p.pos).map(x=>weekProj(x).proj).filter(v=>v>0);proj=p.pos+(1+ps.filter(v=>v>projV).length);}}
+    const real=realPlayers(),me=real.find(x=>x.key===p.key);let proj=null,projV=null,np=false;
+    if(me){projV=weekProj(me).proj;np=!!weekProj(me).np;if(projV>0){const ps=real.filter(x=>x.pos===p.pos).map(x=>weekProj(x).proj).filter(v=>v>0);proj=p.pos+(1+ps.filter(v=>v>projV).length);}}
     // consistency: share of weeks at a starter-level score first, then the smaller week-to-week swing (relative to his average); regulars with 3+ games
     const cvF=q=>{const v=q.weeks.map(wpts).filter(x=>x!=null);if(v.length<3)return null;const m=v.reduce((a,b)=>a+b,0)/v.length;if(m<=0)return null;
       const rate=v.filter(x=>x>=startLine).length/v.length,cv=Math.sqrt(v.reduce((a,b)=>a+(b-m)**2,0)/v.length)/m;return rate*10-Math.min(cv,9.9);};
     const cons=rk(peers.filter(q=>q.gp>=3&&ppg(q)>=startLine/2&&cvF(q)!=null),cvF);
     const us=usageOf(p.pos);
     const share=us?rk(peers.filter(us.pool),us.seas):null;
-    return {share,cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null};})();
+    return {share,cons,ppg:rk(peers.filter(q=>q.gp>=2),ppg),tot:rk(peers,tot),snap:p.pos==='K'||p.pos==='DST'?null:rk(peers.filter(q=>q.gp>=2&&q.s.tm_off_snp>0),snapF),proj,projV:me?projV:null,np};})();
   const US=usageOf(p.pos),shV=US?US.seas(p):null;
   const shareTile=US&&shV!=null?`<div class="tile"><span class="label">${US.tile}</span><span class="v">${pct(shV)}</span><span class="s">${tr.share?`<b class="tr">${rkTxt(tr.share,p.pos)}</b>, `:''}${US.sub(p)}</span></div>`:'';
   // stat strip, first thing on Overview: this week's projection leads; a card whose number we don't have is left out
   const wkBye=rp&&onBye(rp),wkSt=rp&&effStatus(rp),wkOut=!wkBye&&(wkSt==='Out'||wkSt==='IR');
   const opp=g?`${g.home?'vs':'at'} ${esc(g.opp)}`:sv?esc(oppText(site)):'';
-  const leadV=!rp?null:wkBye?'Bye':wkOut?esc(wkSt):tr.projV>0?f1(tr.projV):null;
+  const leadV=!rp?null:wkBye?'Bye':wkOut?esc(wkSt):tr.np?NP:tr.projV>0?f1(tr.projV):null;
   const strip=[leadV!=null&&`<div class="tile ps-lead"><span class="label">Wk ${S.week} proj${opp?' · '+opp:''}</span><b class="ps-v">${leadV}</b></div>`,
     vals.length&&`<div class="tile"><span class="label">Season avg</span><b class="ps-v">${f1(ppg(p))}</b></div>`,
     tr.ppg&&`<div class="tile"><span class="label">Position rank</span><b class="ps-v">${esc(tr.ppg)}</b><span class="s">by pts / game</span></div>`].filter(Boolean).join('');
