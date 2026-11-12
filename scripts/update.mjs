@@ -35,7 +35,7 @@ const readJson = async name => { try { return JSON.parse(await readFile(new URL(
 
 await mkdir(DIR, { recursive: true });
 const prevEspn = await readJson('espn-cache.json');
-const d = await build(fetchJson, { prevEspn, log: m => console.log(m) });
+const d = await build(fetchJson, { prevEspn, prevPlayers: await readJson('players-cache.json'), log: m => console.log(m) });
 
 // Problems that must not pass quietly but should not hold back fresh data: the data is still written,
 // then the run exits with code 2 and the workflow turns red after committing (see update.yml).
@@ -94,6 +94,7 @@ await writeFile(new URL('ctx-data.js', DIR), js('CTX_DATA', { ...d.ctx, pulled }
 if (adv) await writeFile(new URL('adv-data.js', DIR), js('ADV_DATA', { ...adv, pulled }));
 if (news) await writeFile(new URL('news-data.js', DIR), js('NEWS_DATA', { pulled, news }));
 await writeFile(new URL('espn-cache.json', DIR), JSON.stringify(d.espnCache));
+await writeFile(new URL('players-cache.json', DIR), JSON.stringify(d.playersCache));
 await writeFile(new URL('meta.json', DIR), JSON.stringify({ hash, updated: updated.toISOString(), season: d.season, week: d.week, through: d.through, sources }, null, 2));
 console.log(`Wrote data for ${d.season} week ${d.week} (${d.through}).`);
 

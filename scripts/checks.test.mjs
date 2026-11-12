@@ -40,14 +40,14 @@ test('CBS rankings page: experts, and each player\'s rank from each', () => {
 });
 
 // a tiny stand-in for Sleeper and ESPN: enough for build() to run
-function fakeFetch({ projections, espnFails }) {
+function fakeFetch({ projections, espnFails, players = {}, calls = {} }) {
   return async url => {
     if (url.includes('/state/nfl')) return { season: '2026', week: 10, display_week: 10, season_type: 'regular' };
     if (url.includes('/schedule/')) return [{ week: 10, home: 'ATL', away: 'MIN', date: '2099-11-15', status: 'pre' }];
     if (url.includes('/projections/')) return projections;
     if (url.includes('/stats/')) return Array.from({ length: 200 }, (_, i) => ({ player_id: 'p' + i, team: 'ATL',
       player: { first_name: 'Player', last_name: 'N' + i, position: 'WR' }, stats: { gp: 1, pts_ppr: 5, off_snp: 30, tm_off_snp: 60 } }));
-    if (url.includes('/players/nfl')) return {};
+    if (url.includes('/players/nfl')) { calls.players = (calls.players || 0) + 1; return players; }
     if (url.includes('espn.com')) { if (espnFails) throw new Error('HTTP 503'); return { players: [] }; }
     throw new Error('unexpected url ' + url);
   };
@@ -67,4 +67,28 @@ test('build: ESPN failing or returning nothing is recorded as a failed source, w
   const empty = await build(fakeFetch({ projections: projRows(200) }));
   assert.equal(empty.sources.ESPN.ok, false);
   assert.match(empty.sources.ESPN.detail, /only 0 rows/);
+});
+
+test('build: the player list is fetched once a day and only teams and injury rows are kept', async () => {
+  const players = Object.fromEntries(Array.from({ length: 1200 }, (_, i) => ['x' + i, { position: 'LB', team: 'ATL' }]));
+  players.p0 = { position: 'WR', team: 'MIN', full_name: 'Player N0', injury_status: 'Questionable', search_rank: 50 };
+  players.p1 = { position: 'WR', team: null };
+  const calls = {};
+  const first = await build(fakeFetch({ projections: projRows(200), players, calls }));
+  assert.equal(calls.players, 1);
+  assert.equal(first.playersCache.team.p0, 'MIN');   // traded since his last game
+  assert.equal(first.playersCache.team.p1, 'FA');
+  assert.equal(Object.keys(first.playersCache.team).length, 2);   // only players with stats are kept
+  assert.equal(first.ctx.inj, 'Player N0|WR|MIN|Questionable');
+  assert.match(first.stats.rows, /^Player N0\|WR\|MIN\|/);
+  // a later run the same day: no download, same answer from the saved copy
+  const second = await build(fakeFetch({ projections: projRows(200), players: {}, calls }), { prevPlayers: first.playersCache });
+  assert.equal(calls.players, 1);
+  assert.equal(second.ctx.inj, first.ctx.inj);
+  assert.match(second.stats.rows, /^Player N0\|WR\|MIN\|/);
+  // the next day: downloaded again; a broken answer keeps yesterday's copy and marks the source failed
+  const stale = await build(fakeFetch({ projections: projRows(200), players: {}, calls }), { prevPlayers: { ...first.playersCache, day: '2000-01-01' } });
+  assert.equal(calls.players, 2);
+  assert.equal(stale.sources['Sleeper player list'].ok, false);
+  assert.equal(stale.ctx.inj, first.ctx.inj);
 });

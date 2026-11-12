@@ -1,7 +1,7 @@
 // The fewest rows each source should return. A download that "works" but comes back empty or nearly
 // empty used to count as success; now it is treated as a failure of that source.
 export const MIN_ROWS = {
-  'Sleeper projections': 150, 'ESPN projections': 150, 'Betting lines': 10,
+  'Sleeper projections': 150, 'Sleeper player list': 1000, 'ESPN projections': 150, 'Betting lines': 10,
   'FantasyPros consensus': 100, 'FantasyPros rest of season': 100, 'CBS Sports': 100,
   // season-to-date files: only checked from Week 3, once they have had time to fill
   'Sleeper stats': 150, 'nflverse stats': 300, 'Next Gen Stats receiving': 20, 'Next Gen Stats rushing': 10, 'Next Gen Stats passing': 10,
