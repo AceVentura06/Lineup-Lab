@@ -35,8 +35,8 @@ test('CBS projections page: name, team and fantasy points per row', () => {
 test('CBS rankings page: experts, and each player\'s rank from each', () => {
   const r = parseCbsRanks(fixture('cbs-ranks-rb.html'));
   assert.deepEqual(r.experts, ['Jamey Eisenberg', 'Dave Richard', 'Heath Cummings']);
-  assert.deepEqual(r.rows.map(x => [x.name, x.team, x.rank, x.experts]), [
-    ['Jahmyr Gibbs', 'DET', 1, [1, 2, 1]], ['Kenneth Walker III', 'KC', 2, [2, 1, 2]], ['Bijan Robinson', 'ATL', 3, [3, 4, 3]]]);
+  assert.deepEqual(r.rows.map(x => [x.name, x.team, x.opp, x.rank, x.experts]), [
+    ['Jahmyr Gibbs', 'DET', 'NE', 1, [1, 2, 1]], ['Kenneth Walker III', 'KC', 'ATL', 2, [2, 1, 2]], ['Bijan Robinson', 'ATL', 'KC', 3, [3, 4, 3]]]);
 });
 
 // a tiny stand-in for Sleeper and ESPN: enough for build() to run

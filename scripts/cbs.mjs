@@ -34,9 +34,12 @@ export function parseCbsRanks(html) {
     const team = tm((seg.match(/FantasyRankingsTable-teamPosition">([^<]*)</) || [])[1]);
     const tds = [...seg.matchAll(/<td[^>]*>([\s\S]*?)<\/td>/g)].map(m => txt(m[1]));
     if (tds.length < 4) continue;
-    const name = dec(first + last).replace(/\s+/g, ' ').trim() || tds[1];
+    // players have first/last spans; defenses only a playerName span ("Rams")
+    const name = dec(first + last).replace(/\s+/g, ' ').trim() || txt((seg.match(/FantasyRankingsTable-playerName">([\s\S]*?)<\/span>/) || [])[1] || '') || tds[1];
     const ranks = tds.slice(3).map(v => parseInt(v, 10)).filter(Number.isFinite);
-    out.push({ name, team, opp: tm(tds[2].replace(/^@/, '')), rank: parseInt(tds[0], 10), experts: ranks });
+    // the opponent is in the player cell ("vs NE", "@ NE"); the third column is now the opponent's rank
+    const opp = ((seg.match(/FantasyRankingsTable-opponent[^"]*">([^<]*)</) || [])[1] || '').replace(/^(vs\.?|@|at)\s*/i, '');
+    out.push({ name, team, opp: tm(opp), rank: parseInt(tds[0], 10), experts: ranks });
   }
   return { experts: experts.slice(0, out[0]?.experts.length || experts.length), rows: out };
 }
