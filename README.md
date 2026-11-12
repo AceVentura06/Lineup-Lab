@@ -11,7 +11,7 @@ A fantasy football evaluator: weekly start/sit projections, ESPN vs. Sleeper pro
 - extra runs Sunday late morning, after teams announce inactives, and early Tuesday, when the site moves to the next week
 - whenever you click **Actions → Update data → Run workflow**
 
-The script pulls from 14 sources and rewrites the files in `data/`:
+The script pulls from 16 sources and rewrites the files in `data/`:
 
 | Source | Used for |
 | --- | --- |
@@ -27,8 +27,28 @@ The script pulls from 14 sources and rewrites the files in `data/`:
 | Open-Meteo | Game-time weather at outdoor stadiums |
 | ESPN analysts | Weekly positional rankings |
 | CBS Sports | Expert rankings (Eisenberg, Richard, Cummings) and projections |
+| ffopportunity expected points, nflverse snap counts | The usage model in testing (not shown on the site) |
 
-If any single source fails, the rest still update. If nothing changed, it skips the commit. GitHub Pages then republishes the site within a few minutes.
+If any single source fails, the rest still update, and the failed source is named on the How It Works page. A source that comes back empty or nearly empty counts as failed (`scripts/checks.mjs`). An empty answer from Sleeper stops the run so the last good data stays up. If nothing changed, it skips the commit. GitHub Pages then republishes the site within a few minutes.
+
+A run turns red in two ways. If the updater stops (exit code 1), nothing is committed. If it finishes but reports a `PROBLEM` (exit code 2: the accuracy scoreboard failed, the usage model produced nothing, or two players share a key), the data is committed first and the run fails afterwards; search the "Fetch fresh data" log for `PROBLEM`.
+
+## Scoring and accuracy
+
+Everything is projected and graded in ESPN default scoring (`scripts/scoring.mjs`). Each outside site publishes in its own rules, and the page converts from those: ESPN counts an interception as −2, CBS pays 6 points per passing touchdown, Sleeper and FantasyPros use 4 and −1.
+
+Each update saves the week's projections to `data/history/` and freezes a player's numbers at his kickoff. Finished weeks are graded on a shared pool: players every graded source projected, averaging 5+ points. A player still projected at kickoff who did not play counts as zero. CBS is not graded on kickers or defenses.
+
+## The usage model (in testing)
+
+A second model built on workload is saved each week as the hidden source `mod2` and graded privately in `data/shadow.json`. Nothing on the site reads it. It goes live only if it beats the current model; see `docs/BACKTEST.md` for the measured results so far.
+
+- `node scripts/fit.mjs` refits it on the last three seasons. Run by hand once per offseason; it rewrites `assets/model/coefficients.json`.
+- `node scripts/backtest.mjs` re-runs the walk-forward test and rewrites `docs/BACKTEST.md`.
+
+## Tests
+
+`node --test scripts/*.test.mjs` (no network, no packages). The update workflow runs them after every data refresh.
 
 ## Files
 
@@ -40,6 +60,11 @@ If any single source fails, the rest still update. If nothing changed, it skips 
 | `scripts/adv.mjs` | Every other source |
 | `scripts/cbs.mjs` | CBS Sports pages |
 | `scripts/update.mjs` | Runs the build and writes `data/` |
+| `scripts/accuracy.mjs` | Saves weekly projections, grades finished weeks, tunes the blend |
+| `scripts/scoring.mjs`, `keys.mjs`, `checks.mjs` | The scoring table, player keys and aliases, minimum rows per source |
+| `scripts/usage.mjs`, `fit.mjs`, `backtest.mjs` | The usage model: inputs, yearly fit, walk-forward test |
+| `assets/model/` | The usage model's formula and fitted weights |
+| `scripts/backfill.mjs`, `migrate-history.mjs` | One-off history tools (rebuild early weeks; the 2026 ESPN/CBS quarterback correction) |
 | `charts/` | Source for the React charts (Bklit UI components) — see below |
 | `assets/charts/` | The built chart bundle — generated, don't edit by hand |
 
