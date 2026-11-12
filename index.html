@@ -1350,7 +1350,7 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 .legal .lg-lead{font-size:var(--t-base);color:var(--ink)}
 .legal h2{font-family:var(--f-body);font-style:normal;font-size:var(--t-lg);font-weight:700;line-height:1.25;letter-spacing:0;text-transform:none;padding:0;border:0;margin:10px 0 -4px}
 .legal ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
-.legal a{color:var(--turf);text-decoration:underline;text-underline-offset:3px}
+.legal a,.prose .note a{color:var(--turf);text-decoration:underline;text-underline-offset:3px}
 .legal .btns{margin-top:2px}
 @media (max-width:760px){.legal h2{font-size:var(--t-base)}}
 /* one-off layout utilities (were inline style=""). !important keeps the inline style's old precedence over component rules */
@@ -1828,6 +1828,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
     <div>
       <div class="card prose">
         <h1 class="pg-title">How a Player Is Graded</h1>
+        <p class="note">These are the formulas. For the plain-language version, and what the numbers cannot do, see <a href="#method" data-go="method">How We Evaluate Players</a>.</p>
         <p><b>1. Base points.</b> Per-game stats are converted with your scoring:</p>
         <div class="formula" id="scoreFormula"></div>
         <p><b>2. This week.</b> The model adjusts base points, then blends in the sites:</p>
@@ -1876,6 +1877,41 @@ Total      = Pts/game × Games left</div>
           <li><b>Vegas implied totals</b>, <b>weather</b>, <b>practice reports</b> and <b>expert consensus</b> – used in each week's projections.</li>
         </ul></div>
       </div>
+    </div>
+  </section>
+
+  <!-- HOW WE EVALUATE PLAYERS (plain-language method; reached from the footer and How It Works) -->
+  <section class="panel" id="p-method" role="tabpanel" aria-labelledby="methodH" hidden>
+    <div><h1 class="pg-title" id="methodH">How We Evaluate Players</h1></div>
+    <div class="card legal">
+      <p class="lg-lead">Ace Lineup Lab does not ask you to trust one opinion. Every weekly number combines several independent projections with our own read on the matchup.</p>
+      <h2>What goes in</h2>
+      <ul>
+        <li><b>Outside projections.</b> Weekly point projections from ESPN, Sleeper, CBS Sports and FantasyPros, converted to your league’s scoring.</li>
+        <li><b>Season production.</b> Each player’s fantasy points per game this year.</li>
+        <li><b>Matchup.</b> How many points the opposing defense has allowed to the position.</li>
+        <li><b>Role trend.</b> Whether a player’s share of snaps has risen or fallen over his last two games (for quarterbacks, his recent scoring).</li>
+        <li><b>Betting lines.</b> The points Las Vegas expects his team to score.</li>
+        <li><b>Weather.</b> Wind and rain at outdoor stadiums.</li>
+        <li><b>Injury reports.</b> Game status and practice participation.</li>
+      </ul>
+      <h2>How it is weighted</h2>
+      <p>Our own model starts from points per game and adjusts for matchup, trend, betting line, weather and injury status. That number is then blended with the average of the outside projections.</p>
+      <p>The blend is not a guess. After every week we grade each source against what players scored, then set the weights by position to whatever would have been most accurate so far. Right now that puts most of the weight on the outside projections, because across this season they have been more accurate than our model alone. We publish those grades on the <a href="#acc" data-go="acc">Accuracy page</a>, including the weeks we lose.</p>
+      <p>Start, Flex and Sit calls come from a player’s average rank at his position across our model, the outside projections and the expert rankings.</p>
+      <h2>What it cannot do</h2>
+      <ul>
+        <li><b>It cannot predict a single game.</b> The best projections in fantasy football miss by five or six points per player in a typical week. Treat the range next to each number as seriously as the number.</li>
+        <li><b>It reacts slowly to role changes.</b> When a starter is hurt, his backup’s projection depends on the outside sites catching it first.</li>
+        <li><b>Touchdowns are noisy.</b> A player who has scored often on few chances will look better than his workload supports.</li>
+        <li><b>Small samples mislead.</b> For players with fewer than three games, we lean more on the outside projections than on our own model.</li>
+        <li><b>Late news can beat us.</b> Data refreshes every 30 minutes, and every 15 minutes on Sundays from noon to midnight Eastern. A player ruled out minutes before kickoff may still show a projection. If no outside site projects a player, we show “Not projected” instead of a number.</li>
+      </ul>
+      <h2>What is changing</h2>
+      <p>We are testing a new model built on workload: targets, carries, snap share, and red-zone and goal-line chances. Research on fantasy scoring keeps finding that workload predicts next week better than last week’s points. The new model is being graded behind the scenes and will replace the current one only if it proves more accurate.</p>
+      <h2>Our promise</h2>
+      <p>No accuracy claim appears on this site unless the Accuracy page can back it up.</p>
+      <p>For the formulas themselves, see <a href="#model" data-go="model">How It Works</a>.</p>
     </div>
   </section>
 
@@ -1940,7 +1976,7 @@ Total      = Pts/game × Games left</div>
   <footer class="site-foot" aria-label="Site information">
     <div class="sf-row">
       <span class="sf-mark" translate="no"><b>Ace</b> Lineup Lab</span>
-      <nav class="sf-links" aria-label="Legal"><a href="#privacy" data-go="privacy">Privacy</a><a href="#terms" data-go="terms">Terms</a></nav>
+      <nav class="sf-links" aria-label="About and legal"><a href="#method" data-go="method">Method</a><a href="#privacy" data-go="privacy">Privacy</a><a href="#terms" data-go="terms">Terms</a></nav>
     </div>
     <p class="sf-note">Projections are estimates for fun, not betting advice. Not affiliated with or endorsed by the NFL, ESPN, Sleeper, CBS Sports or FantasyPros. Team names and logos belong to their owners.</p>
     <p>© <span id="sfYear">2026</span> Ace Lineup Lab</p>
@@ -3308,11 +3344,11 @@ function render(){
    const mb=$('#tMoreBtn');if(mb)mb.classList.toggle('on',inM);
    const rec=SC().rec;$('#ctxWk').textContent=S.week;$('#ctxSc').textContent=rec===1?'PPR':rec===.5?'Half PPR':rec===0?'Standard':'Custom';
    segThumb($('#scoringSeg'));}
-  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model','settings','privacy','terms'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
+  ['home','week','sites','stats','player','ros','lineup','dvp','trade','acc','model','settings','method','privacy','terms'].forEach(t=>$('#p-'+t).hidden=t!==ui.tab);
   document.querySelectorAll('.sf-links [data-go]').forEach(a=>a.dataset.go===ui.tab?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
   // only the open tab is drawn; the others are drawn fresh when you switch to them (go() calls render())
   const R={home:renderHome,week:renderWeek,sites:renderSites,stats:renderStats,player:renderPlayer,ros:renderRos,lineup:renderLineup,
-    acc:renderAcc,trade:renderTrade,dvp:renderDvp,model:renderModel,settings:()=>{renderSettings();renderModel();},privacy:()=>{},terms:()=>{}};
+    acc:renderAcc,trade:renderTrade,dvp:renderDvp,model:renderModel,settings:()=>{renderSettings();renderModel();},method:()=>{},privacy:()=>{},terms:()=>{}};
   (R[ui.tab]||renderHome)();
 }
 
@@ -4154,7 +4190,7 @@ $('#setup').addEventListener('click',e=>{const sc=e.target.closest('[data-v]'),a
   S.setup='done';save();renderSetup();const t=$('#hmTitle');t.tabIndex=-1;t.focus();});
 // Features that are built but switched off. To bring one back, change false to true.
 const FEATURES={trade:true};
-const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model','privacy','terms'].filter(t=>FEATURES[t]!==false);
+const TABS=['home','settings','stats','sites','ros','week','lineup','dvp','trade','acc','model','method','privacy','terms'].filter(t=>FEATURES[t]!==false);
 if(FEATURES.trade){const tb=$('#t-trade');if(tb)tb.hidden=false;}
 let navDepth=0;
 const slug=k=>encodeURIComponent(k.replace(/ /g,'-'));
