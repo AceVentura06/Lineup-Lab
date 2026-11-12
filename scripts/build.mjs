@@ -1,6 +1,8 @@
 // Builds Lineup Lab's data from Sleeper and ESPN.
 // Pure logic: takes a fetchJson(url, headers) function so it can run in Node or a browser.
 // asOfWeek: rebuild the data as it stood right before that week's games (used to backfill past weeks).
+import { minRows } from './checks.mjs';
+
 export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWeek = null, season: forceSeason = null } = {}) {
   const POS = ['QB', 'RB', 'WR', 'TE', 'K', 'DEF'];
   const qs = POS.map(p => 'position[]=' + p).join('&');
@@ -31,7 +33,12 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
       x.team || x.player.team || '', x.opponent || '',
       +(x.stats.pts_ppr || 0).toFixed(1), +(x.stats.pts_half_ppr || 0).toFixed(1), +(x.stats.pts_std || 0).toFixed(1)].join('|'))
     .join('\n');
-  log(`Sleeper projections: ${sleeper.split('\n').length}`);
+  const nProj = sleeper ? sleeper.split('\n').length : 0;
+  log(`Sleeper projections: ${nProj}`);
+  // Sleeper is the backbone. In season, an empty answer stops the run so the last good data stays up.
+  const inSeason = state.season_type === 'regular' && !asOfWeek;
+  if (inSeason) try { minRows('Sleeper projections', nProj, week); } catch (e) { throw new Error('Sleeper projections: ' + e.message); }
+  const sources = { Sleeper: { ok: nProj > 0, detail: `${nProj} projections` } };
 
   // --- ESPN projections (unofficial API; keep last good copy if it fails) ---
   let espn = '', espnRanks = '', espnOwn = '';
@@ -62,13 +69,16 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     const rankOut = {}, ownOut = {};
     const ppr = await get(3), std = await get(1);
     espn = Object.keys(ppr).filter(k => ppr[k][2] > 0.5).map(k => [ppr[k][0], ppr[k][1], ppr[k][2], std[k] ? std[k][2] : ppr[k][2]].join('|')).join('\n');
-    if (!espn) throw new Error('ESPN returned no projections');
+    minRows('ESPN projections', espn ? espn.split('\n').length : 0, week);
     espnRanks = Object.values(rankOut).map(r => r.join('|')).join('\n');
     espnOwn = Object.values(ownOut).map(r => r.join('|')).join('\n');
     log(`ESPN projections: ${espn.split('\n').length}, analyst rankings: ${Object.keys(rankOut).length}`);
+    sources.ESPN = { ok: true, detail: `${espn.split('\n').length} projections` };
   } catch (e) {
-    log(`ESPN failed (${e.message}); ${prevEspn && prevEspn.week === week ? 'keeping last copy' : 'leaving empty'}`);
-    espn = prevEspn && prevEspn.week === week ? prevEspn.text : '';
+    const kept = prevEspn && prevEspn.week === week && prevEspn.text;
+    log(`ESPN failed (${e.message}); ${kept ? 'keeping last copy' : 'leaving empty'}`);
+    espn = kept || '';
+    sources.ESPN = { ok: false, detail: `${e.message}; ${kept ? 'showing the last saved copy' : 'no ESPN projections shown'}` };
   }
 
   // --- schedule ---
@@ -133,7 +143,10 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     .map(p => [p.name, p.pos, p.team, p.gp, ...F.map(f => r1(p.t[f])), ...TF.map(f => r1(p.tm[f])),
       weeks.map(w => p.w[w] ? p.w[w].join(':') : '-').join(';')].join('|')).join('\n');
   const dstText = Object.entries(dst).map(([t, a]) => t + '|' + a.join('|')).join('\n');
-  log(`Player stat rows: ${rows.split('\n').length}`);
+  const nRows = rows ? rows.split('\n').length : 0;
+  log(`Player stat rows: ${nRows}`);
+  if (inSeason) try { minRows('Sleeper stats', nRows, week); } catch (e) { throw new Error('Sleeper stats: ' + e.message); }
+  sources.Sleeper.detail += `, ${nRows} stat rows`;
 
   // --- fantasy points allowed by each defense, completed weeks only ---
   const al = {}, gm = {}, dv = {};
@@ -171,7 +184,7 @@ export async function build(fetchJson, { prevEspn = null, log = () => {}, asOfWe
     : `Weeks 1–${week - 1}` + (done ? ` plus ${done} of ${wkGames.length} week ${week} games` : '');
 
   return {
-    season, week, through,
+    season, week, through, sources,
     sites: { week, sleeper, espn, espnRanks, espnOwn, yahoo: '' },
     stats: { through, fields: ['name', 'pos', 'team', 'gp', ...F, 'tm_pass_att', 'tm_rush_att', 'tm_tgt', 'tm_air', 'tm_rz_rush', 'tm_rz_tgt', 'weeks'], rows, dst: dstText },
     ctx: {

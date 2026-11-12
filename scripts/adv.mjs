@@ -44,6 +44,7 @@ const STADIUMS = {
 };
 
 import { buildCbs } from './cbs.mjs';
+import { minRows } from './checks.mjs';
 
 export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {} }) {
   const out = { season, week, sources: {}, players: {}, games: {}, ecr: {}, practice: {} };
@@ -79,7 +80,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       if (has(r.passing_cpoe)) { add(p, 'cpoeW', num(r.passing_cpoe) * num(r.attempts)); add(p, 'cpoeN', num(r.attempts)); }
       if (t) { add(p, 'tmTgt', t.tgt); add(p, 'tmAy', t.ay); }
     }
-    ok('nflverse stats', `${weeklyRows.length} player-weeks`);
+    ok('nflverse stats', `${minRows('nflverse stats', weeklyRows.length, week)} player-weeks`);
   } catch (e) { fail('nflverse stats', e); }
 
   // 2. Next Gen Stats (season-to-date rows are week 0)
@@ -92,7 +93,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
         if (kind === 'rushing') Object.assign(p.s, { ryoe: num(r.rush_yards_over_expected_per_att), box8: num(r.percent_attempts_gte_eight_defenders), ttl: num(r.avg_time_to_los), rpoe: num(r.rush_pct_over_expected) });
         if (kind === 'passing') Object.assign(p.s, { ttt: num(r.avg_time_to_throw), aggr: num(r.aggressiveness), ays: num(r.avg_air_yards_to_sticks), cpae: num(r.completion_percentage_above_expectation) });
       }
-      ok(`Next Gen Stats ${kind}`, `${rows.length} players`);
+      ok(`Next Gen Stats ${kind}`, `${minRows(`Next Gen Stats ${kind}`, rows.length, week)} players`);
     } catch (e) { fail(`Next Gen Stats ${kind}`, e); }
   }
 
@@ -142,7 +143,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       if (p.s.rzTgt !== undefined || p.s.pbpTgt) { p.s.tmRzTgt = tmRz[tm] || 0; p.s.tmEzTgt = tmEz[tm] || 0; p.s.tmDeep = tmDeep[tm] || 0; }
       if (p.s.pbpCar) { p.s.tmRz10Car = tmRz[tm + 'c'] || 0; p.s.tmGlCar = tmGl[tm] || 0; }
     }
-    ok('Play-by-play', `${targets.length} targets, ${rushes.length} carries`);
+    ok('Play-by-play', `${minRows('Play-by-play', targets.length, week)} targets, ${rushes.length} carries`);
   } catch (e) { fail('Play-by-play', e); }
 
   // 4. FTN charting joined to play-by-play
@@ -176,7 +177,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       }
     }
     for (const p of Object.values(P)) if (p.s.ftnTgt) p.s.tmFirst = tmFirst[p.team] || 0;
-    ok('FTN charting', `${joined} charted plays`);
+    ok('FTN charting', `${minRows('FTN charting', joined, week)} charted plays`);
   } catch (e) { fail('FTN charting', e); }
 
   // 5. Official injury reports with practice participation (this week's report only)
@@ -209,7 +210,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
     out.teamPts = Object.fromEntries(Object.entries(pts).map(([t, [s, n]]) => [t, r2(s / n)]));
     const all = Object.values(out.games).map(g => g.implied).filter(v => v != null);
     out.avgImplied = all.length ? r2(all.reduce((a, b) => a + b, 0) / all.length) : null;
-    ok('Betting lines', `${games.length} week ${week} games, ${games.filter(g => has(g.total_line)).length} with lines`);
+    ok('Betting lines', `${minRows('Betting lines', games.length, week)} week ${week} games, ${games.filter(g => has(g.total_line)).length} with lines`);
   } catch (e) { fail('Betting lines', e); }
 
   // 7. Weather at outdoor and open-roof stadiums
@@ -247,7 +248,7 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       out.ecr[key] = [num(r.ecr), parseInt(String(r.pos_rank).replace(/\D/g, ''), 10) || null, r2(num(r.sd)), num(r.best), num(r.worst), r.start_sit_grade || '', has(r.r2p_pts) ? num(r.r2p_pts) : null, r.scrape_date || '', has(r.player_owned_avg) ? num(r.player_owned_avg) : null];
     }
     out.ecrCurrent = checked > 0 && match / checked > 0.6;
-    ok('FantasyPros consensus', `${Object.keys(out.ecr).length} players${out.ecrCurrent ? '' : ' (last week\'s rankings; this week\'s not posted yet)'}`);
+    ok('FantasyPros consensus', `${minRows('FantasyPros consensus', Object.keys(out.ecr).length, week)} players${out.ecrCurrent ? '' : ' (last week\'s rankings; this week\'s not posted yet)'}`);
   } catch (e) { fail('FantasyPros consensus', e); }
 
   // 8b. FantasyPros rest-of-season rankings (PPR, by position): how experts value a player for the rest of the
@@ -263,12 +264,13 @@ export async function buildAdv({ fetchText, fetchGz, season, week, log = () => {
       if (r.ecr_type === 'ro' && r.page_type === 'redraft-overall' && overall[key] == null) overall[key] = r2(num(r.ecr));
     }
     for (const k in out.ros) out.ros[k][1] = overall[k] ?? null;
-    ok('FantasyPros rest of season', `${Object.keys(out.ros).length} players`);
+    ok('FantasyPros rest of season', `${minRows('FantasyPros rest of season', Object.keys(out.ros).length, week)} players`);
   } catch (e) { fail('FantasyPros rest of season', e); }
 
   // 9. CBS Sports: three experts' weekly rankings + consensus, and weekly projections
   try {
     const c = await buildCbs({ fetchText, season, week, nkey, games: out.games, log });
+    minRows('CBS Sports', Object.keys(c.proj).length, week);
     out.cbs = c;
     ok('CBS Sports', `${Object.keys(c.proj).length} projections, ${Object.keys(c.ranks).length} expert rankings${c.ranksCurrent ? '' : ' (this week\'s rankings not posted yet)'}`);
   } catch (e) { fail('CBS Sports', e); }

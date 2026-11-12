@@ -62,9 +62,14 @@ try {
 } catch (e) { console.log('Player news failed:', e.message); if (adv) adv.sources['Player news'] = { ok: false, detail: e.message }; }
 
 // Skip writing (and committing) when nothing changed.
-const hash = createHash('sha256').update(JSON.stringify([d.sites, d.stats, d.ctx, adv, news])).digest('hex').slice(0, 16);
+const hash = createHash('sha256').update(JSON.stringify([d.sites, d.stats, d.ctx, adv, news, d.sources])).digest('hex').slice(0, 16);
 const meta = await readJson('meta.json');
 if (meta && meta.hash === hash && !process.argv.includes('--force')) { console.log('No changes in the data.'); process.exit(problems.length ? 2 : 0); }
+
+// Every source's status, Sleeper and ESPN included; the page lists the ones that are down (SITE_DATA.down).
+const sources = { ...d.sources, ...(adv ? adv.sources : { 'Advanced data': { ok: false, detail: 'failed entirely' } }) };
+const down = Object.keys(sources).filter(k => !sources[k].ok);
+if (down.length) console.log('Sources down: ' + down.join(', '));
 
 const updated = new Date();
 const pulled = updated.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET';
@@ -83,20 +88,20 @@ try {
   console.log('Blend:', Object.entries(blend.pos).map(([p, x]) => `${p} ${Math.round(x.w * 100)}% sites`).join(', ') || 'not enough graded weeks yet');
 } catch (e) { console.log('Blend tuning skipped:', e.message); }
 
-await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS }));
+await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS, down }));
 await writeFile(new URL('stats-data.js', DIR), js('STATS_DATA', d.stats));
 await writeFile(new URL('ctx-data.js', DIR), js('CTX_DATA', { ...d.ctx, pulled }));
 if (adv) await writeFile(new URL('adv-data.js', DIR), js('ADV_DATA', { ...adv, pulled }));
 if (news) await writeFile(new URL('news-data.js', DIR), js('NEWS_DATA', { pulled, news }));
 await writeFile(new URL('espn-cache.json', DIR), JSON.stringify(d.espnCache));
-await writeFile(new URL('meta.json', DIR), JSON.stringify({ hash, updated: updated.toISOString(), season: d.season, week: d.week, through: d.through, sources: adv?.sources }, null, 2));
+await writeFile(new URL('meta.json', DIR), JSON.stringify({ hash, updated: updated.toISOString(), season: d.season, week: d.week, through: d.through, sources }, null, 2));
 console.log(`Wrote data for ${d.season} week ${d.week} (${d.through}).`);
 
 // Accuracy scoreboard: save this week's pregame projections, then grade every finished week.
 try {
   const HIST = new URL('history/', DIR);
   await mkdir(HIST, { recursive: true });
-  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS };
+  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS, down };
   const ADV_DATA = adv ? { ...adv, pulled } : undefined;
   const cur = projectAll({ SITE_DATA, STATS_DATA: d.stats, CTX_DATA: { ...d.ctx, pulled }, ADV_DATA });
   const name = `${d.season}-w${String(cur.week).padStart(2, '0')}.json`;
