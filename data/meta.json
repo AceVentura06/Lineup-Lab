@@ -1,6 +1,6 @@
 {
-  "hash": "3125ae7ca951f35b",
-  "updated": "2026-11-12T17:04:42.571Z",
+  "hash": "4aca4b4de38f12bd",
+  "updated": "2026-11-12T18:06:50.357Z",
   "season": 2026,
   "week": 10,
   "through": "Weeks 1–9",
@@ -15,7 +15,7 @@
     },
     "Sleeper player list": {
       "ok": true,
-      "detail": "666 rosters, refreshed today"
+      "detail": "666 rosters, saved copy from 2026-11-12"
     },
     "nflverse stats": {
       "ok": true,
@@ -63,7 +63,7 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "411 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "411 projections, 192 expert rankings"
     },
     "Usage model (testing)": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "195 players with news, 372 of 381 stories with photos (ESPN 1648 articles scanned; ESPN 548, CBS Sports 22, Yahoo Sports 14, ProFootballTalk 14)"
+      "detail": "196 players with news, 368 of 380 stories with photos (ESPN 1648 articles scanned; ESPN 546, CBS Sports 21, Yahoo Sports 17, ProFootballTalk 17)"
     }
   }
 }
