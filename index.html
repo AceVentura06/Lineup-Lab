@@ -1845,7 +1845,7 @@ No outside site projects him this week → Not projected (no number, no Start / 
         <p><b>3. Floor and ceiling.</b> Half from the position's typical swing (QB ±22%, RB ±30%, WR ±35%, TE ±38%, K ±35%, DST ±45%) and half from the player's own week-to-week swings once he has 3+ games. Two players with close projections? The narrower range is the safer start.</p>
         <p><b>4. Rest of season.</b></p>
         <div class="formula">Pts/game  = Base × Schedule × Trend × Health
-Games left = 18 − week (minus bye if still ahead)
+Games left = this week through Week 17 (minus the bye, if it falls in that span)
 Total      = Pts/game × Games left</div>
         <p class="note">Kickers and defenses use fantasy points per game under your kicker and D/ST rules.</p>
       </div>
@@ -2143,8 +2143,8 @@ function rosBase(p){const b=base(p);if(!p.real||p.pos==='K'||p.pos==='DST')retur
   if(gp<3)v=(gp*v+(3-gp)*(POSBASE[p.pos]||6))/3;
   return v;}
 function rosProj(p){
-  let games=Math.max(0,18-S.week);
-  if(n(p.bye)>S.week&&n(p.bye)<=17)games-=1;
+  let games=Math.max(0,18-S.week);          // this week through Week 17, the same window as the schedule strength
+  if(n(p.bye)>=S.week&&n(p.bye)<=17)games-=1;
   const ppg=rosBase(p)*schedM(p)*trendM(p)*healthRos(p);
   return {ppg,games,total:ppg*games};
 }
