@@ -2489,6 +2489,9 @@ function renderAcc(){
   const maxM=Math.max(...rows.map(r=>r.mae));
   const label=s=>`<span class="sw" style="background:${SRC_COLOR[s]}"></span> <b>${esc(ACC.sources[s])}</b>`;
   const back=sel.some(w=>ACC.weeks[w].backfilled);
+  // the season table mixes sources graded on different weeks: say so rather than imply a like-for-like ranking
+  const wkOf=s=>sel.filter(w=>ACC.weeks[w].srcs.includes(s)),span=a=>a.length>1?`Weeks ${a[0]}–${a[a.length-1]}`:`Week ${a[0]}`,few=rows.filter(r=>r.weeks<sel.length);
+  const mixed=few.length?`<p class="note u-mt-8"><span class="pill p-warn">Not like for like</span> ${esc(few.map(r=>ACC.sources[r.s]).join(', '))} ${few.length>1?'were':'was'} graded on ${esc(span(wkOf(few[0].s)))} only; the rest on ${esc(span(sel))}. Different weeks mean different games, so compare those rows with care, or pick a single week above.</p>`:'';
   const lead=`<div class="card"><div class="u-flex u-wrap u-between u-gap-8 u-ai-base"><h3>${ui.accW==='season'?'Season leaderboard':'Week '+ui.accW+' leaderboard'}</h3>
      <span class="note">${sel.length===1?ACC.weeks[sel[0]].n+' players graded':sel.length+' weeks graded'}${back?' · includes rebuilt weeks':''}</span></div>
     ${best?`<p class="u-m-8-0-12"><b>${esc(ACC.sources[best.s])}</b> has been the most accurate${ui.accW==='season'?' so far':''}, missing by ${best.mae.toFixed(2)} points per player on average.</p>`:''}
@@ -2496,7 +2499,7 @@ function renderAcc(){
     ${rows.map((r,i)=>`<tr><td class="rank">${i+1}</td><td>${label(r.s)}</td><td class="r big">${r.mae.toFixed(2)}</td>
       <td class="u-w-28p"><div class="bar lb" aria-hidden="true" style="--i:${i}"><i style="width:${Math.max(4,100*r.mae/maxM)}%;background:${SRC_COLOR[r.s]}"></i></div></td>
       <td class="r num">${r.hitP!=null?Math.round(100*r.hitP)+'%':'—'}</td><td class="r num">${r.rho!=null?Math.round(100*r.rho):'—'}</td>${ui.accW==='season'?`<td class="r num">${r.weeks}</td>`:''}</tr>`).join('')}
-    </tbody></table></div><p class="note u-mt-8">Avg miss is points per player (lower is better). Right starters: of the players each source ranked as starters in a 12-team league, the share that finished as starters.</p></div>`;
+    </tbody></table></div>${mixed}<p class="note u-mt-8">Avg miss is points per player (lower is better). Right starters: of the players each source ranked as starters in a 12-team league, the share that finished as starters.</p></div>`;
   const chart=ui.accW==='season'&&ws.length>1?`<div class="card has-island"><h3>Average miss by week</h3><p class="note u-m-4-0-8">Lower is better.</p>${accChart(ws)}</div>`:'';
   const P=['QB','RB','WR','TE','K','DST'];
   const posBest={};P.forEach(p=>{let b=null;rows.forEach(r=>{const q=r.pos[p];if(q&&q[1]){const v=q[0]/q[1];if(b==null||v<b)b=v;}});posBest[p]=b;});
