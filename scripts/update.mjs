@@ -86,7 +86,7 @@ try {
   }
   blend = tuneBlend(hist, d.stats, d.week);
   console.log('Blend:', Object.entries(blend.pos).map(([p, x]) => `${p} ${Math.round(x.w * 100)}% sites`).join(', ') || 'not enough graded weeks yet');
-} catch (e) { console.log('Blend tuning skipped:', e.message); }
+} catch (e) { problem('blend tuning failed: ' + e.message); }
 
 await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS, down }));
 await writeFile(new URL('stats-data.js', DIR), js('STATS_DATA', d.stats));
@@ -138,4 +138,4 @@ try {
     if (s) best = { week: lw, name: acc.sources[s], miss: +(m[s].ae / m[s].n).toFixed(2) }; }
   await writeFile(new URL('ticker-data.js', DIR), js('TICKER_DATA', { latest, best }));
   console.log(`Saved ${Object.keys(snap.players).length} pregame projections for week ${cur.week}; graded weeks: ${Object.keys(acc.weeks).join(', ') || 'none yet'}.`);
-} catch (e) { console.log('Accuracy scoreboard failed:', e.message); }
+} catch (e) { problem('accuracy scoreboard failed, this week\'s projections were not saved: ' + (e.stack || e.message)); }
