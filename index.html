@@ -1344,6 +1344,8 @@ button,label,summary,.chip,.btn,.sx,th.sortable,.tabs,.bnav,.bmore{-webkit-user-
 .sf-links a:focus-visible{outline:2px solid var(--turf);outline-offset:-2px}
 @media (hover:hover) and (pointer:fine){.sf-links a:hover{color:var(--turf);text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:2px}}
 .sf-note{max-width:72ch}
+.stale{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0;padding:10px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);font-size:var(--t-sm);line-height:1.4;color:var(--ink)}
+.stale[hidden]{display:none}
 .legal{display:flex;flex-direction:column;gap:12px;max-width:760px;font-size:var(--t-base);line-height:1.55}
 .legal .lg-lead{font-size:var(--t-base);color:var(--ink)}
 .legal h2{font-family:var(--f-body);font-style:normal;font-size:var(--t-lg);font-weight:700;line-height:1.25;letter-spacing:0;text-transform:none;padding:0;border:0;margin:10px 0 -4px}
@@ -1539,6 +1541,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
   </div>
 
   <div id="main" tabindex="-1" aria-label="Main content"></div>
+  <p class="stale" id="staleNote" role="status" hidden></p>
   <!-- HOME -->
   <section class="panel" id="p-home" role="tabpanel">
     <div class="hm-install" id="hmInstall" hidden></div>
@@ -4339,6 +4342,16 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
   window.heroChk=heroChk;
   window.addEventListener('scroll',chk,{passive:true});window.addEventListener('resize',()=>pad());chk();pad();})();
 try{$('#updStamp').textContent=SD.pulled?`Data updated ${SD.pulled}`:'';}catch(e){}
+// Warn when the data is old: the updater runs every 30 minutes, so 6 hours without one means it has stopped,
+// or this is a saved copy shown without a connection (sw.js says so with a message).
+let savedCopy=false;
+function staleCheck(){const el=$('#staleNote'),t=Date.parse(SD.updated||''),h=Number.isFinite(t)?(Date.now()-t)/36e5:0;
+  if(h<6&&!savedCopy){el.hidden=true;return;}
+  const age=h>=48?Math.round(h/24)+' days':h>=1?Math.round(h)+' hour'+(Math.round(h)===1?'':'s'):'less than an hour';
+  el.innerHTML=`<span class="pill p-warn">${h>=6?'Out of date':'Saved copy'}</span><span>${h>=6?`Data was last updated ${esc(age)} ago (${esc(SD.pulled||'')}). Projections and injury statuses may have changed since.`:`No connection, so this is the copy saved on your device, from ${esc(SD.pulled||'earlier')}.`}</span>`;
+  el.hidden=false;}
+try{staleCheck();setInterval(staleCheck,6e5);
+  if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='saved-copy'){savedCopy=true;staleCheck();}});}catch(e){}
 document.documentElement.removeAttribute('data-boot');document.documentElement.removeAttribute('data-loading');{const pb=$('#p-boot');if(pb)pb.remove();}$('#p-home').removeAttribute('aria-busy');
 })();
 </script>
