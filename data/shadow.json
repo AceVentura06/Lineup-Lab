@@ -1,0 +1,12 @@
+{
+ "sources": {
+  "lab": "Ace Lineup Lab",
+  "mod": "Model alone",
+  "espn": "ESPN",
+  "sleeper": "Sleeper",
+  "cbs": "CBS Sports",
+  "fp": "FantasyPros",
+  "mod2": "Usage model (testing)"
+ },
+ "weeks": {}
+}
