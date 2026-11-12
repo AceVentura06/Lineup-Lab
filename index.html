@@ -3304,7 +3304,7 @@ function render(){
 // ---- site projections ----
 const SD=(typeof SITE_DATA!=='undefined'&&SITE_DATA)||{week:5,sleeper:'',espn:'',yahoo:''};
 const SUFFIX=/\b(jr|sr|ii|iii|iv|v)\b/g;
-const ALIAS={'mitchell tinsley':'mitch tinsley'};
+const ALIAS=SD.alias||{};   // one shared table, from scripts/keys.mjs
 function nkey(name,pos){
   if(pos==='DEF'){const w=name.replace(/D\/ST/i,'').trim().split(/\s+/);return 'def:'+w[w.length-1].toLowerCase();}
   let k=name.toLowerCase().replace(/[.'’]/g,'').replace(SUFFIX,'').replace(/\s+/g,' ').trim();

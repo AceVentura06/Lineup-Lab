@@ -9,6 +9,7 @@ import { projectAll } from './model.mjs';
 import { buildNews } from './news.mjs';
 import { mergeSnapshot, gradeAll, actualsFrom, tuneBlend } from './accuracy.mjs';
 import { BASELINE } from './scoring.mjs';
+import { ALIAS, collisions } from './keys.mjs';
 import { readdir } from 'node:fs/promises';
 
 const DIR = new URL('../data/', import.meta.url);
@@ -36,6 +37,15 @@ await mkdir(DIR, { recursive: true });
 const prevEspn = await readJson('espn-cache.json');
 const d = await build(fetchJson, { prevEspn, log: m => console.log(m) });
 
+// Problems that must not pass quietly but should not hold back fresh data: the data is still written,
+// then the run exits with code 2 and the workflow turns red after committing (see update.yml).
+const problems = [];
+const problem = m => { problems.push(m); console.error('PROBLEM: ' + m); };
+process.on('exit', () => { if (problems.length && !process.exitCode) process.exitCode = 2; });
+
+// Players are keyed by name. Two players on one key would silently share stats and projections.
+for (const [k, who] of collisions(d.stats.rows)) problem(`player key collision on "${k}": ${who.join(' and ')}`);
+
 let adv = null;
 try { adv = await buildAdv({ fetchText, fetchGz, season: d.season, week: d.week, log: m => console.log(m) }); }
 catch (e) { console.log('Advanced data failed entirely:', e.message); }
@@ -54,7 +64,7 @@ try {
 // Skip writing (and committing) when nothing changed.
 const hash = createHash('sha256').update(JSON.stringify([d.sites, d.stats, d.ctx, adv, news])).digest('hex').slice(0, 16);
 const meta = await readJson('meta.json');
-if (meta && meta.hash === hash && !process.argv.includes('--force')) { console.log('No changes in the data.'); process.exit(0); }
+if (meta && meta.hash === hash && !process.argv.includes('--force')) { console.log('No changes in the data.'); process.exit(problems.length ? 2 : 0); }
 
 const updated = new Date();
 const pulled = updated.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) + ' ET';
@@ -73,7 +83,7 @@ try {
   console.log('Blend:', Object.entries(blend.pos).map(([p, x]) => `${p} ${Math.round(x.w * 100)}% sites`).join(', ') || 'not enough graded weeks yet');
 } catch (e) { console.log('Blend tuning skipped:', e.message); }
 
-await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE }));
+await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS }));
 await writeFile(new URL('stats-data.js', DIR), js('STATS_DATA', d.stats));
 await writeFile(new URL('ctx-data.js', DIR), js('CTX_DATA', { ...d.ctx, pulled }));
 if (adv) await writeFile(new URL('adv-data.js', DIR), js('ADV_DATA', { ...adv, pulled }));
@@ -86,7 +96,7 @@ console.log(`Wrote data for ${d.season} week ${d.week} (${d.through}).`);
 try {
   const HIST = new URL('history/', DIR);
   await mkdir(HIST, { recursive: true });
-  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE };
+  const SITE_DATA = { ...d.sites, pulled, updated: updated.toISOString(), blend, base: BASELINE, alias: ALIAS };
   const ADV_DATA = adv ? { ...adv, pulled } : undefined;
   const cur = projectAll({ SITE_DATA, STATS_DATA: d.stats, CTX_DATA: { ...d.ctx, pulled }, ADV_DATA });
   const name = `${d.season}-w${String(cur.week).padStart(2, '0')}.json`;

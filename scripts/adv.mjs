@@ -7,14 +7,9 @@ const FP_URL = 'https://raw.githubusercontent.com/dynastyprocess/data/master/fil
 const TEAM_FIX = { LA: 'LAR', JAC: 'JAX', WSH: 'WAS', LVR: 'LV', OAK: 'LV', SD: 'LAC', STL: 'LAR' };
 const team = t => TEAM_FIX[t] || t;
 
-// Same key the site uses to match players across sources.
-const SUFFIX = /\b(jr|sr|ii|iii|iv|v)\b/g;
-const ALIAS = { 'mitchell tinsley': 'mitch tinsley', 'marquise brown': 'hollywood brown', 'gabe davis': 'gabriel davis', 'chigoziem okonkwo': 'chig okonkwo', 'josh palmer': 'joshua palmer', 'matthew hibner': 'matt hibner' };
-export function nkey(name, pos) {
-  if (pos === 'DEF' || pos === 'DST') { const w = String(name).replace(/D\/ST/i, '').trim().split(/\s+/); return 'def:' + w[w.length - 1].toLowerCase(); }
-  const k = String(name).toLowerCase().replace(/[.'’]/g, '').replace(SUFFIX, '').replace(/\s+/g, ' ').trim();
-  return ALIAS[k] || k;
-}
+// Player keys: one shared table and function (scripts/keys.mjs).
+import { nkey } from './keys.mjs';
+export { nkey };
 
 // Minimal CSV parser (handles quotes, escaped quotes, newlines in fields).
 export function parseCSV(text) {
