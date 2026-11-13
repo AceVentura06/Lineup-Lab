@@ -1564,6 +1564,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
     </div>
     <div class="card" id="hmGames" hidden></div>
     <div class="card" id="hmTop"></div>
+    <div class="hm-grid3"><div class="card" id="hmRise"></div><div class="card" id="hmFall"></div></div>
     <div class="hm-grid3"><div class="card" id="hmSoft"></div><div class="card" id="hmLast"></div><div class="card" id="hmAcc"></div></div>
     <div class="hm-row"><div class="card hm-inj" id="hmInj"></div><div class="card hm-news" id="hmNews"></div></div>
   </section>
@@ -1890,7 +1891,7 @@ Total      = Pts/game × Games left</div>
         <li><b>Outside projections.</b> Weekly point projections from ESPN, Sleeper, CBS Sports and FantasyPros, converted to your league’s scoring.</li>
         <li><b>Season production.</b> Each player’s fantasy points per game this year.</li>
         <li><b>Matchup.</b> How many points the opposing defense has allowed to the position.</li>
-        <li><b>Role trend.</b> Whether a player’s share of snaps has risen or fallen over his last two games (for quarterbacks, his recent scoring).</li>
+        <li><b>Role trend.</b> Whether a player’s share of snaps has risen or fallen over his last two games (for quarterbacks, his recent scoring). Stars are never tagged rising, and are tagged falling only after a clear drop: two games at 65% or less of their usual scoring, or a snap share down 15 points.</li>
         <li><b>Betting lines.</b> The points Las Vegas expects his team to score.</li>
         <li><b>Weather.</b> Wind and rain at outdoor stadiums.</li>
         <li><b>Injury reports.</b> Game status and practice participation.</li>
@@ -2099,7 +2100,9 @@ function baseInj(){if(_injBase)return;_injBase=true;
 function realPlayers(){
   if(_real&&_realWk===S.week)return _real;
   baseInj();
-  const out=[];
+  const out=[],star=new Set();
+  // stars: the top half of starters at each position by season points per game
+  ['QB','RB','WR','TE'].forEach(pos=>[...PL.values()].filter(p=>p.pos===pos&&p.gp).sort((a,b)=>b.s.pts_ppr/b.gp-a.s.pts_ppr/a.gp).slice(0,CUT[pos][0]/2).forEach(p=>star.add(p.key)));
   for(const p of PL.values()){
     if(p.gp<1)continue;
     if(p.pos!=='K'&&p.pos!=='DST'&&p.s.pts_ppr/p.gp<4)continue;
@@ -2108,9 +2111,12 @@ function realPlayers(){
     // trend from recent snap share (QBs: recent points)
     let trend='Steady';const played=p.weeks.filter(Boolean);
     if(played.length>=3&&p.pos!=='K'&&p.pos!=='DST'){
-      const last=played.slice(-2);
-      if(p.pos==='QB'){const r=(last.reduce((a,w)=>a+w.ppr,0)/2)/(p.s.pts_ppr/p.gp||1);trend=r>=1.25?'Rising':r<=.75?'Falling':'Steady';}
-      else{const seas=100*dv(p.s.off_snp,p.s.tm_off_snp);const rec=last.reduce((a,w)=>a+(w.snap||0),0)/2;trend=rec-seas>=7?'Rising':rec-seas<=-7?'Falling':'Steady';}
+      const last=played.slice(-2),r=(last.reduce((a,w)=>a+w.ppr,0)/2)/(p.s.pts_ppr/p.gp||1);
+      const d=p.pos==='QB'?0:last.reduce((a,w)=>a+(w.snap||0),0)/2-100*dv(p.s.off_snp,p.s.tm_off_snp);
+      // stars already have the big role: never "rising", and "falling" only on a clear drop in output or a big snap cut
+      if(star.has(p.key))trend=r<=.65||d<=-15?'Falling':'Steady';
+      else if(p.pos==='QB')trend=r>=1.25?'Rising':r<=.75?'Falling':'Steady';
+      else trend=d>=7?'Rising':d<=-7?'Falling':'Steady';
     }
     // rest-of-season schedule from remaining opponents' points allowed
     const rem=sc.slice(S.week-1,17).filter(x=>x&&x!=='BYE').map(x=>RANKS[x.replace('@','')]?.[PIDX[p.pos]]?.r).filter(Boolean);
@@ -3269,6 +3275,13 @@ function renderHome(){
     <div class="hm-pos4">${i4.map(pos=>`<div class="hm-pcol${ui.homePos===pos?' on':''}" style="--c:var(--${pos.toLowerCase()})"><b>${{QB:'Quarterbacks',RB:'Running backs',WR:'Wide receivers',TE:'Tight ends'}[pos]}</b>
       ${top(pos).slice(0,5).map(r=>`<div class="hm-li"><span>${pname(r.p)} <span class="hm-sm">${oppText(r.p,wk)}</span></span><b class="hm-pr">${f1(r.proj)}</b></div>`).join('')||'<span class="hm-sm">No projections yet.</span>'}</div>`).join('')}</div>`;
   requestAnimationFrame(()=>segThumb($('#hmPick'),true));
+  // role trend: players whose last two games' snap share (QBs: points) moved off their season level
+  const roleCard=(t,h,empty)=>{const rs=all.filter(r=>r.p.trend===t&&i4.includes(r.p.pos)).sort((a,b)=>b.proj-a.proj).slice(0,8);
+    return `<div class="hm-head"><h3>${h}</h3><button class="hm-link" data-go="sites">Full projections</button></div>
+    ${rs.length?`<div class="hm-list">${rs.map(r=>`<div class="hm-li u-ai-c"><span class="u-flex u-gap-10 u-ai-c"><span class="pos ${r.p.pos}">${r.p.pos}</span><span>${pname(r.p)}<br><span class="hm-sm">${esc(r.p.team)} · ${oppLine(r.p)}</span></span></span><b class="hm-pr">${r.np?'—':f1(r.proj)}</b></div>`).join('')}</div>`
+      :`<p class="hm-empty">${empty}</p>`}`;};
+  $('#hmRise').innerHTML=roleCard('Rising','Role rising','No one has a rising role right now.');
+  $('#hmFall').innerHTML=roleCard('Falling','Role falling','No one has a falling role right now.');
   // softest matchups: startable players facing the defenses that give up the most to their position
   const D=dvpData();
   const soft=i4.map((pos,ix)=>{const i=DPOS.indexOf(pos);let best=null;
