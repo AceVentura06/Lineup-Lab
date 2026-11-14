@@ -1,6 +1,6 @@
 {
-  "hash": "0fb4d8f3f1f03f1e",
-  "updated": "2026-11-14T06:16:39.762Z",
+  "hash": "680867fd1d403431",
+  "updated": "2026-11-14T13:36:12.752Z",
   "season": 2026,
   "week": 10,
   "through": "Weeks 1–9 plus 1 of 14 week 10 games",
@@ -39,11 +39,11 @@
     },
     "FTN charting": {
       "ok": true,
-      "detail": "23060 charted plays"
+      "detail": "23235 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "300 entries for week 10"
+      "detail": "345 entries for week 10"
     },
     "Betting lines": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "507 players"
+      "detail": "504 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "166 players with news, 325 of 328 stories with photos (ESPN 1650 articles scanned; ESPN 474, CBS Sports 18, Yahoo Sports 22, ProFootballTalk 15)"
+      "detail": "163 players with news, 318 of 322 stories with photos (ESPN 1650 articles scanned; ESPN 468, CBS Sports 18, Yahoo Sports 18, ProFootballTalk 15)"
     }
   }
 }
