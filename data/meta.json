@@ -1,13 +1,13 @@
 {
-  "hash": "f78036597c4e6263",
-  "updated": "2026-11-15T20:35:22.165Z",
+  "hash": "92391ecb4f97804d",
+  "updated": "2026-11-15T20:58:33.128Z",
   "season": 2026,
   "week": 10,
   "through": "Weeks 1–9 plus 2 of 14 week 10 games",
   "sources": {
     "Sleeper": {
       "ok": true,
-      "detail": "351 projections, 511 stat rows"
+      "detail": "351 projections, 512 stat rows"
     },
     "ESPN": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "168 players with news, 308 of 320 stories with photos (ESPN 1647 articles scanned; ESPN 455, CBS Sports 12, Yahoo Sports 30, ProFootballTalk 22)"
+      "detail": "169 players with news, 311 of 324 stories with photos (ESPN 1647 articles scanned; ESPN 457, CBS Sports 15, Yahoo Sports 32, ProFootballTalk 23)"
     }
   }
 }
