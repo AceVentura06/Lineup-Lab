@@ -1,6 +1,6 @@
 {
-  "hash": "419b959bd5de60e1",
-  "updated": "2026-11-16T08:36:45.311Z",
+  "hash": "9e871eff628cd915",
+  "updated": "2026-11-16T15:29:05.897Z",
   "season": 2026,
   "week": 10,
   "through": "Weeks 1–9 plus 13 of 14 week 10 games",
@@ -50,12 +50,12 @@
       "detail": "14 week 10 games, 14 with lines"
     },
     "Weather": {
-      "ok": false,
-      "detail": "fetch failed"
+      "ok": true,
+      "detail": "1 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "523 players"
+      "detail": "515 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "178 players with news, 352 of 368 stories with photos (ESPN 1648 articles scanned; ESPN 535, CBS Sports 18, Yahoo Sports 27, ProFootballTalk 22)"
+      "detail": "177 players with news, 348 of 355 stories with photos (ESPN 1648 articles scanned; ESPN 533, CBS Sports 18, Yahoo Sports 25, ProFootballTalk 25)"
     }
   }
 }
