@@ -31,7 +31,7 @@ export async function build(fetchJson, { prevEspn = null, prevPlayers = null, lo
     .filter(x => x.stats && (x.stats.pts_ppr || 0) > 0.5 && x.player && POS.includes(x.player.position))
     .map(x => [((x.player.first_name || '') + ' ' + (x.player.last_name || '')).trim(), x.player.position,
       x.team || x.player.team || '', x.opponent || '',
-      +(x.stats.pts_ppr || 0).toFixed(1), +(x.stats.pts_half_ppr || 0).toFixed(1), +(x.stats.pts_std || 0).toFixed(1)].join('|'))
+      +(x.stats.pts_ppr || 0).toFixed(2), +(x.stats.pts_half_ppr || 0).toFixed(2), +(x.stats.pts_std || 0).toFixed(2)].join('|'))
     .join('\n');
   const nProj = sleeper ? sleeper.split('\n').length : 0;
   log(`Sleeper projections: ${nProj}`);
@@ -54,7 +54,7 @@ export async function build(fetchJson, { prevEspn = null, prevPlayers = null, lo
       for (const e of d.players || []) {
         const p = e.player;
         const s = (p.stats || []).find(s => s.scoringPeriodId === week && s.statSourceId === 1 && s.statSplitTypeId === 1);
-        if (s) m[p.id] = [p.fullName, POSN[p.defaultPositionId] || p.defaultPositionId, +s.appliedTotal.toFixed(1)];
+        if (s) m[p.id] = [p.fullName, POSN[p.defaultPositionId] || p.defaultPositionId, +s.appliedTotal.toFixed(2)];
         // share of ESPN leagues where the player is rostered
         const own = e.player.ownership && e.player.ownership.percentOwned;
         if (own != null && POSN[p.defaultPositionId]) ownOut[p.id] = [p.fullName, POSN[p.defaultPositionId], +own.toFixed(1)];
@@ -119,7 +119,7 @@ export async function build(fetchJson, { prevEspn = null, prevPlayers = null, lo
     const tt = team[w + e.team] || {};
     for (const f of TF) p.tm[f] = (p.tm[f] || 0) + (tt[f] || 0);
     // points, catches, pass TDs, snap %, then the rest of the stat line so the site can apply custom scoring
-    p.w[w] = [+(s.pts_ppr || 0).toFixed(1), s.rec || 0, s.pass_td || 0, s.tm_off_snp ? Math.round(100 * (s.off_snp || 0) / s.tm_off_snp) : '',
+    p.w[w] = [+(s.pts_ppr || 0).toFixed(2), s.rec || 0, s.pass_td || 0, s.tm_off_snp ? Math.round(100 * (s.off_snp || 0) / s.tm_off_snp) : '',
       s.pass_yd || 0, s.pass_int || 0, s.rush_yd || 0, s.rush_td || 0, s.rec_yd || 0, s.rec_td || 0, s.fum_lost || 0];
     // kickers and defenses: what custom kicker / D/ST scoring needs
     if (pl.position === 'K') {
@@ -188,7 +188,7 @@ export async function build(fetchJson, { prevEspn = null, prevPlayers = null, lo
   const ranks = {};
   POS.forEach(p => {
     teams.map(t => [t, (al[t]?.[p] || 0) / (gm[t] || 1)]).sort((a, b) => a[1] - b[1])
-      .forEach(([t, v], i) => { ranks[t] = ranks[t] || {}; ranks[t][p] = [i + 1, +v.toFixed(1)]; });
+      .forEach(([t, v], i) => { ranks[t] = ranks[t] || {}; ranks[t][p] = [i + 1, +v.toFixed(2)]; });
   });
 
   // --- injuries (from the daily player list above) ---
@@ -207,7 +207,7 @@ export async function build(fetchJson, { prevEspn = null, prevPlayers = null, lo
       ranks: teams.map(t => t + '|' + POS.map(p => ranks[t][p].join(':')).join(',')).join('\n'),
       // team|week|opponent|1 if home|QB ppr,half,std;RB …;WR …;TE …;K …;DEF …
       dvp: Object.entries(dv).flatMap(([t, ws]) => Object.entries(ws).map(([w, g]) =>
-        [t, w, g.opp, g.home ? 1 : 0, POS.map(p => (g.p[p] || [0, 0, 0]).map(v => +v.toFixed(1)).join(',')).join(';')].join('|'))).join('\n'),
+        [t, w, g.opp, g.home ? 1 : 0, POS.map(p => (g.p[p] || [0, 0, 0]).map(v => +v.toFixed(2)).join(',')).join(';')].join('|'))).join('\n'),
       inj,
       // Sleeper player ids, used for headshots on player pages
       ids: Object.entries(P).filter(([, p]) => p.pos !== 'DEF').map(([id, p]) => [p.name, p.pos, id].join('|')).join('\n')

@@ -106,13 +106,13 @@ export function Tip({ title, children }: { title: string; children: ReactNode })
   );
 }
 
-/** Signed difference to one decimal, green above and red below. */
-export function Diff({ v, unit = "" }: { v: number; unit?: string }) {
-  const d = Math.round(v * 10) / 10;
+/** Signed difference (one decimal by default), green above and red below. */
+export function Diff({ v, unit = "", dp = 1 }: { v: number; unit?: string; dp?: number }) {
+  const d = +v.toFixed(dp);
   return (
     <b className={d > 0 ? "up" : d < 0 ? "dn" : ""}>
       {d >= 0 ? "+" : "−"}
-      {Math.abs(d).toFixed(1)}
+      {Math.abs(d).toFixed(dp)}
       {unit}
     </b>
   );

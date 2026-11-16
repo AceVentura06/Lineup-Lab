@@ -27,7 +27,7 @@ export interface WeekChartProps {
 
 type Row = Week & { name: string; pts: number; proj: number } & Record<string, unknown>;
 
-const n1 = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
+const n2 = (v: number) => (Math.round(v * 100) / 100).toFixed(2);
 const GAP: Record<string, [label: string, tip: string]> = { bye: ["Bye", "Bye week"], out: ["Out", "Did not play"], upcoming: ["Next", "No projection yet"] };
 // test the week type, not the value: a real 0.0 game is still a bar with a label
 const scored = (x: Week) => x.kind === "played" || x.kind === "proj";
@@ -49,7 +49,7 @@ export function WeekChart({ weeks, avg, showSnaps, animate = true }: WeekChartPr
           {/* the projected week is the highlighted one: solid orange, not a hatch */}
           <Bar animate={animate} dataKey="proj" fill="var(--chart-hi)" lineCap={2} staggerDelay={0.035} />
           {avg != null && <AvgRule value={avg} />}
-          <ValueLabels gap={8} items={data.filter(scored).map((d) => ({ w: d.w, v: d.pts || d.proj, text: n1(d.pts || d.proj), accent: d.kind === "proj" }))} />
+          <ValueLabels gap={8} items={data.filter(scored).map((d) => ({ w: d.w, v: d.pts || d.proj, text: n2(d.pts || d.proj), accent: d.kind === "proj" }))} />
           <GapLabels gaps={weeks.filter((x) => GAP[x.kind]).map((x) => ({ w: x.w, label: GAP[x.kind][0], now: x.kind === "upcoming" }))} />
           <WeekAxis weeks={weeks.map((x) => ({ w: x.w, o: x.o, now: x.kind === "proj" || x.kind === "upcoming", tag: x.tag }))} />
           <ChartTooltip
@@ -84,7 +84,7 @@ function WeekTip({ row, avg, showSnaps }: { row: Row; avg: number | null; showSn
           <i className={proj ? "hi" : ""} />
           {proj ? "Projected" : "Points"}
         </span>
-        <b>{n1(v)}</b>
+        <b>{n2(v)}</b>
       </div>
       {!proj && showSnaps && row.snap != null && (
         <div>
@@ -95,13 +95,13 @@ function WeekTip({ row, avg, showSnaps }: { row: Row; avg: number | null; showSn
       {row.tag && (
         <div>
           <span>{row.tag === "b" ? "Boom" : "Bust"}</span>
-          <b className={row.tag === "b" ? "up" : "dn"}>proj {n1(row.bp ?? 0)}</b>
+          <b className={row.tag === "b" ? "up" : "dn"}>proj {n2(row.bp ?? 0)}</b>
         </div>
       )}
       {avg != null && (
         <div>
           <span>vs season avg</span>
-          <Diff v={v - avg} />
+          <Diff v={v - avg} dp={2} />
         </div>
       )}
     </Tip>
