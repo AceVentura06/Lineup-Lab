@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { actualsFrom, gradeWeek, tuneBlend, tagWeek, boomBust } from './accuracy.mjs';
-import { projectAll } from './model.mjs';
+import { projectAll, loadModel } from './model.mjs';
 
 // stats rows are "name|pos|weeks", weeks as "ppr:receptions;..." with "-" for no game
 const stats = rows => ({ fields: ['name', 'pos', 'weeks'], rows: rows.join('\n') });
@@ -77,4 +77,12 @@ test('boomBust: counts eligible weeks, late scratches score zero, top lists by s
   assert.equal(r.players['tiny end'], undefined);                 // projected under 5
   assert.deepEqual(r.weeks[1].boom, [['joe back', 'Joe Back', 'RB', 'ATL', 1, 10, 25, 15]]);
   assert.deepEqual(r.season.bust[0].slice(-1), [-14]);
+});
+
+test('the page tags this week with the same boom / bust rule', () => {
+  const M = loadModel({ SITE_DATA: { week: 1, sleeper: '', espn: '' }, STATS_DATA: { fields: [], rows: '' }, CTX_DATA: {}, ADV_DATA: undefined }, ['tagWeek']);
+  for (let pr = 0; pr <= 30; pr += 0.5) for (let a = -3; a <= 50; a += 0.1) {
+    const v = Math.round(a * 10) / 10;
+    assert.equal(M.tagWeek(pr, v), tagWeek(pr, v), `${pr} -> ${v}`);
+  }
 });

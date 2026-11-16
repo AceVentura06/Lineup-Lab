@@ -2498,7 +2498,16 @@ function loadBB(){if(BB||bbLoading)return;bbLoading=true;
   const sc=document.createElement('script');sc.src='data/boombust-data.js?v='+Math.floor(Date.now()/300000);
   sc.onload=sc.onerror=()=>{BB=typeof BB_DATA!=='undefined'?BB_DATA:{};if(ui.tab==='home')renderHome();else if(ui.tab==='player')renderPlayer();};
   document.head.appendChild(sc);}
-const bbOf=p=>BB&&BB[S.scoring]?.players[p.key];
+// same rule as tagWeek in scripts/accuracy.mjs (a test keeps them equal)
+const tagWeek=(proj,actual)=>proj==null||actual==null||proj<5?null:actual>=proj*1.5&&actual>=proj+6?'b':actual<=proj*.5&&actual<=proj-6?'x':null;
+// past weeks come from BB_DATA, which grades a week once all its games are done; this week is added
+// on the player page as soon as his own game is final, against his projection locked at kickoff
+const bbOf=p=>{const q=BB&&BB[S.scoring]?.players[p.key],fz=SD.frozen&&SD.frozen[p.key],wk=SD.week;
+  if(!BB||!fz||q?.w.some(r=>r[0]===wk))return q;
+  const sc=weekScore(p,wk),pr=fz[['ppr','half','std'].indexOf(S.scoring)];
+  if(sc.st!=='final'||pr==null||pr<5)return q;
+  const t=tagWeek(pr,sc.pts),o=q||{n:0,b:0,x:0,w:[]};
+  return {n:o.n+1,b:o.b+(t==='b'),x:o.x+(t==='x'),w:[...o.w,[wk,pr,sc.pts,t]]};};
 const BB_PILL={b:'<small class="pill p-good">Boom</small>',x:'<small class="pill p-bad">Bust</small>'};
 // season totals for each source across the chosen weeks
 function accAgg(ws){const sc=S.scoring,t={};
