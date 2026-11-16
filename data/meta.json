@@ -1,16 +1,6 @@
 {
-<<<<<<< HEAD
-<<<<<<< HEAD
-  "hash": "5faf01c5a4565905",
-  "updated": "2026-11-16T15:19:20.262Z",
-=======
   "hash": "419b959bd5de60e1",
   "updated": "2026-11-16T08:36:45.311Z",
->>>>>>> 04a08a2c5f4db48bf5e7472f56981c7abc0310d9
-=======
-  "hash": "419b959bd5de60e1",
-  "updated": "2026-11-16T08:36:45.311Z",
->>>>>>> 04a08a2c5f4db48bf5e7472f56981c7abc0310d9
   "season": 2026,
   "week": 10,
   "through": "Weeks 1–9 plus 13 of 14 week 10 games",
@@ -25,15 +15,7 @@
     },
     "Sleeper player list": {
       "ok": true,
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "detail": "679 rosters, refreshed today"
-=======
       "detail": "667 rosters, saved copy from 2026-11-15"
->>>>>>> 04a08a2c5f4db48bf5e7472f56981c7abc0310d9
-=======
-      "detail": "667 rosters, saved copy from 2026-11-15"
->>>>>>> 04a08a2c5f4db48bf5e7472f56981c7abc0310d9
     },
     "nflverse stats": {
       "ok": true,
@@ -73,15 +55,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "detail": "515 players"
-=======
       "detail": "523 players"
->>>>>>> 04a08a2c5f4db48bf5e7472f56981c7abc0310d9
-=======
-      "detail": "523 players"
->>>>>>> 04a08a2c5f4db48bf5e7472f56981c7abc0310d9
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -98,15 +72,7 @@
     },
     "Player news": {
       "ok": true,
-<<<<<<< HEAD
-<<<<<<< HEAD
-      "detail": "177 players with news, 350 of 355 stories with photos (ESPN 1648 articles scanned; ESPN 533, CBS Sports 19, Yahoo Sports 22, ProFootballTalk 25)"
-=======
       "detail": "178 players with news, 352 of 368 stories with photos (ESPN 1648 articles scanned; ESPN 535, CBS Sports 18, Yahoo Sports 27, ProFootballTalk 22)"
->>>>>>> 04a08a2c5f4db48bf5e7472f56981c7abc0310d9
-=======
-      "detail": "178 players with news, 352 of 368 stories with photos (ESPN 1648 articles scanned; ESPN 535, CBS Sports 18, Yahoo Sports 27, ProFootballTalk 22)"
->>>>>>> 04a08a2c5f4db48bf5e7472f56981c7abc0310d9
     }
   }
 }
