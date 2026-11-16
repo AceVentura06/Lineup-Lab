@@ -3,7 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { actualsFrom, gradeWeek, tuneBlend } from './accuracy.mjs';
+import { actualsFrom, gradeWeek, tuneBlend, tagWeek, boomBust } from './accuracy.mjs';
 import { projectAll } from './model.mjs';
 
 // stats rows are "name|pos|weeks", weeks as "ppr:receptions;..." with "-" for no game
@@ -48,4 +48,33 @@ test('the page model still runs in Node on the current data', () => {
   const data = Object.assign({}, ...['sites-data', 'stats-data', 'ctx-data', 'adv-data'].map(load));
   const r = projectAll(data);
   assert.ok(Object.keys(r.players).length > 50, 'expected projections for the week\'s players');
+});
+
+test('tagWeek: boom needs 1.5x and +6, bust needs half and -6, projections under 5 never count', () => {
+  assert.equal(tagWeek(12, 18), 'b');     // exactly 1.5x and exactly +6
+  assert.equal(tagWeek(12, 17.9), null);
+  assert.equal(tagWeek(12, 6), 'x');      // exactly half and exactly -6
+  assert.equal(tagWeek(12, 6.1), null);
+  assert.equal(tagWeek(8, 13), null);     // 1.5x (12) is met, +6 (14) is not
+  assert.equal(tagWeek(8, 14), 'b');
+  assert.equal(tagWeek(10, 4.5), null);   // half is met, -6 (4) is not
+  assert.equal(tagWeek(24, 31), null);    // a star's good game is not a boom
+  assert.equal(tagWeek(4.9, 30), null);
+  assert.equal(tagWeek(5, 0), null);      // half and -5 only
+  assert.equal(tagWeek(6, 0), 'x');
+});
+
+test('boomBust: counts eligible weeks, late scratches score zero, top lists by size', () => {
+  const lab = v => ({ lab: [v, v, v] });
+  const history = { 1: { players: {
+    'joe back': { n: 'Joe Back', pos: 'RB', tm: 'ATL', src: lab(10) },
+    'al wide': { n: 'Al Wide', pos: 'WR', tm: 'MIN', src: lab(14) },
+    'tiny end': { n: 'Tiny End', pos: 'TE', tm: 'KC', src: lab(3) },
+  } } };
+  const r = boomBust(history, stats(['Joe Back|RB|25:0', 'Tiny End|TE|20:0']), 2).ppr;
+  assert.deepEqual(r.players['joe back'], { n: 1, b: 1, x: 0, w: [[1, 10, 25, 'b']] });
+  assert.deepEqual(r.players['al wide'].w, [[1, 14, 0, 'x']]);   // did not play
+  assert.equal(r.players['tiny end'], undefined);                 // projected under 5
+  assert.deepEqual(r.weeks[1].boom, [['joe back', 'Joe Back', 'RB', 'ATL', 1, 10, 25, 15]]);
+  assert.deepEqual(r.season.bust[0].slice(-1), [-14]);
 });

@@ -7,7 +7,7 @@ import { build } from './build.mjs';
 import { buildAdv } from './adv.mjs';
 import { projectAll } from './model.mjs';
 import { buildNews } from './news.mjs';
-import { mergeSnapshot, gradeAll, gradeShadow, publicSrc, actualsFrom, tuneBlend } from './accuracy.mjs';
+import { mergeSnapshot, gradeAll, gradeShadow, publicSrc, actualsFrom, tuneBlend, boomBust } from './accuracy.mjs';
 import { BASELINE } from './scoring.mjs';
 import { ALIAS, collisions } from './keys.mjs';
 import { readdir } from 'node:fs/promises';
@@ -138,6 +138,8 @@ try {
   }
   await writeFile(new URL('sites-data.js', DIR), js('SITE_DATA', { ...SITE_DATA, season: d.season, frozen, pastWeeks: pastWeeks.sort((a, b) => a - b) }));
   await writeFile(new URL('accuracy-data.js', DIR), js('ACC_DATA', { ...acc, pulled }));
+  // boom / bust weeks against our own pregame projection, for the player page and the home card
+  await writeFile(new URL('boombust-data.js', DIR), js('BB_DATA', boomBust(history, d.stats, d.week)));
   // the usage model's private report card; no page loads this file
   await writeFile(new URL('shadow.json', DIR), JSON.stringify(gradeShadow(history, d.stats, d.week), null, 1));
   // ticker: latest headlines and last week's most accurate source

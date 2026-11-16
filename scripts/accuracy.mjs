@@ -124,6 +124,43 @@ export function gradeShadow(history, STATS, currentWeek) {
   return { sources: SHADOW, weeks };
 }
 
+// Boom / bust against the site's own pregame projection: only weeks projected 5+ count.
+// Boom: 1.5x and +6 over projection. Bust: half or less and 6+ under. Returns 'b', 'x' or null.
+export function tagWeek(proj, actual) {
+  if (proj == null || actual == null || proj < 5) return null;
+  if (actual >= proj * 1.5 && actual >= proj + 6) return 'b';
+  if (actual <= proj * 0.5 && actual <= proj - 6) return 'x';
+  return null;
+}
+
+// Boom / bust per player and the week's and season's biggest of each, in each scoring format.
+// history: { week: snapshot }; only finished weeks (< currentWeek) count. Late scratches (no stats) score 0.
+export function boomBust(history, STATS, currentWeek) {
+  const act = actualsFrom(STATS), out = {};
+  // biggest five of one kind, by points over / under projection; drops the kind column
+  const top = (rows, t) => rows.filter(r => r[8] === t).sort((x, y) => Math.abs(y[7]) - Math.abs(x[7])).slice(0, 5).map(r => r.slice(0, 8));
+  SC.forEach((sc, i) => {
+    const players = {}, weeks = {}, all = [];
+    for (const [w, snap] of Object.entries(history)) {
+      if (+w >= currentWeek) continue;
+      const rows = [];
+      for (const [k, p] of Object.entries(snap.players)) {
+        const pr = p.src?.lab?.[i];
+        if (pr == null || pr < 5) continue;
+        const a = act[k]?.[+w]?.[i] ?? 0, t = tagWeek(pr, a);
+        const q = players[k] = players[k] || { n: 0, b: 0, x: 0, w: [] };
+        q.n++; if (t === 'b') q.b++; if (t === 'x') q.x++;
+        q.w.push([+w, pr, r2(a), t]);
+        if (t) rows.push([k, p.n, p.pos, p.tm, +w, pr, r2(a), r2(a - pr), t]);
+      }
+      weeks[w] = { boom: top(rows, 'b'), bust: top(rows, 'x') };
+      all.push(...rows);
+    }
+    out[sc] = { players, weeks, season: { boom: top(all, 'b'), bust: top(all, 'x') } };
+  });
+  return out;
+}
+
 // Grade every finished week. history: { week: snapshot }
 export function gradeAll(history, STATS, currentWeek, season) {
   const act = actualsFrom(STATS);

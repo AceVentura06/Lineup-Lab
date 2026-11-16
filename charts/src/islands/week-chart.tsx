@@ -12,6 +12,9 @@ export interface Week {
   v?: number;
   snap?: number | null;
   kind: "played" | "proj" | "bye" | "out" | "upcoming";
+  /** boom ("b") or bust ("x") against our pregame projection bp */
+  tag?: "b" | "x";
+  bp?: number;
 }
 
 export interface WeekChartProps {
@@ -40,7 +43,7 @@ export function WeekChart({ weeks, avg, showSnaps, animate = true }: WeekChartPr
   return (
     <div className="ll-wk-scroll">
       <div className="ll-wk-inner" style={{ minWidth: `calc(${weeks.length} * var(--ll-col, 64px))` }}>
-        <BarChart animationDuration={650} aspectRatio="auto" barGap={0.18} className="ll-wk-chart" data={data} margin={{ top: 26, right: 0, bottom: 46, left: 0 }} stacked xDataKey="name">
+        <BarChart animationDuration={650} aspectRatio="auto" barGap={0.18} className="ll-wk-chart" data={data} margin={{ top: 26, right: 0, bottom: weeks.some((x) => x.tag) ? 70 : 46, left: 0 }} stacked xDataKey="name">
           <Grid fadeHorizontal hideHorizontalEdgeLines horizontal numTicksRows={3} strokeDasharray="0" />
           <Bar animate={animate} dataKey="pts" fill="var(--chart-1)" lineCap={2} staggerDelay={0.035} />
           {/* the projected week is the highlighted one: solid orange, not a hatch */}
@@ -48,7 +51,7 @@ export function WeekChart({ weeks, avg, showSnaps, animate = true }: WeekChartPr
           {avg != null && <AvgRule value={avg} />}
           <ValueLabels gap={8} items={data.filter(scored).map((d) => ({ w: d.w, v: d.pts || d.proj, text: n1(d.pts || d.proj), accent: d.kind === "proj" }))} />
           <GapLabels gaps={weeks.filter((x) => GAP[x.kind]).map((x) => ({ w: x.w, label: GAP[x.kind][0], now: x.kind === "upcoming" }))} />
-          <WeekAxis weeks={weeks.map((x) => ({ w: x.w, o: x.o, now: x.kind === "proj" || x.kind === "upcoming" }))} />
+          <WeekAxis weeks={weeks.map((x) => ({ w: x.w, o: x.o, now: x.kind === "proj" || x.kind === "upcoming", tag: x.tag }))} />
           <ChartTooltip
             content={({ point }) => <WeekTip avg={avg} row={point as Row} showSnaps={showSnaps} />}
             showCrosshair={false}
@@ -87,6 +90,12 @@ function WeekTip({ row, avg, showSnaps }: { row: Row; avg: number | null; showSn
         <div>
           <span>Snap share</span>
           <b>{row.snap}%</b>
+        </div>
+      )}
+      {row.tag && (
+        <div>
+          <span>{row.tag === "b" ? "Boom" : "Bust"}</span>
+          <b className={row.tag === "b" ? "up" : "dn"}>proj {n1(row.bp ?? 0)}</b>
         </div>
       )}
       {avg != null && (

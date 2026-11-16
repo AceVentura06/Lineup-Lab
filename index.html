@@ -870,6 +870,8 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 .wkline{position:absolute;left:0;right:0;border-top:2px dashed var(--wka);z-index:2;pointer-events:none}
 .wklabs{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:12px;margin-top:8px;text-align:center;font-family:var(--f-display);text-transform:uppercase}
 .wkl b{display:block;font-size:var(--t-md);white-space:nowrap}
+.wkl .pill{margin-top:4px}
+@media (max-width:600px){.pl-tiles>.tile:last-child:nth-child(odd){grid-column:1/-1}}
 .wkl span{display:block;margin-top:2px;font-family:var(--f-display-cond);font-size:var(--t-md);letter-spacing:.03em;color:var(--muted);white-space:nowrap}
 .wkl.now b,.wkl.now span{color:var(--wkc)}
 /* tooltip panel, after Bklit's TooltipBox: rounded, 1px border, soft shadow, frosted */
@@ -1564,7 +1566,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
     </div>
     <div class="card" id="hmGames" hidden></div>
     <div class="card" id="hmTop"></div>
-    <div class="hm-grid3"><div class="card" id="hmRise"></div><div class="card" id="hmFall"></div></div>
+    <div class="hm-grid3"><div class="card" id="hmRise"></div><div class="card" id="hmFall"></div><div class="card" id="hmBB"></div></div>
     <div class="hm-grid3"><div class="card" id="hmSoft"></div><div class="card" id="hmLast"></div><div class="card" id="hmAcc"></div></div>
     <div class="hm-row"><div class="card hm-inj" id="hmInj"></div><div class="card hm-news" id="hmNews"></div></div>
   </section>
@@ -1593,6 +1595,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
           +rep(4,function(c){return '<div class="hm-pcol sk-pc'+(c?'':' on')+'">'+b('7em','1.1em')+rep(5,function(i){return '<div class="hm-li">'+b(W[(i+c)%8].replace('%','')*0.6+'%','1em')+b('2.2em','1.2em')+'</div>';})+'</div>';})+'</div>';
         $('hmSoft').innerHTML=head('Softest Matchups',1)+list(4,{pill:1,two:1});
         $('hmLast').innerHTML=head(0)+list(6,{pill:1});
+        $('hmBB').innerHTML=head('Biggest Booms and Busts')+'<div class="chips u-mb-12" aria-hidden="true">'+b('150px','34px')+'</div>'+list(5,{pill:1,two:1})+'<div class="u-mt-14">'+list(5,{pill:1,two:1})+'</div>';
         $('hmAcc').innerHTML=head('Who Called It',1)+lines(['9em','5.5em','11em'],'.8em').replace('width:5.5em;height:.8em','width:5.5em;height:2.4em')+'<div class="u-bt-1 u-mt-14 u-pt-12">'+lines(['100%','70%'])+'</div>';
         $('hmInj').innerHTML=head('Injury Watch')+list(6,{pill:1,two:1,three:1,num:false});
         $('hmNews').innerHTML=head('Latest News')+'<div class="sk-lines" aria-hidden="true">'+b('100%','','sk-th','max-height:300px')+b('9em','.75em')+b('92%','1.1em')+'</div>'+'<div class="u-mt-14">'+list(4,{thumb:'104px',kick:1,two:1,num:false})+'</div>';},
@@ -1850,6 +1853,7 @@ No outside site projects him this week → Not projected (no number, no Start / 
 Games left = this week through Week 17 (minus the bye, if it falls in that span)
 Total      = Pts/game × Games left</div>
         <p class="note">Kickers and defenses use fantasy points per game under your kicker and D/ST rules.</p>
+        <p><b>5. Boom and bust.</b> Graded against our own projection, locked at kickoff, in weeks we projected him for 5+ points. Boom: he scored at least 1.5× the projection and at least 6 more. Bust: half the projection or less and at least 6 fewer. A player who sat out after being projected scores 0. Weeks before we started saving projections use rebuilt ones.</p>
       </div>
     </div>
     <div class="card u-flex u-col u-gap-6">
@@ -1989,8 +1993,8 @@ Total      = Pts/game × Games left</div>
 // Chart islands (built from charts/ into assets/charts): fetched only when a page first shows one,
 // so the home page and tables never download React.
 (function(){var go=false;function load(){if(go||!document.querySelector('[data-island]'))return;go=true;
-  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=659c304882';document.head.appendChild(l);
-  import('./assets/charts/islands.js?v=659c304882').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
+  var l=document.createElement('link');l.rel='stylesheet';l.href='assets/charts/islands.css?v=a2f2ac77e9';document.head.appendChild(l);
+  import('./assets/charts/islands.js?v=a2f2ac77e9').then(function(){document.documentElement.classList.add('ll-ready');}).catch(function(){});}
   document.addEventListener('DOMContentLoaded',function(){load();if(!go)new MutationObserver(function(_,o){load();if(go)o.disconnect();}).observe(document.body,{childList:true,subtree:true});});})();
 </script>
 <script>(function(){var v=Math.floor(Date.now()/300000);["sites-data","stats-data","ctx-data","adv-data","ticker-data"].forEach(function(f){document.write('<script src="data/'+f+'.js?v='+v+'"><\/script>');});})();</script>
@@ -2488,6 +2492,14 @@ function loadAcc(){if(ACC||accLoading)return;accLoading=true;
   const sc=document.createElement('script');sc.src='data/accuracy-data.js?v='+Math.floor(Date.now()/300000);
   sc.onload=()=>{ACC=typeof ACC_DATA!=='undefined'?ACC_DATA:{weeks:{}};if(ui.tab==='acc')renderAcc();else if(ui.tab==='home')renderHome();};
   sc.onerror=()=>{ACC={weeks:{}};if(ui.tab==='acc')renderAcc();else if(ui.tab==='home')renderHome();};document.head.appendChild(sc);}
+// boom / bust weeks (scripts/accuracy.mjs boomBust), loaded when the home or a player page first needs them
+let BB=null,bbLoading=false;
+function loadBB(){if(BB||bbLoading)return;bbLoading=true;
+  const sc=document.createElement('script');sc.src='data/boombust-data.js?v='+Math.floor(Date.now()/300000);
+  sc.onload=sc.onerror=()=>{BB=typeof BB_DATA!=='undefined'?BB_DATA:{};if(ui.tab==='home')renderHome();else if(ui.tab==='player')renderPlayer();};
+  document.head.appendChild(sc);}
+const bbOf=p=>BB&&BB[S.scoring]?.players[p.key];
+const BB_PILL={b:'<small class="pill p-good">Boom</small>',x:'<small class="pill p-bad">Bust</small>'};
 // season totals for each source across the chosen weeks
 function accAgg(ws){const sc=S.scoring,t={};
   for(const w of ws){const W=ACC.weeks[w];for(const s of W.srcs){const m=W.m[sc][s];const a=t[s]=t[s]||{ae:0,n:0,hit:0,tot:0,rs:0,rn:0,weeks:0,pos:{}};
@@ -3299,6 +3311,17 @@ function renderHome(){
   $('#hmLast').innerHTML=`<div class="hm-head"><h3>Week ${Math.max(1,lw)} top scorers</h3></div>
     ${tops.length?`<div class="hm-list">${tops.map(x=>`<div class="hm-li u-ai-c"><span class="u-flex u-gap-10 u-ai-c"><span class="pos ${x.pos}">${x.pos}</span>${pname(x.p)}</span><b class="hm-pr">${f1(x.v)}</b></div>`).join('')}</div>`
       :'<p class="hm-empty">Top scorers show up once the first week is played.</p>'}`;
+  // biggest booms and busts: last finished week, or the season
+  loadBB();{const B=BB&&BB[S.scoring],ws=B?Object.keys(B.weeks).map(Number):[],bw=ws.length?Math.max(...ws):0,sea=ui.bbSeason&&bw>0;
+    const li=r=>{const [k,nm,ps,tm,w,pr,ac,d]=r,p=PL.get(k);
+      return `<div class="hm-li u-ai-c"><span class="u-flex u-gap-10 u-ai-c"><span class="pos ${ps}">${ps}</span><span>${p?pname(p):esc(nm)}<br><span class="hm-sm">${esc(tm)}${sea?` · Wk ${w}`:''} · proj ${f1(pr)} → ${f1(ac)}</span></span></span><b class="sc-d ${d>0?'up':'down'}">${d>0?'+':'−'}${f1(Math.abs(d))}</b></div>`;};
+    const list=(t,rs)=>`<div><span class="label">${t}</span>${rs.length?`<div class="hm-list">${rs.map(li).join('')}</div>`:'<p class="hm-empty">None.</p>'}</div>`;
+    const src=B&&(sea?B.season:B.weeks[bw]);
+    $('#hmBB').innerHTML=`<div class="hm-head"><h3>Biggest booms and busts</h3></div>
+      ${!BB?SK.list(5,{pill:1,two:1}):!bw?'<p class="hm-empty">Booms and busts show up once a week we projected is final.</p>'
+      :`<div class="chips u-mb-12" id="hmBBPick"><button class="chip" aria-pressed="${!sea}" data-bbs="0">Week ${bw}</button><button class="chip" aria-pressed="${sea}" data-bbs="1">Season</button></div>
+      ${list('Booms',src.boom)}<div class="u-mt-14">${list('Busts',src.bust)}</div>`}`;
+    requestAnimationFrame(()=>segThumb($('#hmBBPick'),true));}
   // accuracy
   loadAcc();let acc=SK.lines(['9em','5.5em','11em'],'.8em').replace('width:5.5em;height:.8em','width:5.5em;height:2.4em');
   if(ACC){const ws=Object.keys(ACC.weeks||{}).map(Number).sort((a,b)=>a-b);
@@ -3335,6 +3358,7 @@ function renderHome(){
     <ul class="u-mt-12">${rest.map(([t,src,url,iso,img])=>`<li>${newsThumb(src,url,img)}<div>${meta(src,iso)}${ln(t,url)}</div></li>`).join('')}</ul>`:'<p class="hm-empty">No headlines right now.</p>'}`;
 }
 document.addEventListener('click',e=>{const g=e.target.closest('[data-go]');if(g){if(g.tagName==='A'){if(e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;e.preventDefault();}go(g.dataset.go);return;}
+  const bs=e.target.closest('[data-bbs]');if(bs){ui.bbSeason=bs.dataset.bbs==='1';renderHome();requestAnimationFrame(()=>segThumb($('#hmBBPick')));return;}
   const h=e.target.closest('[data-hp]');if(h){ui.homePos=h.dataset.hp;renderHome();requestAnimationFrame(()=>segThumb($('#hmPick')));return;}
   const c=e.target.closest('[data-cmp]');if(c){const [a,b]=c.dataset.cmp.split('|');ui.a=a;ui.b=b;go('week').then(()=>{const el=$('#p-week .h2h');if(el)el.scrollIntoView({block:'start'});});}});
 // ---- my team: stars and the shared "My team only" filter ----
@@ -3852,10 +3876,10 @@ function usageCard(p){
     </div></div><div class="wktip" aria-hidden="true"></div><div class="ll-island" data-island="usage" data-props="${island}"></div></div>`;}
 const WK_SEEN=new Set();
 function weekCard(p,projV){
-  const cur=SD.week,sc=SCHED[p.team]||[],weeks=[];
+  const cur=SD.week,sc=SCHED[p.team]||[],weeks=[],bbw=new Map((bbOf(p)?.w||[]).map(r=>[r[0],r]));
   for(let w=1;w<=cur;w++){const e=p.weeks[w-1],opp=sc[w-1]||'';
     const o=opp==='BYE'?'':(opp.startsWith('@')?'at '+opp.slice(1):'vs '+opp);
-    if(e){weeks.push({w,o,v:wpts(e),snap:e.snap,kind:'played'});continue;}
+    if(e){const r=bbw.get(w);weeks.push({w,o,v:wpts(e),snap:e.snap,kind:'played',tag:r?.[3]||undefined,bp:r?.[1]});continue;}
     if(opp==='BYE'){weeks.push({w,o:'',kind:'bye'});continue;}
     if(w===cur&&projV>0){weeks.push({w,o,v:projV,kind:'proj'});continue;}
     weeks.push({w,o,kind:w===cur?'upcoming':'out'});}
@@ -3870,14 +3894,15 @@ function weekCard(p,projV){
     if(x.kind==='played'||x.kind==='proj'){const hh=h(x.v),proj=x.kind==='proj';
       const rows=[[proj?'Projected':'Points',f1(x.v),proj?'hatch':'dot']];
       if(!proj&&snaps&&x.snap!=null)rows.push(['Snap share',x.snap+'%']);
+      if(x.tag)rows.push([x.tag==='b'?'Boom':'Bust','proj '+f1(x.bp),x.tag==='b'?'up':'dn']);
       if(avg!=null){const d=x.v-avg;rows.push(['vs season avg',(d>=0?'+':'−')+f1(Math.abs(d)),d>=0.05?'up':d<=-0.05?'dn':'']);}
       const tip=esc(JSON.stringify({h:`Week ${x.w}${where}`,r:rows}));
-      return `<div class="wkcol has${proj?' proj':''}" style="--i:${i}" tabindex="0" role="img" data-tip="${tip}" aria-label="Week ${x.w}${esc(where)}: ${f1(x.v)} points${proj?' projected':''}"><i class="wkt"></i><i class="wkb${proj?' proj':''}" style="height:${hh}px"></i><b class="wkv" style="bottom:${hh+4}px"><span>${f1(x.v)}</span></b></div>`;}
+      return `<div class="wkcol has${proj?' proj':''}" style="--i:${i}" tabindex="0" role="img" data-tip="${tip}" aria-label="Week ${x.w}${esc(where)}: ${f1(x.v)} points${proj?' projected':''}${x.tag?(x.tag==='b'?', boom':', bust'):''}"><i class="wkt"></i><i class="wkb${proj?' proj':''}" style="height:${hh}px"></i><b class="wkv" style="bottom:${hh+4}px"><span>${f1(x.v)}</span></b></div>`;}
     const lbl=x.kind==='bye'?'Bye':x.kind==='upcoming'?'Next':'Out';
     return `<div class="wkcol${x.kind==='upcoming'?' next':''}" style="--i:${i}" role="img" aria-label="Week ${x.w}${esc(where)}: ${lbl}"><i class="wkt"></i><span class="wkgap">${lbl}</span></div>`;};
-  const lab=x=>`<div class="wkl${x.kind==='proj'||x.kind==='upcoming'?' now':''}"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span></div>`;
+  const lab=x=>`<div class="wkl${x.kind==='proj'||x.kind==='upcoming'?' now':''}"><b>Wk ${x.w}</b><span>${esc(x.o||'Bye')}</span>${x.tag?BB_PILL[x.tag]:''}</div>`;
   // real Bklit chart (assets/charts) mounts into .ll-island; the hand-built chart below is the fallback
-  const island=esc(JSON.stringify({weeks:weeks.map(({w,o,v,snap,kind})=>({w,o,v,snap,kind})),avg,showSnaps:snaps,animate:anim}));
+  const island=esc(JSON.stringify({weeks:weeks.map(({w,o,v,snap,kind,tag,bp})=>({w,o,v,snap,kind,tag,bp})),avg,showSnaps:snaps,animate:anim}));
   return `<div class="card wkcard has-island"><div class="wkhead"><h3>Points by week</h3>${avg!=null?`<span class="wkavg"><i class="wkkey" aria-hidden="true"></i>Season avg <b>${f1(avg)}</b></span>`:''}</div>
     <div class="wkscroll"><div class="wkgrid" style="--n:${n}">
       <div class="wkplot${anim?' anim':''}" style="--n:${n};--h:${H}px;--st:${(0.44/Math.max(1,n)).toFixed(3)}s">${avg!=null?`<div class="wkline" style="bottom:${h(avg)}px"></div>`:''}${weeks.map(col).join('')}</div>
@@ -4005,7 +4030,7 @@ function renderPlayer(){
   const mean=vals.reduce((a,b)=>a+b,0)/(vals.length||1),sd=Math.sqrt(vals.reduce((a,b)=>a+(b-mean)**2,0)/(vals.length||1));
   const site=SITEBY.get(p.key),sv=site?siteVals(site):null;
   const startLine={QB:18,RB:12,WR:12,TE:9,K:8,DST:8}[p.pos];
-  const boom=vals.length?vals.filter(v=>v>=startLine).length:0;
+  loadBB();const bb=bbOf(p),bbT=(l,c)=>`<div class="tile"><span class="label">${l}</span><span class="v">${bb&&bb.n>=3?Math.round(c/bb.n*100)+'%':'—'}</span><span class="s">${!BB?'&nbsp;':bb&&bb.n>=3?`${c} of ${bb.n} weeks`:'Not enough weeks'}</span></div>`;
   const sn=(p.pos==='K'||p.pos==='DST')?null:dv(p.s.off_snp,p.s.tm_off_snp);
   const msA=METRICS[p.pos].map(m=>{const v=m.f(p);if(v==null&&m.src)return '';const rk=rankOf(p,m);const frac=rk?1-(rk.r-1)/Math.max(1,rk.n-1):null;
     const cls=m.neutral?'mid':frac>=.67?'hi':frac>=.33?'mid':'lo';
@@ -4061,11 +4086,12 @@ function renderPlayer(){
   const wkSec=thisWeek?thisWeek.replace('@@TOOLS@@',toolsCard):toolsCard?`<div class="card" id="sec-week"><h3>This week</h3>${toolsCard}</div>`:'';
   const shot=headshotOf(p),byeWk=(SCHED[p.team]||[]).indexOf('BYE')+1;
   const ov=`${strip?`<div class="pstrip">${strip}</div>`:''}
-   <div class="tiles">
+   <div class="tiles pl-tiles">
      <div class="tile"><span class="label">Total pts</span><span class="v">${f1(tot(p))}</span><span class="s">${tr.tot?`<b class="tr">${rkTxt(tr.tot,p.pos)}</b>, `:''}${scName()}</span></div>
      ${shareTile||''}
      ${!shareTile&&sn!=null?`<div class="tile"><span class="label">Snap share</span><span class="v">${pct(sn)}</span><span class="s">${tr.snap?`<b class="tr">${rkTxt(tr.snap,p.pos)}</b>, `:''}${p.s.off_snp} of ${p.s.tm_off_snp} snaps</span></div>`:''}
-     <div class="tile"><span class="label">Week-to-week swing</span><span class="v">±${f1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${rkTxt(tr.cons,p.pos)}</b>, `:''}${boom} of ${vals.length} weeks at ${startLine}+ pts</span></div>
+     <div class="tile"><span class="label">Week-to-week swing</span><span class="v">±${f1(sd)}</span><span class="s">${tr.cons?`<b class="tr">${rkTxt(tr.cons,p.pos)}</b>, `:''}over ${vals.length} games</span></div>
+     ${bbT('Boom %',bb?bb.b:0)}${bbT('Bust %',bb?bb.x:0)}
    </div>
    <div class="card" id="sec-season"><h3 class="u-mb-10">Season stats</h3>${boxScore(p)}</div>
    ${wkSec}

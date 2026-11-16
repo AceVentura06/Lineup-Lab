@@ -58,7 +58,7 @@ export function ValueLabels({ items, gap }: { items: { w: number; v: number; tex
 ValueLabels.__isPostOverlay = true;
 
 /** "Wk 5" with the opponent underneath when given; this week and next in the accent colour. */
-export function WeekAxis({ weeks }: { weeks: { w: number; o?: string; now?: boolean }[] }) {
+export function WeekAxis({ weeks }: { weeks: { w: number; o?: string; now?: boolean; tag?: "b" | "x" }[] }) {
   const { innerHeight } = useChart();
   const { x } = useWeekX();
   return (
@@ -72,6 +72,14 @@ export function WeekAxis({ weeks }: { weeks: { w: number; o?: string; now?: bool
             <text className="ll-opp" textAnchor="middle" x={x(d.w)} y={innerHeight + 38}>
               {d.o || "Bye"}
             </text>
+          )}
+          {d.tag && (
+            <g className={d.tag === "b" ? "ll-tag boom" : "ll-tag bust"}>
+              <rect height={18} rx={4} width={42} x={x(d.w) - 21} y={innerHeight + 47} />
+              <text textAnchor="middle" x={x(d.w)} y={innerHeight + 60}>
+                {d.tag === "b" ? "Boom" : "Bust"}
+              </text>
+            </g>
           )}
         </g>
       ))}
