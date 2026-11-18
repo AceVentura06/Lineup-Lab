@@ -1,6 +1,6 @@
 {
-  "hash": "722b4e88eb2bd55f",
-  "updated": "2026-11-18T02:25:55.185Z",
+  "hash": "e5b77d734f845795",
+  "updated": "2026-11-18T10:44:06.843Z",
   "season": 2026,
   "week": 11,
   "through": "Weeks 1–10",
@@ -35,15 +35,15 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "9415 targets, 7833 carries"
+      "detail": "9416 targets, 7833 carries"
     },
     "FTN charting": {
       "ok": true,
-      "detail": "25239 charted plays"
+      "detail": "25409 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "no week 11 report yet (comes out Wednesday)"
+      "detail": "26 entries for week 11"
     },
     "Betting lines": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "306 players"
+      "detail": "327 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "184 players with news, 364 of 368 stories with photos (ESPN 1649 articles scanned; ESPN 547, CBS Sports 16, Yahoo Sports 15, ProFootballTalk 8)"
+      "detail": "185 players with news, 361 of 366 stories with photos (ESPN 1643 articles scanned; ESPN 541, CBS Sports 17, Yahoo Sports 9, ProFootballTalk 9)"
     }
   }
 }
