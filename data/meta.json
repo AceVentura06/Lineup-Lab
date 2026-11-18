@@ -1,17 +1,17 @@
 {
-  "hash": "3aa509342d39598d",
-  "updated": "2026-11-17T19:50:28.409Z",
+  "hash": "722b4e88eb2bd55f",
+  "updated": "2026-11-18T02:25:55.185Z",
   "season": 2026,
   "week": 11,
   "through": "Weeks 1–10",
   "sources": {
     "Sleeper": {
       "ok": true,
-      "detail": "336 projections, 518 stat rows"
+      "detail": "337 projections, 518 stat rows"
     },
     "ESPN": {
       "ok": true,
-      "detail": "314 projections"
+      "detail": "315 projections"
     },
     "Sleeper player list": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "275 players"
+      "detail": "306 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "191 players with news, 375 of 379 stories with photos (ESPN 1649 articles scanned; ESPN 571, CBS Sports 17, Yahoo Sports 6, ProFootballTalk 9)"
+      "detail": "184 players with news, 364 of 368 stories with photos (ESPN 1649 articles scanned; ESPN 547, CBS Sports 16, Yahoo Sports 15, ProFootballTalk 8)"
     }
   }
 }
