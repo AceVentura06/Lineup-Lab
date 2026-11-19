@@ -1,6 +1,6 @@
 {
-  "hash": "3128436e1fc42627",
-  "updated": "2026-11-19T01:11:59.838Z",
+  "hash": "f165418b4d3d8a64",
+  "updated": "2026-11-19T08:45:52.565Z",
   "season": 2026,
   "week": 11,
   "through": "Weeks 1–10",
@@ -43,7 +43,7 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "26 entries for week 11"
+      "detail": "253 entries for week 11"
     },
     "Betting lines": {
       "ok": true,
@@ -63,7 +63,7 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "399 projections, 192 expert rankings"
+      "detail": "397 projections, 192 expert rankings"
     },
     "Usage model (testing)": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "190 players with news, 372 of 384 stories with photos (ESPN 1646 articles scanned; ESPN 524, CBS Sports 14, Yahoo Sports 23, ProFootballTalk 25)"
+      "detail": "190 players with news, 372 of 380 stories with photos (ESPN 1642 articles scanned; ESPN 522, CBS Sports 17, Yahoo Sports 17, ProFootballTalk 24)"
     }
   }
 }
