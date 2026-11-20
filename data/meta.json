@@ -1,13 +1,13 @@
 {
-  "hash": "6855bd746edaa759",
-  "updated": "2026-11-20T07:10:41.763Z",
+  "hash": "50ceba586cc0c4f6",
+  "updated": "2026-11-20T16:07:40.295Z",
   "season": 2026,
   "week": 11,
   "through": "Weeks 1–10 plus 1 of 13 week 11 games",
   "sources": {
     "Sleeper": {
       "ok": true,
-      "detail": "336 projections, 520 stat rows"
+      "detail": "334 projections, 520 stat rows"
     },
     "ESPN": {
       "ok": true,
@@ -27,7 +27,7 @@
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "45 players"
+      "detail": "46 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "291 entries for week 11"
+      "detail": "293 entries for week 11"
     },
     "Betting lines": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "487 players"
+      "detail": "490 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -67,12 +67,12 @@
     },
     "Usage model (testing)": {
       "ok": true,
-      "detail": "443 players from 3161 expected-points rows",
+      "detail": "443 players from 3184 expected-points rows",
       "hidden": true
     },
     "Player news": {
       "ok": true,
-      "detail": "172 players with news, 328 of 341 stories with photos (ESPN 1648 articles scanned; ESPN 469, CBS Sports 17, Yahoo Sports 27, ProFootballTalk 16)"
+      "detail": "182 players with news, 359 of 364 stories with photos (ESPN 1648 articles scanned; ESPN 501, CBS Sports 17, Yahoo Sports 16, ProFootballTalk 17)"
     }
   }
 }
