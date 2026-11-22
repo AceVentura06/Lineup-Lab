@@ -1,9 +1,9 @@
 {
-  "hash": "3f793f97b3752acb",
-  "updated": "2026-11-22T21:16:48.901Z",
+  "hash": "f3912ec35669a972",
+  "updated": "2026-11-22T21:40:32.198Z",
   "season": 2026,
   "week": 11,
-  "through": "Weeks 1–10 plus 7 of 13 week 11 games",
+  "through": "Weeks 1–10 plus 8 of 13 week 11 games",
   "sources": {
     "Sleeper": {
       "ok": true,
@@ -46,16 +46,16 @@
       "detail": "313 entries for week 11"
     },
     "Betting lines": {
-      "ok": false,
-      "detail": "HTTP 404 for https://github.com/nflverse/nflverse-data/releases/download/schedules/games.csv"
+      "ok": true,
+      "detail": "13 week 11 games, 13 with lines"
     },
     "Weather": {
       "ok": true,
-      "detail": "0 outdoor games forecast"
+      "detail": "9 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "459 players (last week's rankings; this week's not posted yet)"
+      "detail": "459 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -63,16 +63,16 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "380 projections, 0 expert rankings (this week's rankings not posted yet)"
+      "detail": "380 projections, 192 expert rankings"
     },
     "Usage model (testing)": {
-      "ok": false,
-      "detail": "needs play-by-play and the schedule",
+      "ok": true,
+      "detail": "443 players from 3184 expected-points rows",
       "hidden": true
     },
     "Player news": {
       "ok": true,
-      "detail": "182 players with news, 354 of 368 stories with photos (ESPN 1644 articles scanned; ESPN 501, CBS Sports 14, Yahoo Sports 24, ProFootballTalk 18)"
+      "detail": "184 players with news, 367 of 375 stories with photos (ESPN 1644 articles scanned; ESPN 518, CBS Sports 15, Yahoo Sports 16, ProFootballTalk 17)"
     }
   }
 }
