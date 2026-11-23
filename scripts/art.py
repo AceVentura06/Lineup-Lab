@@ -4,8 +4,6 @@ Run by .github/workflows/art.yml, which downloads the site's fonts first.
 Locally:  FONT_DIR=/path/to/ttfs python3 scripts/art.py  (falls back to DejaVu so the layout can be checked).
 Writes icons/*.png and og.png at the repo root.
 """
-import bisect
-import math
 import os
 import sys
 from PIL import Image, ImageDraw, ImageFont
@@ -34,7 +32,7 @@ LABEL = lambda s: font('BarlowSemiCondensed-Bold.ttf', s, DJV + 'DejaVuSansConde
 
 # Route A geometry, in the 100-unit box of icons/route-a.svg
 CURVE = [(18, 86), (40, 84), (62, 70), (76, 34)]
-ARROW = [(68, 38), (77, 28), (82, 41)]
+ARROW = [(67.9, 35.8), (78.3, 28.0), (80.7, 40.8)]
 BALL, BALL_R, STROKE = (18, 86), 7, 6
 A_AT, A_SIZE = (46, 78), 70        # the A: centred on x=46, baseline y=78, font-size 70
 A_GAP = 0.1                        # extra space after the A in the wordmark, in em
@@ -56,24 +54,7 @@ def stroke(d, pts, w, fill):
         d.ellipse([x - w / 2, y - w / 2, x + w / 2, y + w / 2], fill=fill)
 
 
-def dashes(pts, on, off):
-    """Split a polyline into dash pieces (like stroke-dasharray: on off)."""
-    cum = [0.0]
-    for a, b in zip(pts, pts[1:]):
-        cum.append(cum[-1] + math.dist(a, b))
-    def at(s):   # the point at arc length s
-        i = min(bisect.bisect_right(cum, s) - 1, len(pts) - 2)
-        (ax, ay), (bx, by) = pts[i], pts[i + 1]
-        f = (s - cum[i]) / ((cum[i + 1] - cum[i]) or 1)
-        return ax + (bx - ax) * f, ay + (by - ay) * f
-    s, out = 0.0, []
-    while s <= cum[-1]:
-        out.append([at(s), at(min(s + on, cum[-1]))])
-        s += on + off
-    return out
-
-
-def mark(im, x0, y0, s, letter=True, dotted=True):
+def mark(im, x0, y0, s, letter=True):
     """The Route A mark with its 100-unit box at (x0, y0), s px per unit. letter=False skips the A
     (the card draws the A as part of the wordmark)."""
     d = ImageDraw.Draw(im)
@@ -81,18 +62,17 @@ def mark(im, x0, y0, s, letter=True, dotted=True):
     if letter:
         d.text(P(*A_AT), 'A', font=DISPLAY(round(A_SIZE * s)), fill=INK, anchor='ms')
     curve = [P(*p) for p in bezier(CURVE)]
-    for piece in (dashes(curve, 1 * s, 11 * s) if dotted else [curve]):
-        stroke(d, piece, STROKE * s, TEAL)
+    stroke(d, curve, STROKE * s, TEAL)
     stroke(d, [P(*p) for p in ARROW], STROKE * s, TEAL)
     bx, by = P(*BALL)
     d.ellipse([bx - BALL_R * s, by - BALL_R * s, bx + BALL_R * s, by + BALL_R * s], fill=ORANGE)
 
 
-def icon(out, pad=0.0, dotted=True):
+def icon(out, pad=0.0):
     """Full-bleed square icon (iOS and Android round the corners). pad keeps maskable icons inside the safe zone."""
     size = out * SS
     im = Image.new('RGB', (size, size), GRAPHITE)
-    mark(im, size * pad, size * pad, size * (1 - 2 * pad) / 100, dotted=dotted)
+    mark(im, size * pad, size * pad, size * (1 - 2 * pad) / 100)
     return im.resize((out, out), Image.LANCZOS)
 
 
