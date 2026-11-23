@@ -1,21 +1,21 @@
 {
-  "hash": "67cba49e87b01626",
-  "updated": "2026-11-23T08:15:20.013Z",
+  "hash": "62a0555d94e0d2c4",
+  "updated": "2026-11-23T20:14:32.829Z",
   "season": 2026,
   "week": 11,
   "through": "Weeks 1–10 plus 12 of 13 week 11 games",
   "sources": {
     "Sleeper": {
       "ok": true,
-      "detail": "323 projections, 527 stat rows"
+      "detail": "321 projections, 527 stat rows"
     },
     "ESPN": {
       "ok": true,
-      "detail": "316 projections"
+      "detail": "317 projections"
     },
     "Sleeper player list": {
       "ok": true,
-      "detail": "688 rosters, saved copy from 2026-11-22"
+      "detail": "685 rosters, refreshed today"
     },
     "nflverse stats": {
       "ok": true,
@@ -50,12 +50,12 @@
       "detail": "13 week 11 games, 13 with lines"
     },
     "Weather": {
-      "ok": false,
-      "detail": "fetch failed"
+      "ok": true,
+      "detail": "1 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "459 players"
+      "detail": "456 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -63,7 +63,7 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "380 projections, 192 expert rankings"
+      "detail": "382 projections, 192 expert rankings"
     },
     "Usage model (testing)": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "188 players with news, 379 of 392 stories with photos (ESPN 1647 articles scanned; ESPN 560, CBS Sports 10, Yahoo Sports 18, ProFootballTalk 19)"
+      "detail": "181 players with news, 355 of 367 stories with photos (ESPN 1648 articles scanned; ESPN 502, CBS Sports 11, Yahoo Sports 25, ProFootballTalk 21)"
     }
   }
 }
