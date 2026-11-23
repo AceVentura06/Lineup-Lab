@@ -1,6 +1,6 @@
 {
-  "hash": "62a0555d94e0d2c4",
-  "updated": "2026-11-23T20:14:32.829Z",
+  "hash": "93797e0aff59cfd4",
+  "updated": "2026-11-23T21:49:58.769Z",
   "season": 2026,
   "week": 11,
   "through": "Weeks 1–10 plus 12 of 13 week 11 games",
@@ -15,7 +15,7 @@
     },
     "Sleeper player list": {
       "ok": true,
-      "detail": "685 rosters, refreshed today"
+      "detail": "685 rosters, saved copy from 2026-11-23"
     },
     "nflverse stats": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "181 players with news, 355 of 367 stories with photos (ESPN 1648 articles scanned; ESPN 502, CBS Sports 11, Yahoo Sports 25, ProFootballTalk 21)"
+      "detail": "181 players with news, 355 of 365 stories with photos (ESPN 1647 articles scanned; ESPN 502, CBS Sports 12, Yahoo Sports 21, ProFootballTalk 22)"
     }
   }
 }
