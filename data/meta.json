@@ -1,6 +1,6 @@
 {
-  "hash": "e90e6a240f596d8c",
-  "updated": "2026-11-23T06:34:01.005Z",
+  "hash": "67cba49e87b01626",
+  "updated": "2026-11-23T08:15:20.013Z",
   "season": 2026,
   "week": 11,
   "through": "Weeks 1–10 plus 12 of 13 week 11 games",
@@ -23,11 +23,11 @@
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "111 players"
+      "detail": "117 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "46 players"
+      "detail": "49 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -67,12 +67,12 @@
     },
     "Usage model (testing)": {
       "ok": true,
-      "detail": "443 players from 3396 expected-points rows",
+      "detail": "443 players from 3421 expected-points rows",
       "hidden": true
     },
     "Player news": {
       "ok": true,
-      "detail": "188 players with news, 379 of 392 stories with photos (ESPN 1647 articles scanned; ESPN 559, CBS Sports 10, Yahoo Sports 18, ProFootballTalk 19)"
+      "detail": "188 players with news, 379 of 392 stories with photos (ESPN 1647 articles scanned; ESPN 560, CBS Sports 10, Yahoo Sports 18, ProFootballTalk 19)"
     }
   }
 }
