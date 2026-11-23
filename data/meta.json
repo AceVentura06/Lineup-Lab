@@ -1,9 +1,9 @@
 {
-  "hash": "43b048eddeebf00f",
-  "updated": "2026-11-23T02:28:30.305Z",
+  "hash": "e90e6a240f596d8c",
+  "updated": "2026-11-23T06:34:01.005Z",
   "season": 2026,
   "week": 11,
-  "through": "Weeks 1–10 plus 11 of 13 week 11 games",
+  "through": "Weeks 1–10 plus 12 of 13 week 11 games",
   "sources": {
     "Sleeper": {
       "ok": true,
@@ -19,7 +19,7 @@
     },
     "nflverse stats": {
       "ok": true,
-      "detail": "11125 player-weeks"
+      "detail": "11269 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
@@ -35,7 +35,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "10033 targets, 8369 carries"
+      "detail": "10186 targets, 8451 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -50,8 +50,8 @@
       "detail": "13 week 11 games, 13 with lines"
     },
     "Weather": {
-      "ok": true,
-      "detail": "1 outdoor games forecast"
+      "ok": false,
+      "detail": "fetch failed"
     },
     "FantasyPros consensus": {
       "ok": true,
@@ -67,12 +67,12 @@
     },
     "Usage model (testing)": {
       "ok": true,
-      "detail": "443 players from 3184 expected-points rows",
+      "detail": "443 players from 3396 expected-points rows",
       "hidden": true
     },
     "Player news": {
       "ok": true,
-      "detail": "188 players with news, 388 of 392 stories with photos (ESPN 1643 articles scanned; ESPN 560, CBS Sports 11, Yahoo Sports 20, ProFootballTalk 18)"
+      "detail": "188 players with news, 379 of 392 stories with photos (ESPN 1647 articles scanned; ESPN 559, CBS Sports 10, Yahoo Sports 18, ProFootballTalk 19)"
     }
   }
 }
