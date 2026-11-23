@@ -50,6 +50,25 @@ def bezier(p, n=400):
 def stroke(d, pts, w, fill):
     """A polyline with round caps and joins."""
     d.line(pts, fill=fill, width=round(w), joint='curve')
+    caps(d, pts, w, fill)
+
+
+def ribbon(d, pts, w, fill):
+    """A smooth curve as one filled outline with round caps. d.line leaves notches where hundreds
+    of short segments meet, so the route is drawn as a single polygon instead."""
+    left, right = [], []
+    for i, (x, y) in enumerate(pts):
+        (ax, ay), (bx, by) = pts[max(i - 1, 0)], pts[min(i + 1, len(pts) - 1)]
+        dx, dy = bx - ax, by - ay
+        n = (dx * dx + dy * dy) ** 0.5 or 1
+        nx, ny = -dy / n * w / 2, dx / n * w / 2
+        left.append((x + nx, y + ny))
+        right.append((x - nx, y - ny))
+    d.polygon(left + right[::-1], fill=fill)
+    caps(d, pts, w, fill)
+
+
+def caps(d, pts, w, fill):
     for x, y in (pts[0], pts[-1]):
         d.ellipse([x - w / 2, y - w / 2, x + w / 2, y + w / 2], fill=fill)
 
@@ -62,7 +81,7 @@ def mark(im, x0, y0, s, letter=True):
     if letter:
         d.text(P(*A_AT), 'A', font=DISPLAY(round(A_SIZE * s)), fill=INK, anchor='ms')
     curve = [P(*p) for p in bezier(CURVE)]
-    stroke(d, curve, STROKE * s, TEAL)
+    ribbon(d, curve, STROKE * s, TEAL)
     stroke(d, [P(*p) for p in ARROW], STROKE * s, TEAL)
     bx, by = P(*BALL)
     d.ellipse([bx - BALL_R * s, by - BALL_R * s, bx + BALL_R * s, by + BALL_R * s], fill=ORANGE)
