@@ -437,7 +437,6 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
    Route and ball keep their colours in both themes; the letters follow --ink. */
 .rt-a{position:relative;margin-right:.1em}   /* the extra space lets the arrowhead clear the C */
 .rt-route{position:absolute;left:.034em;top:.107em;width:1em;height:.943em;fill:none;stroke:#2BCFCE;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.rt-dot{stroke-dasharray:1 11}
 .rt-ball{position:absolute;left:-.023em;top:.892em;width:.2em;height:.2em;border-radius:50%;background:#EC4D25;pointer-events:none}
 @keyframes rt-draw{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0)}}
 @keyframes rt-pop{from{transform:scale(0)}to{transform:none}}
@@ -446,7 +445,6 @@ h3{font-style:italic;font-weight:800;font-size:var(--t-lg)}
 /* phone splash: the A draws in full screen on the first open of a visit, then fades to the page */
 .rt-splash{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:var(--bg);color:var(--ink);transition:opacity 400ms var(--ease-out)}
 .rt-splash>span{font-family:var(--f-head);font-style:italic;font-weight:900;font-stretch:125%;font-size:min(56vw,40vh);line-height:1;margin-right:-.1em}
-.rt-splash .rt-dot{stroke-dasharray:1 11}
 .rt-splash.out{opacity:0;pointer-events:none}
 .board .sub{color:#3A475C;opacity:1}
 .ctl .label{opacity:1;color:var(--muted)}
@@ -934,7 +932,6 @@ html.ll-ready .has-island>.ll-island[data-island="ball"]{min-height:0}
 @media (prefers-reduced-transparency:reduce){.topbar,:root[data-theme="dark"] .topbar{background:var(--surface);-webkit-backdrop-filter:none;backdrop-filter:none}}
 .topbar>.board{display:flex;flex-wrap:nowrap;align-items:center;justify-content:flex-start;gap:18px;height:64px;padding:0 var(--gut);background:transparent;border:0;border-radius:0;box-shadow:none;overflow:visible}
 .topbar .board .brand{font-size:var(--t-lg);flex:none;margin:0}
-.topbar .rt-dot{stroke-dasharray:none}   /* the bar sets the wordmark under 22px, where dots blur: solid route */
 .home-mark{all:unset;cursor:pointer;display:flex;align-items:center;gap:.3em;line-height:1}
 .home-mark:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
 .topbar .tabs{display:flex;flex-wrap:nowrap;gap:0;padding:0;margin:0;background:none;align-self:stretch;overflow:visible;border:0;box-shadow:none}
@@ -1477,7 +1474,7 @@ h3{font-family:var(--f-body);font-style:normal;font-weight:700;text-transform:no
 <body>
 <script>/* phone splash: shown before first paint so the page never flashes under it; the logo script below fades it */
 (function(){try{if(sessionStorage.getItem('lineuplab.v1.logo')||!matchMedia('(max-width:760px) and (prefers-reduced-motion:no-preference)').matches)return;}catch(e){return;}
-document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span class="rt-play"><span class="rt-a">A<svg class="rt-route" viewBox="15 24 70 66"><path class="rt-dot" d="M18 86C40 84 62 70 76 34"/><path d="M68 38 77 28 82 41"/></svg><i class="rt-ball"></i></span></span></div>');})();</script>
+document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span class="rt-play"><span class="rt-a">A<svg class="rt-route" viewBox="15 24 70 66"><path d="M18 86C40 84 62 70 76 34"/><path d="M67.9 35.8 78.3 28 80.7 40.8"/></svg><i class="rt-ball"></i></span></span></div>');})();</script>
 
 <a class="skip" href="#main" id="skipLink">Skip to content</a>
 <section class="card consent" id="consent" aria-labelledby="consentH" hidden>
@@ -1488,7 +1485,7 @@ document.write('<div class="rt-splash" id="rtSplash" aria-hidden="true"><span cl
 <div class="wrap">
   <div class="topbar" id="topbar">
   <header class="board">
-    <div class="brand"><button type="button" class="home-mark" data-go="home" aria-label="Ace Lineup Lab home" translate="no"><span><span class="rt-a">A<svg class="rt-route" viewBox="15 24 70 66" aria-hidden="true"><path class="rt-dot" d="M18 86C40 84 62 70 76 34"/><path d="M68 38 77 28 82 41"/></svg><i class="rt-ball" aria-hidden="true"></i></span>CE</span><span class="hm-word">LINEUP LAB</span></button></div>
+    <div class="brand"><button type="button" class="home-mark" data-go="home" aria-label="Ace Lineup Lab home" translate="no"><span><span class="rt-a">A<svg class="rt-route" viewBox="15 24 70 66" aria-hidden="true"><path d="M18 86C40 84 62 70 76 34"/><path d="M67.9 35.8 78.3 28 80.7 40.8"/></svg><i class="rt-ball" aria-hidden="true"></i></span>CE</span><span class="hm-word">LINEUP LAB</span></button></div>
     <nav class="tabs" role="tablist" aria-label="Sections">
       <button role="tab" data-tab="home" id="t-home" hidden>Home</button>
       <button role="tab" data-tab="sites" id="t-sites">Projections</button>
