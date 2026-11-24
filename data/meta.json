@@ -1,17 +1,17 @@
 {
-  "hash": "bca0454490cae89b",
-  "updated": "2026-11-24T04:47:55.554Z",
+  "hash": "bfc0dfa42ee90cab",
+  "updated": "2026-11-24T15:51:41.117Z",
   "season": 2026,
-  "week": 11,
+  "week": 12,
   "through": "Weeks 1–11",
   "sources": {
     "Sleeper": {
       "ok": true,
-      "detail": "320 projections, 528 stat rows"
+      "detail": "413 projections, 528 stat rows"
     },
     "ESPN": {
       "ok": true,
-      "detail": "317 projections"
+      "detail": "398 projections"
     },
     "Sleeper player list": {
       "ok": true,
@@ -19,15 +19,15 @@
     },
     "nflverse stats": {
       "ok": true,
-      "detail": "11269 player-weeks"
+      "detail": "11339 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "117 players"
+      "detail": "118 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "49 players"
+      "detail": "50 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -35,27 +35,27 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "10186 targets, 8451 carries"
+      "detail": "10258 targets, 8490 carries"
     },
     "FTN charting": {
       "ok": true,
-      "detail": "25552 charted plays"
+      "detail": "27396 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "313 entries for week 11"
+      "detail": "no week 12 report yet (comes out Wednesday)"
     },
     "Betting lines": {
       "ok": true,
-      "detail": "13 week 11 games, 13 with lines"
+      "detail": "16 week 12 games, 16 with lines"
     },
     "Weather": {
       "ok": true,
-      "detail": "0 outdoor games forecast"
+      "detail": "8 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "453 players"
+      "detail": "453 players (last week's rankings; this week's not posted yet)"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -63,16 +63,16 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "381 projections, 192 expert rankings"
+      "detail": "429 projections, 192 expert rankings"
     },
     "Usage model (testing)": {
       "ok": true,
-      "detail": "443 players from 3421 expected-points rows",
+      "detail": "546 players from 3421 expected-points rows",
       "hidden": true
     },
     "Player news": {
       "ok": true,
-      "detail": "185 players with news, 366 of 372 stories with photos (ESPN 1645 articles scanned; ESPN 519, CBS Sports 11, Yahoo Sports 11, ProFootballTalk 13)"
+      "detail": "181 players with news, 366 of 370 stories with photos (ESPN 1646 articles scanned; ESPN 506, CBS Sports 13, Yahoo Sports 10, ProFootballTalk 14)"
     }
   }
 }
