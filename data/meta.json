@@ -1,13 +1,13 @@
 {
-  "hash": "558a3b4c1cfabd67",
-  "updated": "2026-11-26T02:12:37.291Z",
+  "hash": "abfdb379027188b8",
+  "updated": "2026-11-26T10:50:54.548Z",
   "season": 2026,
   "week": 12,
-  "through": "Weeks 1–11",
+  "through": "Weeks 1–11 plus 1 of 16 week 12 games",
   "sources": {
     "Sleeper": {
       "ok": true,
-      "detail": "414 projections, 528 stat rows"
+      "detail": "413 projections, 528 stat rows"
     },
     "ESPN": {
       "ok": true,
@@ -19,15 +19,15 @@
     },
     "nflverse stats": {
       "ok": true,
-      "detail": "11339 player-weeks"
+      "detail": "11404 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
-      "detail": "115 players"
+      "detail": "116 players"
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "45 players"
+      "detail": "46 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -35,7 +35,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "10258 targets, 8490 carries"
+      "detail": "10308 targets, 8551 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "104 entries for week 12"
+      "detail": "256 entries for week 12"
     },
     "Betting lines": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "528 players"
+      "detail": "563 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "168 players with news, 323 of 331 stories with photos (ESPN 1644 articles scanned; ESPN 438, CBS Sports 20, Yahoo Sports 31, ProFootballTalk 24)"
+      "detail": "168 players with news, 321 of 329 stories with photos (ESPN 1640 articles scanned; ESPN 435, CBS Sports 20, Yahoo Sports 28, ProFootballTalk 24)"
     }
   }
 }
