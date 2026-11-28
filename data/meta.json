@@ -1,21 +1,21 @@
 {
-  "hash": "393f890a0f976abd",
-  "updated": "2026-11-27T21:13:23.223Z",
+  "hash": "152759c0f3e876c7",
+  "updated": "2026-11-28T03:19:12.130Z",
   "season": 2026,
   "week": 12,
-  "through": "Weeks 1–11 plus 4 of 16 week 12 games",
+  "through": "Weeks 1–11 plus 5 of 16 week 12 games",
   "sources": {
     "Sleeper": {
       "ok": true,
-      "detail": "405 projections, 530 stat rows"
+      "detail": "402 projections, 531 stat rows"
     },
     "ESPN": {
       "ok": true,
-      "detail": "398 projections"
+      "detail": "394 projections"
     },
     "Sleeper player list": {
       "ok": true,
-      "detail": "687 rosters, refreshed today"
+      "detail": "687 rosters, saved copy from 2026-11-27"
     },
     "nflverse stats": {
       "ok": true,
@@ -27,7 +27,7 @@
     },
     "Next Gen Stats rushing": {
       "ok": true,
-      "detail": "46 players"
+      "detail": "47 players"
     },
     "Next Gen Stats passing": {
       "ok": true,
@@ -35,7 +35,7 @@
     },
     "Play-by-play": {
       "ok": true,
-      "detail": "10494 targets, 8723 carries"
+      "detail": "10547 targets, 8780 carries"
     },
     "FTN charting": {
       "ok": true,
@@ -51,11 +51,11 @@
     },
     "Weather": {
       "ok": true,
-      "detail": "7 outdoor games forecast"
+      "detail": "6 outdoor games forecast"
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "566 players"
+      "detail": "551 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -63,7 +63,7 @@
     },
     "CBS Sports": {
       "ok": true,
-      "detail": "428 projections, 192 expert rankings"
+      "detail": "427 projections, 192 expert rankings"
     },
     "Usage model (testing)": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "182 players with news, 360 of 371 stories with photos (ESPN 1642 articles scanned; ESPN 507, CBS Sports 21, Yahoo Sports 33, ProFootballTalk 26)"
+      "detail": "181 players with news, 363 of 372 stories with photos (ESPN 1642 articles scanned; ESPN 516, CBS Sports 30, Yahoo Sports 40, ProFootballTalk 29)"
     }
   }
 }
