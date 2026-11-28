@@ -1,21 +1,21 @@
 {
-  "hash": "c63c04c7656160b7",
-  "updated": "2026-11-28T12:22:17.585Z",
+  "hash": "623ed6283ef6bfd0",
+  "updated": "2026-11-28T20:35:02.227Z",
   "season": 2026,
   "week": 12,
   "through": "Weeks 1–11 plus 5 of 16 week 12 games",
   "sources": {
     "Sleeper": {
       "ok": true,
-      "detail": "402 projections, 531 stat rows"
+      "detail": "400 projections, 531 stat rows"
     },
     "ESPN": {
       "ok": true,
-      "detail": "394 projections"
+      "detail": "393 projections"
     },
     "Sleeper player list": {
       "ok": true,
-      "detail": "687 rosters, saved copy from 2026-11-27"
+      "detail": "685 rosters, refreshed today"
     },
     "nflverse stats": {
       "ok": true,
@@ -39,7 +39,7 @@
     },
     "FTN charting": {
       "ok": true,
-      "detail": "27562 charted plays"
+      "detail": "28249 charted plays"
     },
     "NFL injury reports": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "180 players with news, 357 of 369 stories with photos (ESPN 1643 articles scanned; ESPN 511, CBS Sports 30, Yahoo Sports 28, ProFootballTalk 29)"
+      "detail": "181 players with news, 360 of 369 stories with photos (ESPN 1643 articles scanned; ESPN 514, CBS Sports 33, Yahoo Sports 24, ProFootballTalk 24)"
     }
   }
 }
