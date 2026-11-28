@@ -1,6 +1,6 @@
 {
-  "hash": "152759c0f3e876c7",
-  "updated": "2026-11-28T03:19:12.130Z",
+  "hash": "c63c04c7656160b7",
+  "updated": "2026-11-28T12:22:17.585Z",
   "season": 2026,
   "week": 12,
   "through": "Weeks 1–11 plus 5 of 16 week 12 games",
@@ -19,7 +19,7 @@
     },
     "nflverse stats": {
       "ok": true,
-      "detail": "11612 player-weeks"
+      "detail": "11684 player-weeks"
     },
     "Next Gen Stats receiving": {
       "ok": true,
@@ -43,7 +43,7 @@
     },
     "NFL injury reports": {
       "ok": true,
-      "detail": "343 entries for week 12"
+      "detail": "352 entries for week 12"
     },
     "Betting lines": {
       "ok": true,
@@ -55,7 +55,7 @@
     },
     "FantasyPros consensus": {
       "ok": true,
-      "detail": "551 players"
+      "detail": "542 players"
     },
     "FantasyPros rest of season": {
       "ok": true,
@@ -72,7 +72,7 @@
     },
     "Player news": {
       "ok": true,
-      "detail": "181 players with news, 363 of 372 stories with photos (ESPN 1642 articles scanned; ESPN 516, CBS Sports 30, Yahoo Sports 40, ProFootballTalk 29)"
+      "detail": "180 players with news, 357 of 369 stories with photos (ESPN 1643 articles scanned; ESPN 511, CBS Sports 30, Yahoo Sports 28, ProFootballTalk 29)"
     }
   }
 }
